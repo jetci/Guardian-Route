@@ -6,6 +6,7 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { VillagesModule } from './villages/villages.module';
+import { IncidentsModule } from './incidents/incidents.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { VillagesModule } from './villages/villages.module';
     AuthModule,
     UsersModule,
     VillagesModule,
+    IncidentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
