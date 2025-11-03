@@ -1,0 +1,253 @@
+// This is your Prisma schema file for Guardian Route Dashboard
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+// ========================================
+// ENUMS
+// ========================================
+
+enum Role {
+  FIELD_OFFICER
+  SUPERVISOR
+  EXECUTIVE
+  ADMIN
+}
+
+enum IncidentStatus {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ReportStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  REVISION_REQUIRED
+  APPROVED
+  REJECTED
+}
+
+enum DisasterType {
+  FLOOD
+  LANDSLIDE
+  FIRE
+  STORM
+  EARTHQUAKE
+  OTHER
+}
+
+// ========================================
+// MODELS
+// ========================================
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String   // bcrypt hashed
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
+  phone     String?
+  role      Role     @default(FIELD_OFFICER)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  createdIncidents Incident[]    @relation("CreatedBy")
+  assignedTasks    Task[]        @relation("AssignedTo")
+  reports          Report[]      @relation("ReportAuthor")
+  reviewedReports  Report[]      @relation("ReviewedBy")
+  activityLogs     ActivityLog[]
+
+  @@map("users")
+}
+
+model Incident {
+  id          String         @id @default(uuid())
+  title       String
+  description String?
+  status      IncidentStatus @default(PENDING)
+  priority    Priority       @default(MEDIUM)
+
+  // GeoJSON Point - stored as JSON
+  location Json // { type: "Point", coordinates: [lng, lat] }
+  address  String?
+  village  String? // ชื่อหมู่บ้าน
+
+  disasterType DisasterType
+
+  reportedAt DateTime  @default(now()) @map("reported_at")
+  resolvedAt DateTime? @map("resolved_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  // Foreign Keys
+  createdById String @map("created_by_id")
+
+  // Relations
+  createdBy User     @relation("CreatedBy", fields: [createdById], references: [id])
+  tasks     Task[]
+  surveys   Survey[]
+  reports   Report[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([disasterType])
+  @@index([createdAt])
+  @@map("incidents")
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  status      TaskStatus @default(PENDING)
+  dueDate     DateTime?  @map("due_date")
+  completedAt DateTime?  @map("completed_at")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  // Foreign Keys
+  incidentId   String @map("incident_id")
+  assignedToId String @map("assigned_to_id")
+
+  // Relations
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  assignedTo User     @relation("AssignedTo", fields: [assignedToId], references: [id])
+
+  @@index([status])
+  @@index([assignedToId])
+  @@index([incidentId])
+  @@map("tasks")
+}
+
+model Survey {
+  id String @id @default(uuid())
+
+  // GeoJSON Polygon - affected area
+  affectedArea Json @map("affected_area") // { type: "Polygon", coordinates: [...] }
+
+  // Survey metadata
+  estimatedDamage String? @map("estimated_damage")
+  affectedHouses  Int?    @map("affected_houses")
+  affectedPeople  Int?    @map("affected_people")
+  notes           String?
+
+  // Photos
+  photoUrls String[] @map("photo_urls")
+
+  surveyedAt DateTime @default(now()) @map("surveyed_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Foreign Keys
+  incidentId String @map("incident_id")
+
+  // Relations
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([incidentId])
+  @@map("surveys")
+}
+
+model Report {
+  id     String       @id @default(uuid())
+  status ReportStatus @default(DRAFT)
+
+  // Report content
+  title   String
+  summary String?
+  details Json? // Structured report data
+
+  // Damage assessment
+  totalDamageEstimate Decimal? @map("total_damage_estimate") @db.Decimal(15, 2)
+  affectedHouseholds  Int?     @map("affected_households")
+  affectedPersons     Int?     @map("affected_persons")
+
+  // AI Analysis
+  aiAnalysis Json? @map("ai_analysis") // Gemini API results
+
+  // Photos
+  photoUrls String[] @map("photo_urls")
+
+  // Review
+  reviewNotes String?   @map("review_notes")
+  reviewedAt  DateTime? @map("reviewed_at")
+
+  submittedAt DateTime? @map("submitted_at")
+  approvedAt  DateTime? @map("approved_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Foreign Keys
+  incidentId   String  @map("incident_id")
+  authorId     String  @map("author_id")
+  reviewedById String? @map("reviewed_by_id")
+
+  // Relations
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  author     User     @relation("ReportAuthor", fields: [authorId], references: [id])
+  reviewedBy User?    @relation("ReviewedBy", fields: [reviewedById], references: [id])
+
+  @@index([status])
+  @@index([authorId])
+  @@index([incidentId])
+  @@map("reports")
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  action    String   // "LOGIN", "CREATE_INCIDENT", "APPROVE_REPORT", etc.
+  entity    String?  // "User", "Incident", "Report"
+  entityId  String?  @map("entity_id")
+  details   Json?    // Additional context
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Foreign Keys
+  userId String @map("user_id")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+
+// System configuration and settings
+model SystemConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_config")
+}
