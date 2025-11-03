@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { VillagesModule } from './villages/villages.module';
 import { IncidentsModule } from './incidents/incidents.module';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { IncidentsModule } from './incidents/incidents.module';
     UsersModule,
     VillagesModule,
     IncidentsModule,
+    TasksModule,
   ],
   controllers: [AppController],
   providers: [AppService],

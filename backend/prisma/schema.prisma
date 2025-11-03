@@ -80,6 +80,7 @@ model User {
   // Relations
   createdIncidents Incident[]    @relation("CreatedBy")
   assignedTasks    Task[]        @relation("AssignedTo")
+  createdTasks     Task[]        @relation("TaskCreator")
   reports          Report[]      @relation("ReportAuthor")
   reviewedReports  Report[]      @relation("ReviewedBy")
   activityLogs     ActivityLog[]
@@ -157,28 +158,40 @@ model Incident {
   @@map("incidents")
 }
 
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
 model Task {
-  id          String     @id @default(uuid())
+  id          String       @id @default(uuid())
   title       String
   description String?
-  status      TaskStatus @default(PENDING)
-  dueDate     DateTime?  @map("due_date")
-  completedAt DateTime?  @map("completed_at")
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
+  status      TaskStatus   @default(PENDING)
+  priority    TaskPriority @default(MEDIUM)
+  dueDate     DateTime?    @map("due_date")
+  completedAt DateTime?    @map("completed_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
 
   // Foreign Keys
   incidentId   String  @map("incident_id")
-  assignedToId String  @map("assigned_to_id")
+  assignedToId String? @map("assigned_to_id")
+  createdById  String  @map("created_by_id")
   villageId    String? @map("village_id")
 
   // Relations
   incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  assignedTo User     @relation("AssignedTo", fields: [assignedToId], references: [id])
+  assignedTo User?    @relation("AssignedTo", fields: [assignedToId], references: [id])
+  createdBy  User     @relation("TaskCreator", fields: [createdById], references: [id])
   village    Village? @relation(fields: [villageId], references: [id])
 
   @@index([status])
+  @@index([priority])
   @@index([assignedToId])
+  @@index([createdById])
   @@index([incidentId])
   @@index([villageId])
   @@map("tasks")

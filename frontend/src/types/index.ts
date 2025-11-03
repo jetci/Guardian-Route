@@ -118,3 +118,55 @@ export interface UpdateIncidentDto extends Partial<CreateIncidentDto> {
   status?: IncidentStatus;
   resolvedAt?: string;
 }
+
+export enum TaskStatus {
+  PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum TaskPriority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  URGENT = 'URGENT',
+}
+
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  dueDate?: string;
+  completedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+  incidentId: string;
+  assignedToId?: string;
+  createdById: string;
+  villageId?: string;
+  incident?: {
+    id: string;
+    title: string;
+    status: string;
+    disasterType: string;
+  };
+  assignedTo?: User;
+  createdBy?: User;
+  village?: Village;
+}
+
+export interface CreateTaskDto {
+  title: string;
+  description?: string;
+  priority: TaskPriority;
+  incidentId: string;
+  assignedToId?: string;
+  dueDate?: string;
+}
+
+export interface UpdateTaskDto extends Partial<CreateTaskDto> {
+  status?: TaskStatus;
+}
