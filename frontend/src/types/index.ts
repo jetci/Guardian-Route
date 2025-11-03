@@ -89,6 +89,7 @@ export interface Incident {
   priority: Priority;
   location: GeoJSONPoint;
   address?: string;
+  images?: string[];
   villageId?: string;
   disasterType: DisasterType;
   reportedAt: string;
@@ -111,6 +112,7 @@ export interface CreateIncidentDto {
   priority?: Priority;
   location: GeoJSONPoint;
   address?: string;
+  images?: string[];
   villageId?: string;
 }
 

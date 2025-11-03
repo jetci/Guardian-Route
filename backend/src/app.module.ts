@@ -8,6 +8,7 @@ import { UsersModule } from './users/users.module';
 import { VillagesModule } from './villages/villages.module';
 import { IncidentsModule } from './incidents/incidents.module';
 import { TasksModule } from './tasks/tasks.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { TasksModule } from './tasks/tasks.module';
     VillagesModule,
     IncidentsModule,
     TasksModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

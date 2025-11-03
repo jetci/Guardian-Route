@@ -226,6 +226,27 @@ export const IncidentsList = () => {
                       <div>รายงาน: {incident._count.reports}</div>
                     </div>
                   )}
+
+                  {/* Images Preview */}
+                  {incident.images && incident.images.length > 0 && (
+                    <div className="mt-3">
+                      <div className="flex gap-2 overflow-x-auto">
+                        {incident.images.slice(0, 3).map((url, idx) => (
+                          <img
+                            key={idx}
+                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${url}`}
+                            alt={`Image ${idx + 1}`}
+                            className="w-20 h-20 object-cover rounded border"
+                          />
+                        ))}
+                        {incident.images.length > 3 && (
+                          <div className="w-20 h-20 flex items-center justify-center bg-gray-100 rounded border text-sm text-gray-600">
+                            +{incident.images.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-2 ml-4">

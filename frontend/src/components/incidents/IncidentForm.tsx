@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { incidentsApi } from '../../api/incidents';
+import { ImageUpload } from '../upload/ImageUpload';
+import { ImageGallery } from '../upload/ImageGallery';
 import toast from 'react-hot-toast';
 import type { DisasterType, Priority } from '../../types';
 
@@ -26,6 +28,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
     }
   });
   const [loading, setLoading] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   const onSubmit = async (data: IncidentFormData) => {
     setLoading(true);
@@ -41,6 +44,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
           coordinates: [data.longitude, data.latitude]
         },
         address: data.address,
+        images: uploadedImages,
       });
       
       toast.success('สร้างเหตุการณ์สำเร็จ!');
@@ -193,6 +197,27 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="เช่น 123 หมู่ 1 บ้านหนองตุ้ม"
         />
+      </div>
+
+      {/* Image Upload */}
+      <div className="border-t pt-6">
+        <h3 className="text-lg font-semibold mb-4">รูปภาพประกอบ</h3>
+        
+        <ImageUpload 
+          onUploadSuccess={(url) => setUploadedImages(prev => [...prev, url])}
+        />
+        
+        {uploadedImages.length > 0 && (
+          <div className="mt-4">
+            <p className="text-sm text-gray-600 mb-2">
+              รูปภาพที่อัปโหลดแล้ว ({uploadedImages.length})
+            </p>
+            <ImageGallery 
+              images={uploadedImages}
+              onRemove={(url) => setUploadedImages(prev => prev.filter(img => img !== url))}
+            />
+          </div>
+        )}
       </div>
 
       {/* Submit */}

@@ -130,6 +130,9 @@ model Incident {
   location Json // { type: "Point", coordinates: [lng, lat] }
   address  String?
   
+  // Images (array of URLs)
+  images String[] @default([])
+  
   // Village relation (แทน village String?)
   villageId String? @map("village_id")
 

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsObject, IsUUID } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsOptional, IsObject, IsUUID, IsArray } from 'class-validator';
 import { DisasterType, Priority } from '@prisma/client';
 
 export class CreateIncidentDto {
@@ -51,4 +51,14 @@ export class CreateIncidentDto {
   @IsUUID()
   @IsOptional()
   villageId?: string;
+
+  @ApiProperty({ 
+    example: ['/uploads/image1.webp', '/uploads/image2.webp'],
+    description: 'Array of image URLs',
+    required: false 
+  })
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  images?: string[];
 }
