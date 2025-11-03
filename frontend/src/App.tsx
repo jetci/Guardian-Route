@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SupervisorDashboard } from './pages/supervisor/SupervisorDashboard';
+import { MapView } from './pages/supervisor/MapView';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -24,6 +25,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <SupervisorDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/map"
+            element={
+              <ProtectedRoute>
+                <MapView />
               </ProtectedRoute>
             }
           />
