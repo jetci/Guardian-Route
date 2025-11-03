@@ -94,7 +94,7 @@ export class IncidentsService {
         },
         surveys: {
           orderBy: {
-            surveyedAt: 'desc',
+            completedAt: 'desc',
           },
         },
         reports: {

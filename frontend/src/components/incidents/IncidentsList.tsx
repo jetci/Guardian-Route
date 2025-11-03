@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { incidentsApi } from '../../api/incidents';
 import type { Incident, IncidentStatus, Priority, DisasterType } from '../../types';
+import IncidentDetailsModal from './IncidentDetailsModal';
 import toast from 'react-hot-toast';
 
-export const IncidentsList = () => {
+export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
+  const [listRefreshKey, setListRefreshKey] = useState(0);
   const [filters, setFilters] = useState({
     status: '' as IncidentStatus | '',
     priority: '' as Priority | '',
@@ -13,10 +16,10 @@ export const IncidentsList = () => {
   });
 
   useEffect(() => {
-    loadIncidents();
-  }, [filters]);
+    loadIncidents(listRefreshKey);
+  }, [filters, refreshKey, listRefreshKey]);
 
-  const loadIncidents = async () => {
+  const loadIncidents = async (key: number = 0) => {
     setLoading(true);
     try {
       const data = await incidentsApi.getAll({
@@ -31,6 +34,10 @@ export const IncidentsList = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleIncidentUpdate = () => {
+    setListRefreshKey(prev => prev + 1);
   };
 
   const getStatusBadge = (status: IncidentStatus) => {
@@ -106,6 +113,12 @@ export const IncidentsList = () => {
 
   return (
     <div className="space-y-4">
+      <IncidentDetailsModal
+        incidentId={selectedIncidentId}
+        isOpen={!!selectedIncidentId}
+        onClose={() => setSelectedIncidentId(null)}
+        onUpdate={handleIncidentUpdate}
+      />
       {/* Filters */}
       <div className="bg-white rounded-lg shadow p-4">
         <h3 className="text-lg font-semibold mb-3">ตัวกรอง</h3>
@@ -252,10 +265,7 @@ export const IncidentsList = () => {
                 <div className="flex gap-2 ml-4">
                   <button
                     className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"
-                    onClick={() => {
-                      // TODO: Navigate to detail page
-                      toast.success('Detail page coming soon!');
-                    }}
+                    onClick={() => setSelectedIncidentId(incident.id)}
                   >
                     ดูรายละเอียด
                   </button>

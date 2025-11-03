@@ -3,6 +3,8 @@ import { useForm } from 'react-hook-form';
 import { incidentsApi } from '../../api/incidents';
 import { ImageUpload } from '../upload/ImageUpload';
 import { ImageGallery } from '../upload/ImageGallery';
+import { apiClient } from '../../api/client';
+import { SurveyTemplate } from '../../types/Survey';
 import toast from 'react-hot-toast';
 import type { DisasterType, Priority } from '../../types';
 
@@ -15,6 +17,7 @@ interface IncidentFormData {
   latitude: number;
   longitude: number;
   address?: string;
+  surveyTemplateId?: string; // New field for optional initial survey
 }
 
 interface IncidentFormProps {
@@ -25,15 +28,29 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
   const { register, handleSubmit, formState: { errors } } = useForm<IncidentFormData>({
     defaultValues: {
       priority: 'MEDIUM' as Priority,
+      surveyTemplateId: '', // Default to no survey
     }
   });
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [surveyTemplates, setSurveyTemplates] = useState<SurveyTemplate[]>([]);
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const response = await apiClient.get<SurveyTemplate[]>('/survey-templates');
+        setSurveyTemplates(response.data.filter(t => t.isActive));
+      } catch (error) {
+        console.error('Failed to fetch survey templates:', error);
+      }
+    };
+    fetchTemplates();
+  }, []);
 
   const onSubmit = async (data: IncidentFormData) => {
     setLoading(true);
     try {
-      await incidentsApi.create({
+      const newIncident = await incidentsApi.create({
         title: data.title,
         description: data.description,
         disasterType: data.disasterType,
@@ -46,6 +63,16 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
         address: data.address,
         images: uploadedImages,
       });
+
+      if (data.surveyTemplateId) {
+        await apiClient.post('/surveys', {
+          templateId: data.surveyTemplateId,
+          incidentId: newIncident.id,
+          villageId: data.villageId, // Pass villageId if available
+          // polygon: GeoJSON for survey area can be added here if needed
+        });
+        toast.success('สร้างแบบสำรวจเริ่มต้นสำเร็จ!');
+      }
       
       toast.success('สร้างเหตุการณ์สำเร็จ!');
       onSuccess?.();
@@ -129,19 +156,37 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
         </div>
       </div>
 
-      {/* Village */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          หมู่บ้าน
-        </label>
-        <select
-          {...register('villageId')}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">เลือกหมู่บ้าน (ถ้ามี)</option>
-          {/* VillageSelector will be integrated later */}
-        </select>
-      </div>
+	      {/* Village */}
+	      <div>
+	        <label className="block text-sm font-medium text-gray-700 mb-1">
+	          หมู่บ้าน
+	        </label>
+	        <select
+	          {...register('villageId')}
+	          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+	        >
+	          <option value="">เลือกหมู่บ้าน (ถ้ามี)</option>
+	          {/* VillageSelector will be integrated later */}
+	        </select>
+	      </div>
+
+	      {/* Initial Survey Template */}
+	      <div>
+	        <label className="block text-sm font-medium text-gray-700 mb-1">
+	          แบบสำรวจเริ่มต้น (ไม่บังคับ)
+	        </label>
+	        <select
+	          {...register('surveyTemplateId')}
+	          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+	        >
+	          <option value="">ไม่สร้างแบบสำรวจ</option>
+	          {surveyTemplates.map(template => (
+	            <option key={template.id} value={template.id}>
+	              {template.name}
+	            </option>
+	          ))}
+	        </select>
+	      </div>
 
       {/* Location */}
       <div className="grid grid-cols-2 gap-4">

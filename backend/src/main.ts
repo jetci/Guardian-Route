@@ -1,21 +1,18 @@
+
 import { NestFactory } from '@nestjs/core';
+import { Response } from 'express';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // Serve static files from uploads directory
-  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
-    prefix: '/uploads/',
-  });
-
-  // Enable CORS
+  // CORS
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
     credentials: true,
   });
 
@@ -31,25 +28,41 @@ async function bootstrap() {
     }),
   );
 
-  // Swagger documentation
+  // Static files (uploads)
+  app.useStaticAssets(join(__dirname, '..', 'uploads'), {
+    prefix: '/uploads/',
+  });
+
+  // Swagger
   const config = new DocumentBuilder()
     .setTitle('Guardian Route API')
-    .setDescription('Guardian Route Dashboard API Documentation')
+    .setDescription('API for Guardian Route Dashboard')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
-
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  const port = process.env.PORT || 3001;
-  await app.listen(port);
+  // Health check endpoint - ADD THIS!
+  app.getHttpAdapter().get('/api/health', (req, res: Response) => {
+    res.json({ 
+      status: 'ok', 
+      timestamp: new Date().toISOString(),
+      port: process.env.PORT || 3001,
+    });
+  });
 
-  console.log(`\n🚀 Guardian Route Backend is running!`);
-  console.log(`📍 Server: http://localhost:${port}`);
-  console.log(`📚 API Documentation: http://localhost:${port}/api/docs`);
-  console.log(`📁 Static Files: http://localhost:${port}/uploads/`);
-  console.log(`✅ Database: Connected\n`);
+  // Start server
+  const port = process.env.PORT || 3001; // Default to 3001
+  await app.listen(port);
+  
+  console.log('');
+  console.log('='.repeat(60));
+  console.log(`🚀 Guardian Route API is running on: http://localhost:${port}`);
+  console.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
+  console.log(`💚 Health check: http://localhost:${port}/api/health`);
+  console.log('='.repeat(60));
+  console.log('');
 }
 
 bootstrap();

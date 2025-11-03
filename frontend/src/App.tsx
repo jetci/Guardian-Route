@@ -5,6 +5,9 @@ import { DashboardPage } from './pages/DashboardPage';
 import { SupervisorDashboard } from './pages/supervisor/SupervisorDashboard';
 import { MapView } from './pages/supervisor/MapView';
 import { TasksPage } from './pages/supervisor/TasksPage';
+import SurveyTemplateList from './pages/supervisor/SurveyTemplateList';
+import SurveyFormBuilder from './pages/supervisor/SurveyFormBuilder';
+import SurveyResponseForm from './pages/field_officer/SurveyResponseForm';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -42,6 +45,38 @@ function App() {
             element={
               <ProtectedRoute>
                 <TasksPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/supervisor/survey-templates"
+            element={
+              <ProtectedRoute>
+                <SurveyTemplateList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/supervisor/survey-templates/new"
+            element={
+              <ProtectedRoute>
+                <SurveyFormBuilder />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/supervisor/survey-templates/edit/:id"
+            element={
+              <ProtectedRoute>
+                <SurveyFormBuilder />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/survey/:surveyId/respond"
+            element={
+              <ProtectedRoute>
+                <SurveyResponseForm />
               </ProtectedRoute>
             }
           />

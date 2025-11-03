@@ -84,6 +84,8 @@ model User {
   reports          Report[]      @relation("ReportAuthor")
   reviewedReports  Report[]      @relation("ReviewedBy")
   activityLogs     ActivityLog[]
+  createdSurveys   Survey[]      @relation("CreatedSurveys")
+  submittedResponses SurveyResponse[] @relation("SubmittedResponses")
 
   @@map("users")
 }
@@ -168,6 +170,13 @@ enum TaskPriority {
   URGENT
 }
 
+enum SurveyStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
 model Task {
   id          String       @id @default(uuid())
   title       String
@@ -200,36 +209,60 @@ model Task {
   @@map("tasks")
 }
 
+model SurveyTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  fields      Json     // Dynamic field definitions
+  isActive    Boolean  @default(true)
+
+  surveys     Survey[]
+
+  @@map("survey_templates")
+}
+
 model Survey {
-  id String @id @default(uuid())
-
-  // GeoJSON Polygon - affected area
-  affectedArea Json @map("affected_area") // { type: "Polygon", coordinates: [...] }
-
-  // Survey metadata
-  estimatedDamage String? @map("estimated_damage")
-  affectedHouses  Int?    @map("affected_houses")
-  affectedPeople  Int?    @map("affected_people")
-  notes           String?
-
-  // Photos
-  photoUrls String[] @map("photo_urls")
-
-  surveyedAt DateTime @default(now()) @map("surveyed_at")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id          String   @id @default(uuid())
+  incidentId  String?  @map("incident_id")
+  villageId   String?  @map("village_id")
+  templateId  String   @map("template_id")
+  status      SurveyStatus @default(PENDING)
+  completedAt DateTime? @map("completed_at")
+  polygon     Json?     // GeoJSON for survey area (optional)
 
   // Foreign Keys
-  incidentId String  @map("incident_id")
-  villageId  String? @map("village_id")
+  createdById String @map("created_by_id")
 
   // Relations
-  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  village  Village? @relation(fields: [villageId], references: [id])
+  incident    Incident? @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  village     Village? @relation(fields: [villageId], references: [id])
+  template    SurveyTemplate @relation(fields: [templateId], references: [id])
+  responses   SurveyResponse[]
+  createdBy   User @relation("CreatedSurveys", fields: [createdById], references: [id])
 
   @@index([incidentId])
   @@index([villageId])
+  @@index([templateId])
+  @@index([createdById])
   @@map("surveys")
+}
+
+model SurveyResponse {
+  id          String   @id @default(uuid())
+  surveyId    String   @map("survey_id")
+  data        Json     // Actual survey response data (key-value pairs)
+  submittedAt DateTime @default(now()) @map("submitted_at")
+
+  // Foreign Keys
+  submittedById String @map("submitted_by_id")
+
+  // Relations
+  survey      Survey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  submittedBy User @relation("SubmittedResponses", fields: [submittedById], references: [id])
+
+  @@index([surveyId])
+  @@index([submittedById])
+  @@map("survey_responses")
 }
 
 model Report {
