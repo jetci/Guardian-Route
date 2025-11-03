@@ -87,6 +87,37 @@ model User {
   @@map("users")
 }
 
+model Village {
+  id          String  @id @default(uuid())
+  villageNo   Int     @unique @map("village_no") // หมู่ที่ 1-20
+  name        String  // ชื่อหมู่บ้าน เช่น "หนองตุ้ม"
+  alternateNames String[] @map("alternate_names") // ชื่อเรียกอื่น เช่น ["เวียงสุทโธ"] สำหรับหมู่ 3
+  
+  // GeoJSON Point - ตำแหน่งศูนย์กลางหมู่บ้าน
+  centerPoint Json? @map("center_point") // { type: "Point", coordinates: [lng, lat] }
+  
+  // GeoJSON Polygon - ขอบเขตหมู่บ้าน (optional)
+  boundary Json? // { type: "Polygon", coordinates: [...] }
+  
+  // Statistics
+  households Int? // จำนวนครัวเรือน
+  population Int? // จำนวนประชากร
+  area       Decimal? @db.Decimal(10, 2) // พื้นที่ (ตร.กม.)
+  
+  description String? // รายละเอียดเพิ่มเติม
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  // Relations
+  incidents Incident[]
+  tasks     Task[]
+  surveys   Survey[]
+  
+  @@index([villageNo])
+  @@map("villages")
+}
+
 model Incident {
   id          String         @id @default(uuid())
   title       String
@@ -97,7 +128,9 @@ model Incident {
   // GeoJSON Point - stored as JSON
   location Json // { type: "Point", coordinates: [lng, lat] }
   address  String?
-  village  String? // ชื่อหมู่บ้าน
+  
+  // Village relation (แทน village String?)
+  villageId String? @map("village_id")
 
   disasterType DisasterType
 
@@ -111,6 +144,7 @@ model Incident {
 
   // Relations
   createdBy User     @relation("CreatedBy", fields: [createdById], references: [id])
+  village   Village? @relation(fields: [villageId], references: [id])
   tasks     Task[]
   surveys   Survey[]
   reports   Report[]
@@ -118,6 +152,7 @@ model Incident {
   @@index([status])
   @@index([priority])
   @@index([disasterType])
+  @@index([villageId])
   @@index([createdAt])
   @@map("incidents")
 }
@@ -133,16 +168,19 @@ model Task {
   updatedAt   DateTime   @updatedAt @map("updated_at")
 
   // Foreign Keys
-  incidentId   String @map("incident_id")
-  assignedToId String @map("assigned_to_id")
+  incidentId   String  @map("incident_id")
+  assignedToId String  @map("assigned_to_id")
+  villageId    String? @map("village_id")
 
   // Relations
   incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
   assignedTo User     @relation("AssignedTo", fields: [assignedToId], references: [id])
+  village    Village? @relation(fields: [villageId], references: [id])
 
   @@index([status])
   @@index([assignedToId])
   @@index([incidentId])
+  @@index([villageId])
   @@map("tasks")
 }
 
@@ -166,12 +204,15 @@ model Survey {
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   // Foreign Keys
-  incidentId String @map("incident_id")
+  incidentId String  @map("incident_id")
+  villageId  String? @map("village_id")
 
   // Relations
   incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  village  Village? @relation(fields: [villageId], references: [id])
 
   @@index([incidentId])
+  @@index([villageId])
   @@map("surveys")
 }
 

@@ -1,11 +1,41 @@
 import { PrismaClient, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { villagesData } from './villages-seed-data';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  console.log('🌱 Seeding database...\n');
 
+  // ========================================
+  // 1. SEED VILLAGES (20 หมู่บ้าน)
+  // ========================================
+  console.log('📍 Seeding Villages...');
+  
+  for (const villageData of villagesData) {
+    const village = await prisma.village.upsert({
+      where: { villageNo: villageData.villageNo },
+      update: {},
+      create: {
+        villageNo: villageData.villageNo,
+        name: villageData.name,
+        alternateNames: villageData.alternateNames,
+        households: villageData.households,
+        population: villageData.population,
+        area: villageData.area,
+        description: villageData.description,
+      },
+    });
+    console.log(`  ✅ หมู่ ${village.villageNo}: ${village.name}`);
+  }
+  
+  console.log(`\n✅ Created ${villagesData.length} villages\n`);
+
+  // ========================================
+  // 2. SEED USERS (4 roles)
+  // ========================================
+  console.log('👥 Seeding Users...');
+  
   // Hash password
   const hashedPassword = await bcrypt.hash('password123', 10);
 
@@ -23,7 +53,7 @@ async function main() {
     },
   });
 
-  console.log('✅ Created Admin:', admin.email);
+  console.log('  ✅ Created Admin:', admin.email);
 
   // Create Executive
   const executive = await prisma.user.upsert({
@@ -39,7 +69,7 @@ async function main() {
     },
   });
 
-  console.log('✅ Created Executive:', executive.email);
+  console.log('  ✅ Created Executive:', executive.email);
 
   // Create Supervisor
   const supervisor = await prisma.user.upsert({
@@ -55,7 +85,7 @@ async function main() {
     },
   });
 
-  console.log('✅ Created Supervisor:', supervisor.email);
+  console.log('  ✅ Created Supervisor:', supervisor.email);
 
   // Create Field Officer
   const fieldOfficer = await prisma.user.upsert({
@@ -71,18 +101,38 @@ async function main() {
     },
   });
 
-  console.log('✅ Created Field Officer:', fieldOfficer.email);
+  console.log('  ✅ Created Field Officer:', fieldOfficer.email);
 
-  console.log('\n✅ Seed completed!');
+  // ========================================
+  // SUMMARY
+  // ========================================
+  console.log('\n✅ Seed completed!\n');
+  
+  console.log('📊 Summary:');
+  console.log(`  • Villages: ${villagesData.length}`);
+  console.log(`  • Users: 4`);
+  
   console.log('\n📝 Test Users:');
-  console.log('┌─────────────────────────────────────────────────────────────┐');
-  console.log('│ Email                        │ Password    │ Role           │');
-  console.log('├─────────────────────────────────────────────────────────────┤');
-  console.log('│ admin@obtwiang.go.th         │ password123 │ ADMIN          │');
-  console.log('│ executive@obtwiang.go.th     │ password123 │ EXECUTIVE      │');
-  console.log('│ supervisor@obtwiang.go.th    │ password123 │ SUPERVISOR     │');
-  console.log('│ field@obtwiang.go.th         │ password123 │ FIELD_OFFICER  │');
-  console.log('└─────────────────────────────────────────────────────────────┘');
+  console.log('┌──────────────────────────────┬─────────────┬───────────────┐');
+  console.log('│ Email                        │ Password    │ Role          │');
+  console.log('├──────────────────────────────┼─────────────┼───────────────┤');
+  console.log('│ admin@obtwiang.go.th         │ password123 │ ADMIN         │');
+  console.log('│ executive@obtwiang.go.th     │ password123 │ EXECUTIVE     │');
+  console.log('│ supervisor@obtwiang.go.th    │ password123 │ SUPERVISOR    │');
+  console.log('│ field@obtwiang.go.th         │ password123 │ FIELD_OFFICER │');
+  console.log('└──────────────────────────────┴─────────────┴───────────────┘');
+  
+  console.log('\n🏘️  Villages (20 หมู่บ้าน):');
+  console.log('┌────┬──────────────────────┬──────────┬──────────┐');
+  console.log('│ หมู่│ ชื่อหมู่บ้าน         │ ครัวเรือน│ ประชากร │');
+  console.log('├────┼──────────────────────┼──────────┼──────────┤');
+  villagesData.forEach((v) => {
+    const namePadded = v.name.padEnd(20, ' ');
+    const householdsPadded = v.households.toString().padStart(8, ' ');
+    const populationPadded = v.population.toString().padStart(8, ' ');
+    console.log(`│ ${v.villageNo.toString().padStart(2, ' ')} │ ${namePadded} │${householdsPadded} │${populationPadded} │`);
+  });
+  console.log('└────┴──────────────────────┴──────────┴──────────┘');
 }
 
 main()
