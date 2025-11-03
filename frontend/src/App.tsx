@@ -4,6 +4,7 @@ import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SupervisorDashboard } from './pages/supervisor/SupervisorDashboard';
 import { MapView } from './pages/supervisor/MapView';
+import { TasksPage } from './pages/supervisor/TasksPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -33,6 +34,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <MapView />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tasks"
+            element={
+              <ProtectedRoute>
+                <TasksPage />
               </ProtectedRoute>
             }
           />
