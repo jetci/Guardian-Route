@@ -10,6 +10,7 @@ import { IncidentsModule } from './incidents/incidents.module';
 import { TasksModule } from './tasks/tasks.module';
 import { SurveyModule } from './survey/survey.module';
 import { UploadModule } from './upload/upload.module';
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UploadModule } from './upload/upload.module';
     TasksModule,
     UploadModule,
     SurveyModule,
+    ReportModule,
   ],
   controllers: [AppController],
   providers: [AppService],

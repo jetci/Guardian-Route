@@ -52,6 +52,14 @@ enum ReportStatus {
   REJECTED
 }
 
+enum ReportType {
+  INCIDENT
+  TASK
+  SURVEY
+  MONTHLY
+  CUSTOM
+}
+
 enum DisasterType {
   FLOOD
   LANDSLIDE
@@ -267,6 +275,7 @@ model SurveyResponse {
 
 model Report {
   id     String       @id @default(uuid())
+  type   ReportType   @default(INCIDENT)
   status ReportStatus @default(DRAFT)
 
   // Report content
@@ -285,6 +294,16 @@ model Report {
   // Photos
   photoUrls String[] @map("photo_urls")
 
+  // Template and Period (for Monthly/Custom reports)
+  templateId  String?   @map("template_id")
+  periodStart DateTime? @map("period_start")
+  periodEnd   DateTime? @map("period_end")
+  metadata    Json?     // Additional metadata for report generation
+
+  // PDF Generation
+  pdfUrl         String?   @map("pdf_url")
+  pdfGeneratedAt DateTime? @map("pdf_generated_at")
+
   // Review
   reviewNotes String?   @map("review_notes")
   reviewedAt  DateTime? @map("reviewed_at")
@@ -295,18 +314,21 @@ model Report {
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
   // Foreign Keys
-  incidentId   String  @map("incident_id")
+  incidentId   String? @map("incident_id")
   authorId     String  @map("author_id")
   reviewedById String? @map("reviewed_by_id")
 
   // Relations
-  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  author     User     @relation("ReportAuthor", fields: [authorId], references: [id])
-  reviewedBy User?    @relation("ReviewedBy", fields: [reviewedById], references: [id])
+  incident   Incident? @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  author     User      @relation("ReportAuthor", fields: [authorId], references: [id])
+  reviewedBy User?     @relation("ReviewedBy", fields: [reviewedById], references: [id])
 
+  @@index([type])
   @@index([status])
   @@index([authorId])
   @@index([incidentId])
+  @@index([periodStart])
+  @@index([createdAt])
   @@map("reports")
 }
 
