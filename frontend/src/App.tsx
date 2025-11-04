@@ -8,6 +8,10 @@ import { TasksPage } from './pages/supervisor/TasksPage';
 import SurveyTemplateList from './pages/supervisor/SurveyTemplateList';
 import SurveyFormBuilder from './pages/supervisor/SurveyFormBuilder';
 import SurveyResponseForm from './pages/field_officer/SurveyResponseForm';
+import ReportsPage from './pages/ReportsPage';
+import CreateReportPage from './pages/CreateReportPage';
+import ReportDetailsPage from './pages/ReportDetailsPage';
+import EditReportPage from './pages/EditReportPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -77,6 +81,38 @@ function App() {
             element={
               <ProtectedRoute>
                 <SurveyResponseForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <ReportsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/new"
+            element={
+              <ProtectedRoute>
+                <CreateReportPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/:id"
+            element={
+              <ProtectedRoute>
+                <ReportDetailsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/:id/edit"
+            element={
+              <ProtectedRoute>
+                <EditReportPage />
               </ProtectedRoute>
             }
           />
