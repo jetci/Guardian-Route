@@ -5,11 +5,9 @@ import {
   Heading,
   Button,
   useToast,
-  VStack,
   HStack,
   Text,
   Spinner,
-  Flex,
   Table,
   Thead,
   Tbody,
@@ -26,14 +24,13 @@ import {
   AlertDialogOverlay,
 } from '@chakra-ui/react';
 import { AddIcon, EditIcon, DeleteIcon, CheckCircleIcon, CloseIcon } from '@chakra-ui/icons';
-import { useAuthStore } from '../../stores/authStore';
 import { apiClient } from "../../api/client";
-import { SurveyTemplate } from '../../types/Survey';
+import type { SurveyTemplate } from '../../types/Survey';
 
 const SurveyTemplateList: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
-  const { token } = useAuthStore();  const [templates, setTemplates] = useState<SurveyTemplate[]>([]);
+  const [templates, setTemplates] = useState<SurveyTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -46,8 +43,8 @@ const SurveyTemplateList: React.FC = () => {
       setTemplates(response.data);
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to fetch survey templates.',
+        title: 'ข้อผิดพลาด',
+        description: 'ไม่สามารถดึงข้อมูลเทมเพลตแบบสำรวจได้',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -67,8 +64,8 @@ const SurveyTemplateList: React.FC = () => {
     try {
       await apiClient.delete(`/survey-templates/${templateToDelete}`);
       toast({
-        title: 'Success',
-        description: 'Survey Template deleted successfully.',
+        title: 'สำเร็จ',
+        description: 'ลบเทมเพลตแบบสำรวจเรียบร้อยแล้ว',
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -76,8 +73,8 @@ const SurveyTemplateList: React.FC = () => {
       fetchTemplates();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to delete survey template.',
+        title: 'ข้อผิดพลาด',
+        description: 'ไม่สามารถลบเทมเพลตแบบสำรวจได้',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -95,110 +92,122 @@ const SurveyTemplateList: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Flex justify="center" align="center" h="100vh">
-        <Spinner size="xl" />
-      </Flex>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Spinner size="xl" color="blue.600" thickness="4px" />
+      </div>
     );
   }
 
   return (
-    <Box p={8} maxW="6xl" mx="auto">
-      <HStack justify="space-between" mb={6}>
-        <Heading size="xl" color="teal.500">
-          Survey Templates
-        </Heading>
-        <Button
-          leftIcon={<AddIcon />}
-          colorScheme="teal"
-          onClick={() => navigate('/supervisor/survey-templates/new')}
-        >
-          Create New Template
-        </Button>
-      </HStack>
+    <div className="min-h-screen bg-gray-50 py-10">
+      <Box maxW="6xl" mx="auto" px={{ base: 4, sm: 6, lg: 8 }}>
+        <HStack justify="space-between" mb={8}>
+          <Heading size="xl" color="gray.900" fontWeight="extrabold">
+            เทมเพลตแบบสำรวจ
+          </Heading>
+          <Button
+            leftIcon={<AddIcon />}
+            colorScheme="blue"
+            onClick={() => navigate('/supervisor/survey-templates/new')}
+            size="lg"
+            borderRadius="xl"
+            className="shadow-md"
+          >
+            สร้างเทมเพลตใหม่
+          </Button>
+        </HStack>
 
-      <Box bg="white" p={6} borderRadius="lg" shadow="md">
-        {templates.length === 0 ? (
-          <Text textAlign="center" py={10} color="gray.500">
-            No survey templates found. Click "Create New Template" to get started.
-          </Text>
-        ) : (
-          <Table variant="simple">
-            <Thead>
-              <Tr>
-                <Th>Name</Th>
-                <Th>Description</Th>
-                <Th isNumeric>Fields</Th>
-                <Th>Status</Th>
-                <Th>Actions</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {templates.map((template) => (
-                <Tr key={template.id}>
-                  <Td fontWeight="bold">{template.name}</Td>
-                  <Td>{template.description || '-'}</Td>
-                  <Td isNumeric>{(template.fields as any[]).length}</Td>
-                  <Td>
-                    <HStack>
-                      {template.isActive ? (
-                        <CheckCircleIcon color="green.500" />
-                      ) : (
-                        <CloseIcon color="red.500" />
-                      )}
-                      <Text>{template.isActive ? 'Active' : 'Inactive'}</Text>
-                    </HStack>
-                  </Td>
-                  <Td>
-                    <HStack spacing={2}>
-                      <IconButton
-                        aria-label="Edit"
-                        icon={<EditIcon />}
-                        size="sm"
-                        onClick={() => navigate(`/supervisor/survey-templates/edit/${template.id}`)}
-                      />
-                      <IconButton
-                        aria-label="Delete"
-                        icon={<DeleteIcon />}
-                        size="sm"
-                        colorScheme="red"
-                        onClick={() => openDeleteModal(template.id)}
-                      />
-                    </HStack>
-                  </Td>
+        <Box bg="white" p={8} borderRadius="xl" shadow="lg" border="1px" borderColor="gray.200">
+          {templates.length === 0 ? (
+            <Text textAlign="center" py={10} color="gray.500" fontSize="lg">
+              ไม่พบเทมเพลตแบบสำรวจ คลิก "สร้างเทมเพลตใหม่" เพื่อเริ่มต้น
+            </Text>
+          ) : (
+            <Table variant="simple" size="md">
+              <Thead>
+                <Tr bg="gray.50">
+                  <Th color="gray.600" fontSize="sm" textTransform="uppercase">ชื่อ</Th>
+                  <Th color="gray.600" fontSize="sm" textTransform="uppercase">คำอธิบาย</Th>
+                  <Th isNumeric color="gray.600" fontSize="sm" textTransform="uppercase">จำนวนฟิลด์</Th>
+                  <Th color="gray.600" fontSize="sm" textTransform="uppercase">สถานะ</Th>
+                  <Th color="gray.600" fontSize="sm" textTransform="uppercase">การดำเนินการ</Th>
                 </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        )}
+              </Thead>
+              <Tbody>
+                {templates.map((template: any) => (
+                  <Tr key={template.id} _hover={{ bg: 'gray.50' }} transition="background-color 0.2s">
+                    <Td fontWeight="bold" color="gray.800">{template.name}</Td>
+                    <Td color="gray.600">{template.description || '-'}</Td>
+                    <Td isNumeric color="gray.600">{(template.fields as any[]).length}</Td>
+                    <Td>
+                      <HStack spacing={2}>
+                        {template.isActive ? (
+                          <CheckCircleIcon color="green.500" />
+                        ) : (
+                          <CloseIcon color="red.500" />
+                        )}
+                        <Text color={template.isActive ? 'green.600' : 'red.600'} fontWeight="medium">
+                          {template.isActive ? 'ใช้งาน' : 'ไม่ใช้งาน'}
+                        </Text>
+                      </HStack>
+                    </Td>
+                    <Td>
+                      <HStack spacing={2}>
+                        <IconButton
+                          aria-label="Edit"
+                          icon={<EditIcon />}
+                          size="md"
+                          colorScheme="blue"
+                          variant="outline"
+                          borderRadius="lg"
+                          onClick={() => navigate(`/supervisor/survey-templates/edit/${template.id}`)}
+                        />
+                        <IconButton
+                          aria-label="Delete"
+                          icon={<DeleteIcon />}
+                          size="md"
+                          colorScheme="red"
+                          variant="outline"
+                          borderRadius="lg"
+                          onClick={() => openDeleteModal(template.id)}
+                        />
+                      </HStack>
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          )}
+        </Box>
+
+        <AlertDialog
+          isOpen={isOpen}
+          leastDestructiveRef={cancelRef}
+          onClose={onClose}
+        >
+          <AlertDialogOverlay>
+            <AlertDialogContent borderRadius="xl" shadow="2xl">
+              <AlertDialogHeader fontSize="xl" fontWeight="bold" color="red.600">
+                ลบเทมเพลตแบบสำรวจ
+              </AlertDialogHeader>
+
+              <AlertDialogBody color="gray.700">
+                คุณแน่ใจหรือไม่ว่าต้องการลบเทมเพลตแบบสำรวจนี้ การดำเนินการนี้ไม่สามารถยกเลิกได้
+              </AlertDialogBody>
+
+              <AlertDialogFooter>
+                <Button ref={cancelRef} onClick={onClose} size="lg" borderRadius="lg">
+                  ยกเลิก
+                </Button>
+                <Button colorScheme="red" onClick={handleDelete} ml={3} size="lg" borderRadius="lg">
+                  ลบ
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialogOverlay>
+        </AlertDialog>
       </Box>
-
-      <AlertDialog
-        isOpen={isOpen}
-        leastDestructiveRef={cancelRef}
-        onClose={onClose}
-      >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogHeader fontSize="lg" fontWeight="bold">
-              Delete Survey Template
-            </AlertDialogHeader>
-
-            <AlertDialogBody>
-              Are you sure you want to delete this survey template? This action cannot be undone.
-            </AlertDialogBody>
-
-            <AlertDialogFooter>
-              <Button ref={cancelRef} onClick={onClose}>
-                Cancel
-              </Button>
-              <Button colorScheme="red" onClick={handleDelete} ml={3}>
-                Delete
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
-    </Box>
+    </div>
   );
 };
 

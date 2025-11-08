@@ -26,7 +26,7 @@ export const SupervisorDashboard = () => {
     try {
       const [incidentsData, tasksData] = await Promise.all([
         incidentsApi.getAll(),
-        tasksApi.getAll(),
+        tasksApi.getAll({}),
       ]);
       
       setStats({
@@ -51,9 +51,9 @@ export const SupervisorDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Modern Header */}
-      <nav className="bg-white border-b border-gray-200 shadow-sm">
+      <nav className="bg-white border-b border-gray-200 shadow-lg">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             {/* Left: Logo & User */}
@@ -64,10 +64,10 @@ export const SupervisorDashboard = () => {
                 </svg>
               </div>
               <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-extrabold text-blue-600">
                   Guardian Route
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-base text-gray-600">
                   {user?.firstName} {user?.lastName} • {user?.role === 'SUPERVISOR' ? 'ผู้ควบคุม' : user?.role}
                 </p>
               </div>
@@ -77,7 +77,7 @@ export const SupervisorDashboard = () => {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowCreateForm(true)}
-                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-5 py-2.5 rounded-xl hover:shadow-lg transform hover:-translate-y-0.5 transition-all font-medium"
+                className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-colors font-medium shadow-md"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -87,7 +87,7 @@ export const SupervisorDashboard = () => {
               
               <button
                 onClick={() => navigate('/map')}
-                className="flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2.5 rounded-xl hover:bg-green-100 transition-colors font-medium border border-green-200"
+                className="flex items-center gap-2 bg-white text-green-600 px-4 py-2.5 rounded-xl hover:bg-green-50 transition-colors font-medium border border-green-300 shadow-sm"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -97,7 +97,7 @@ export const SupervisorDashboard = () => {
 
 	              <button
 	                onClick={() => navigate('/supervisor/survey-templates')}
-	                className="flex items-center gap-2 bg-yellow-50 text-yellow-700 px-4 py-2.5 rounded-xl hover:bg-yellow-100 transition-colors font-medium border border-yellow-200"
+	                className="flex items-center gap-2 bg-white text-yellow-600 px-4 py-2.5 rounded-xl hover:bg-yellow-50 transition-colors font-medium border border-yellow-300 shadow-sm"
 	              >
 	                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 	                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -107,7 +107,7 @@ export const SupervisorDashboard = () => {
 	
 	              <button
 	                onClick={() => navigate('/tasks')}
-	                className="flex items-center gap-2 bg-purple-50 text-purple-700 px-4 py-2.5 rounded-xl hover:bg-purple-100 transition-colors font-medium border border-purple-200"
+	                className="flex items-center gap-2 bg-white text-purple-600 px-4 py-2.5 rounded-xl hover:bg-purple-50 transition-colors font-medium border border-purple-300 shadow-sm"
 	              >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -117,7 +117,7 @@ export const SupervisorDashboard = () => {
 
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 bg-gray-100 text-gray-700 px-4 py-2.5 rounded-xl hover:bg-gray-200 transition-colors font-medium"
+                className="flex items-center gap-2 bg-white text-gray-700 px-4 py-2.5 rounded-xl hover:bg-gray-100 transition-colors font-medium border border-gray-300 shadow-sm"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -133,7 +133,7 @@ export const SupervisorDashboard = () => {
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {/* Total Incidents */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-1">เหตุการณ์ทั้งหมด</p>
@@ -148,7 +148,7 @@ export const SupervisorDashboard = () => {
           </div>
 
           {/* Pending */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-1">รอดำเนินการ</p>
@@ -163,7 +163,7 @@ export const SupervisorDashboard = () => {
           </div>
 
           {/* In Progress */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-1">กำลังดำเนินการ</p>
@@ -178,7 +178,7 @@ export const SupervisorDashboard = () => {
           </div>
 
           {/* Total Tasks */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-1">งานทั้งหมด</p>
@@ -194,9 +194,9 @@ export const SupervisorDashboard = () => {
         </div>
 
         {/* Incidents List */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">รายการเหตุการณ์</h2>
+            <h2 className="text-2xl font-extrabold text-gray-900">รายการเหตุการณ์</h2>
             <button
               onClick={() => setRefreshKey(prev => prev + 1)}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
@@ -214,9 +214,9 @@ export const SupervisorDashboard = () => {
       {/* Modal สำหรับสร้าง Incident */}
       {showCreateForm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="bg-white rounded-3xl p-10 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">สร้างเหตุการณ์ใหม่</h2>
+              <h2 className="text-3xl font-extrabold text-gray-900">สร้างเหตุการณ์ใหม่</h2>
               <button
                 onClick={() => setShowCreateForm(false)}
                 className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"

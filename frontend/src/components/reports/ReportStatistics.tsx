@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ReportStatistics as ReportStatsType, ReportType } from '../../types/Report';
+import type { ReportStatistics as ReportStatsType, ReportType } from '../../types/Report';
 import { getReportStatistics } from '../../api/reports';
 
 interface ReportStatisticsProps {
@@ -50,14 +50,14 @@ const ReportStatistics: React.FC<ReportStatisticsProps> = ({
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+      <div className="bg-red-50 border border-red-300 text-red-800 px-6 py-4 rounded-xl shadow-md font-medium">
         {error}
       </div>
     );
@@ -71,9 +71,9 @@ const ReportStatistics: React.FC<ReportStatisticsProps> = ({
     <div className="space-y-6">
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-blue-100 rounded-md p-3">
+            <div className="flex-shrink-0 bg-blue-50 rounded-xl p-4">
               <svg
                 className="h-6 w-6 text-blue-600"
                 fill="none"
@@ -89,15 +89,15 @@ const ReportStatistics: React.FC<ReportStatisticsProps> = ({
               </svg>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">รายงานทั้งหมด</p>
-              <p className="text-2xl font-semibold text-gray-900">{stats.total}</p>
+              <p className="text-sm font-medium text-gray-600">รายงานทั้งหมด</p>
+              <p className="text-3xl font-extrabold text-gray-900">{stats.total}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-red-100 rounded-md p-3">
+            <div className="flex-shrink-0 bg-red-50 rounded-xl p-4">
               <svg
                 className="h-6 w-6 text-red-600"
                 fill="none"
@@ -113,17 +113,17 @@ const ReportStatistics: React.FC<ReportStatisticsProps> = ({
               </svg>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">ความเสียหายเฉลี่ย</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-gray-600">ความเสียหายเฉลี่ย</p>
+              <p className="text-3xl font-extrabold text-gray-900">
                 {formatCurrency(stats.avgDamageEstimate)}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-orange-100 rounded-md p-3">
+            <div className="flex-shrink-0 bg-orange-50 rounded-xl p-4">
               <svg
                 className="h-6 w-6 text-orange-600"
                 fill="none"
@@ -139,17 +139,17 @@ const ReportStatistics: React.FC<ReportStatisticsProps> = ({
               </svg>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">ครัวเรือนที่ได้รับผลกระทบ</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-gray-600">ครัวเรือนที่ได้รับผลกระทบ</p>
+              <p className="text-3xl font-extrabold text-gray-900">
                 {stats.totalAffectedHouseholds}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
           <div className="flex items-center">
-            <div className="flex-shrink-0 bg-yellow-100 rounded-md p-3">
+            <div className="flex-shrink-0 bg-yellow-50 rounded-xl p-4">
               <svg
                 className="h-6 w-6 text-yellow-600"
                 fill="none"
@@ -165,8 +165,8 @@ const ReportStatistics: React.FC<ReportStatisticsProps> = ({
               </svg>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">ผู้ได้รับผลกระทบ</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-gray-600">ผู้ได้รับผลกระทบ</p>
+              <p className="text-3xl font-extrabold text-gray-900">
                 {stats.totalAffectedPersons}
               </p>
             </div>
@@ -175,26 +175,26 @@ const ReportStatistics: React.FC<ReportStatisticsProps> = ({
       </div>
 
       {/* By Status */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">รายงานตามสถานะ</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+        <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">รายงานตามสถานะ</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
           {Object.entries(stats.byStatus).map(([status, count]) => (
-            <div key={status} className="text-center">
-              <p className="text-3xl font-bold text-gray-900">{count}</p>
-              <p className="text-sm text-gray-500 mt-1">{status}</p>
+            <div key={status} className="text-center bg-gray-50 p-4 rounded-xl border border-gray-200">
+              <p className="text-4xl font-extrabold text-gray-900">{count}</p>
+              <p className="text-base text-gray-600 mt-1 font-medium">{status}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* By Type */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">รายงานตามประเภท</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+        <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">รายงานตามประเภท</h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
           {Object.entries(stats.byType).map(([type, count]) => (
             <div key={type} className="text-center">
-              <p className="text-3xl font-bold text-gray-900">{count}</p>
-              <p className="text-sm text-gray-500 mt-1">{type}</p>
+              <p className="text-4xl font-extrabold text-gray-900">{count}</p>
+              <p className="text-base text-gray-600 mt-1 font-medium">{type}</p>
             </div>
           ))}
         </div>

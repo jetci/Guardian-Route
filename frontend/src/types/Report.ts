@@ -1,4 +1,4 @@
-import { User, Incident } from './index';
+import type { User, Incident } from './index';
 
 export enum ReportType {
   INCIDENT = 'INCIDENT',

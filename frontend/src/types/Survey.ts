@@ -1,4 +1,4 @@
-import { FormField } from './FormBuilder';
+import type { FormField } from './FormBuilder';
 
 export interface SurveyTemplate {
   id: string;

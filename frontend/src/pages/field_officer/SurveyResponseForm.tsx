@@ -21,10 +21,9 @@ import {
   FormLabel,
   FormErrorMessage,
 } from '@chakra-ui/react';
-import { useAuthStore } from '../../stores/authStore';
 import { apiClient } from "../../api/client";
-import { Survey, SurveyTemplate } from '../../types/Survey';
-import { FormField, FieldType } from '../../types/FormBuilder';
+import type { Survey, SurveyTemplate } from '../../types/Survey';
+import type { FormField } from '../../types/FormBuilder';
 
 // --- Field Renderer Components ---
 
@@ -56,21 +55,29 @@ const FieldRenderer: React.FC<FieldRendererProps> = ({ field, value, onChange, e
   };
 
   const renderInput = () => {
+    // Apply modern, clean styling to Chakra components
+    const inputProps = {
+      borderRadius: 'lg',
+      borderColor: 'gray.300',
+      _hover: { borderColor: 'blue.400' },
+      _focus: { boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)', borderColor: 'blue.500' },
+    };
+
     switch (type) {
       case 'text':
-        return <Input type="text" value={value || ''} onChange={handleInputChange} />;
+        return <Input type="text" value={value || ''} onChange={handleInputChange} {...inputProps} />;
       case 'number':
-        return <Input type="number" value={value || ''} onChange={handleInputChange} />;
+        return <Input type="number" value={value || ''} onChange={handleInputChange} {...inputProps} />;
       case 'textarea':
-        return <Textarea value={value || ''} onChange={handleInputChange} />;
+        return <Textarea value={value || ''} onChange={handleInputChange} {...inputProps} />;
       case 'date':
-        return <Input type="date" value={value || ''} onChange={handleInputChange} />;
+        return <Input type="date" value={value || ''} onChange={handleInputChange} {...inputProps} />;
       case 'time':
-        return <Input type="time" value={value || ''} onChange={handleInputChange} />;
+        return <Input type="time" value={value || ''} onChange={handleInputChange} {...inputProps} />;
       case 'select':
         return (
-          <Select value={value || ''} onChange={handleInputChange}>
-            <option value="">Select an option</option>
+          <Select value={value || ''} onChange={handleInputChange} {...inputProps}>
+            <option value="">เลือกตัวเลือก</option>
             {options?.map((option) => (
               <option key={option} value={option}>
                 {option}
@@ -83,7 +90,7 @@ const FieldRenderer: React.FC<FieldRendererProps> = ({ field, value, onChange, e
           <RadioGroup value={value || ''} onChange={(val) => onChange(name, val)}>
             <HStack spacing="24px">
               {options?.map((option) => (
-                <Radio key={option} value={option}>
+                <Radio key={option} value={option} colorScheme="blue">
                   {option}
                 </Radio>
               ))}
@@ -92,13 +99,13 @@ const FieldRenderer: React.FC<FieldRendererProps> = ({ field, value, onChange, e
         );
       case 'checkbox':
         return (
-          <Checkbox isChecked={!!value} onChange={handleCheckboxChange}>
+          <Checkbox isChecked={!!value} onChange={handleCheckboxChange} colorScheme="blue">
             {label}
           </Checkbox>
         );
       case 'checkboxGroup':
         return (
-          <CheckboxGroup value={value || []} onChange={handleCheckboxGroupChange}>
+          <CheckboxGroup value={value || []} onChange={handleCheckboxGroupChange} colorScheme="blue">
             <VStack align="start">
               {options?.map((option) => (
                 <Checkbox key={option} value={option}>
@@ -114,8 +121,8 @@ const FieldRenderer: React.FC<FieldRendererProps> = ({ field, value, onChange, e
   };
 
   return (
-    <FormControl isRequired={required} isInvalid={!!error} mb={4}>
-      {type !== 'checkbox' && <FormLabel>{label}</FormLabel>}
+    <FormControl isRequired={required} isInvalid={!!error} mb={6}>
+      {type !== 'checkbox' && <FormLabel fontWeight="bold" color="gray.700">{label}</FormLabel>}
       {renderInput()}
       {error && <FormErrorMessage>{error}</FormErrorMessage>}
     </FormControl>
@@ -128,7 +135,7 @@ const SurveyResponseForm: React.FC = () => {
   const { surveyId } = useParams<{ surveyId: string }>();
   const navigate = useNavigate();
   const toast = useToast();
-  const { user } = useAuthStore();
+  
   const [survey, setSurvey] = useState<Survey | null>(null);
   const [template, setTemplate] = useState<SurveyTemplate | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -159,8 +166,8 @@ const SurveyResponseForm: React.FC = () => {
 
     } catch (error) {
       toast({
-        title: 'Error fetching survey',
-        description: 'Could not load survey data.',
+        title: 'เกิดข้อผิดพลาดในการดึงข้อมูลแบบสำรวจ',
+        description: 'ไม่สามารถโหลดข้อมูลแบบสำรวจได้',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -194,7 +201,7 @@ const SurveyResponseForm: React.FC = () => {
           value === '' ||
           (Array.isArray(value) && value.length === 0)
         ) {
-          errors[field.name] = `${field.label} is required.`;
+          errors[field.name] = `${field.label} จำเป็นต้องกรอก`;
           isValid = false;
         }
       }
@@ -207,8 +214,8 @@ const SurveyResponseForm: React.FC = () => {
   const handleSubmit = async () => {
     if (!validateForm()) {
       toast({
-        title: 'Validation Error',
-        description: 'Please fill in all required fields.',
+        title: 'ข้อผิดพลาดในการตรวจสอบ',
+        description: 'โปรดกรอกข้อมูลในช่องที่จำเป็นให้ครบถ้วน',
         status: 'warning',
         duration: 3000,
         isClosable: true,
@@ -225,8 +232,8 @@ const SurveyResponseForm: React.FC = () => {
       await apiClient.post(`/survey/${surveyId}/response`, payload);
 
       toast({
-        title: 'Success',
-        description: 'Survey response submitted successfully.',
+        title: 'สำเร็จ',
+        description: 'ส่งแบบสำรวจเรียบร้อยแล้ว',
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -237,8 +244,8 @@ const SurveyResponseForm: React.FC = () => {
     } catch (error) {
       console.error('Submission Error:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to submit survey response.',
+        title: 'ข้อผิดพลาด',
+        description: 'ไม่สามารถส่งแบบสำรวจได้',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -250,61 +257,74 @@ const SurveyResponseForm: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Flex justify="center" align="center" h="100vh">
-        <Spinner size="xl" />
+      <Flex justify="center" align="center" h="100vh" className="bg-gray-50">
+        <Spinner size="xl" color="blue.600" thickness="4px" />
       </Flex>
     );
   }
 
   if (!survey || !template) {
     return (
-      <Box p={8} maxW="3xl" mx="auto">
-        <Heading color="red.500">Error</Heading>
-        <Text>Survey or Template data is missing.</Text>
-      </Box>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+        <Box p={8} maxW="3xl" w="full" bg="white" borderRadius="xl" shadow="lg" textAlign="center" border="1px" borderColor="gray.200">
+          <Heading color="red.600" mb={4} size="xl">ข้อผิดพลาด</Heading>
+          <Text fontSize="lg" color="gray.700">ไม่พบข้อมูลแบบสำรวจหรือเทมเพลต</Text>
+          <Button mt={6} onClick={() => navigate('/dashboard')} colorScheme="blue" variant="outline">
+            กลับไปที่หน้าหลัก
+          </Button>
+        </Box>
+      </div>
     );
   }
 
   if (survey.status === 'COMPLETED') {
     return (
-      <Box p={8} maxW="3xl" mx="auto" textAlign="center">
-        <Heading color="green.500" mb={4}>Survey Completed</Heading>
-        <Text fontSize="lg">This survey has already been completed and cannot accept new responses.</Text>
-        <Button mt={6} onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
-      </Box>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+        <Box p={8} maxW="3xl" w="full" bg="white" borderRadius="xl" shadow="lg" textAlign="center" border="1px" borderColor="gray.200">
+          <Heading color="green.600" mb={4} size="xl">แบบสำรวจเสร็จสมบูรณ์</Heading>
+          <Text fontSize="lg" color="gray.700">แบบสำรวจนี้ได้ถูกกรอกเสร็จสมบูรณ์แล้วและไม่สามารถรับการตอบกลับใหม่ได้</Text>
+          <Button mt={6} onClick={() => navigate('/dashboard')} colorScheme="blue">
+            ไปที่หน้าหลัก
+          </Button>
+        </Box>
+      </div>
     );
   }
 
   return (
-    <Box p={8} maxW="3xl" mx="auto">
-      <Heading mb={2} size="xl" color="teal.500">
-        {template.name}
-      </Heading>
-      <Text mb={6} color="gray.600">
-        {template.description}
-      </Text>
+    <div className="min-h-screen bg-gray-50 py-10">
+      <Box maxW="4xl" mx="auto" px={{ base: 4, sm: 6, lg: 8 }}>
+        <div className="mb-8 p-6 bg-white rounded-xl shadow-lg border border-gray-100">
+          <Heading mb={2} size="xl" color="gray.900" fontWeight="extrabold">
+            {template.name}
+          </Heading>
+          <Text mb={0} color="gray.600" fontSize="lg">
+            {template.description}
+          </Text>
+        </div>
 
-      <VStack spacing={6} align="stretch" p={6} borderWidth="1px" borderRadius="lg" bg="white" shadow="md">
-        {template.fields.map((field) => (
-          <FieldRenderer
-            key={field.id}
-            field={field}
-            value={formData[field.name]}
-            onChange={handleFieldChange}
-            error={formErrors[field.name]}
-          />
-        ))}
-      </VStack>
+        <VStack spacing={6} align="stretch" p={8} bg="white" borderRadius="xl" shadow="lg" border="1px" borderColor="gray.200">
+          {template.fields.map((field) => (
+            <FieldRenderer
+              key={field.id}
+              field={field}
+              value={formData[field.name]}
+              onChange={handleFieldChange}
+              error={formErrors[field.name]}
+            />
+          ))}
+        </VStack>
 
-      <HStack justify="flex-end" mt={8}>
-        <Button variant="ghost" onClick={() => navigate('/dashboard')} isDisabled={isSubmitting}>
-          Cancel
-        </Button>
-        <Button colorScheme="teal" onClick={handleSubmit} isLoading={isSubmitting} loadingText="Submitting">
-          Submit Response
-        </Button>
-      </HStack>
-    </Box>
+        <HStack justify="flex-end" mt={8} spacing={4}>
+          <Button variant="outline" onClick={() => navigate('/dashboard')} isDisabled={isSubmitting} size="lg" borderRadius="lg">
+            ยกเลิก
+          </Button>
+          <Button colorScheme="blue" onClick={handleSubmit} isLoading={isSubmitting} loadingText="กำลังส่งข้อมูล" size="lg" borderRadius="lg" className="shadow-md">
+            ส่งแบบสำรวจ
+          </Button>
+        </HStack>
+      </Box>
+    </div>
   );
 };
 

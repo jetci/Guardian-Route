@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Report,
+  type Report,
   ReportType,
   ReportStatus,
-  CreateReportDto,
-  UpdateReportDto,
+  type CreateReportDto,
+  type UpdateReportDto,
 } from '../../types/Report';
 import { createReport, updateReport } from '../../api/reports';
 
@@ -109,7 +109,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-50 border border-red-300 text-red-800 px-6 py-4 rounded-xl shadow-md font-medium">
           {error}
         </div>
       )}
@@ -125,7 +125,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
           onChange={handleChange}
           required
           disabled={!!report} // Cannot change type when editing
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 transition-colors"
         >
           {Object.values(ReportType).map((type) => (
             <option key={type} value={type}>
@@ -147,7 +147,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
           onChange={handleChange}
           required
           placeholder="เช่น รายงานสรุปเหตุการณ์น้ำท่วม หมู่ 1"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
         />
       </div>
 
@@ -162,7 +162,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
           onChange={handleChange}
           rows={3}
           placeholder="สรุปสั้นๆ เกี่ยวกับรายงาน"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
         />
       </div>
 
@@ -188,7 +188,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
                 }))
               }
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
           </div>
           <div>
@@ -210,15 +210,15 @@ const ReportForm: React.FC<ReportFormProps> = ({
                 }))
               }
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
           </div>
         </div>
       )}
 
       {/* Damage Assessment */}
-      <div className="border-t pt-4">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">ประเมินความเสียหาย</h3>
+      <div className="pt-6 border-t border-gray-200">
+        <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">ประเมินความเสียหาย</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -232,7 +232,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
               min="0"
               step="0.01"
               placeholder="0.00"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
           </div>
           <div>
@@ -246,7 +246,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
               onChange={handleChange}
               min="0"
               placeholder="0"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
           </div>
           <div>
@@ -260,7 +260,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
               onChange={handleChange}
               min="0"
               placeholder="0"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             />
           </div>
         </div>
@@ -285,27 +285,27 @@ const ReportForm: React.FC<ReportFormProps> = ({
           }
           rows={2}
           placeholder="https://example.com/photo1.jpg, https://example.com/photo2.jpg"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
         />
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-gray-600">
           ใส่ URL รูปภาพ คั่นด้วยเครื่องหมาย comma (,)
         </p>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-end space-x-3 pt-4 border-t">
+      <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
         <button
           type="button"
           onClick={handleCancel}
           disabled={loading}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 disabled:opacity-50 transition-colors font-medium shadow-sm"
         >
           ยกเลิก
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center"
+          className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium shadow-md flex items-center"
         >
           {loading && (
             <svg

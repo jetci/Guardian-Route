@@ -16,10 +16,10 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
   });
 
   useEffect(() => {
-    loadIncidents(listRefreshKey);
+    loadIncidents();
   }, [filters, refreshKey, listRefreshKey]);
 
-  const loadIncidents = async (key: number = 0) => {
+  const loadIncidents = async () => {
     setLoading(true);
     try {
       const data = await incidentsApi.getAll({
@@ -54,7 +54,7 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
       CLOSED: 'ปิดงาน',
     };
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${badges[status]}`}>
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badges[status]}`}>
         {labels[status]}
       </span>
     );
@@ -74,7 +74,7 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
       CRITICAL: 'วิกฤต',
     };
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${badges[priority]}`}>
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badges[priority]}`}>
         {labels[priority]}
       </span>
     );
@@ -106,7 +106,7 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600"></div>
       </div>
     );
   }
@@ -120,8 +120,8 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
         onUpdate={handleIncidentUpdate}
       />
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <h3 className="text-lg font-semibold mb-3">ตัวกรอง</h3>
+      <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+        <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">ตัวกรอง</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -130,7 +130,7 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
             <select
               value={filters.status}
               onChange={(e) => setFilters({ ...filters, status: e.target.value as IncidentStatus | '' })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             >
               <option value="">ทั้งหมด</option>
               <option value="PENDING">รอดำเนินการ</option>
@@ -147,7 +147,7 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
             <select
               value={filters.priority}
               onChange={(e) => setFilters({ ...filters, priority: e.target.value as Priority | '' })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             >
               <option value="">ทั้งหมด</option>
               <option value="LOW">ต่ำ</option>
@@ -164,7 +164,7 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
             <select
               value={filters.disasterType}
               onChange={(e) => setFilters({ ...filters, disasterType: e.target.value as DisasterType | '' })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             >
               <option value="">ทั้งหมด</option>
               <option value="FLOOD">น้ำท่วม</option>
@@ -179,13 +179,13 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
       </div>
 
       {/* Results Count */}
-      <div className="text-sm text-gray-600">
+      <div className="text-base font-medium text-gray-700">
         พบ {incidents.length} รายการ
       </div>
 
       {/* Incidents List */}
       {incidents.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center text-gray-500">
+        <div className="bg-white rounded-2xl shadow-lg p-12 text-center text-xl text-gray-500 border border-gray-100">
           ไม่พบข้อมูลเหตุการณ์
         </div>
       ) : (
@@ -193,12 +193,12 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
           {incidents.map((incident) => (
             <div
               key={incident.id}
-              className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4"
+              className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-shadow p-6 border border-gray-100"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-xl font-bold text-gray-900">
                       {incident.title}
                     </h3>
                     {getStatusBadge(incident.status)}
@@ -206,12 +206,12 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
                   </div>
 
                   {incident.description && (
-                    <p className="text-gray-600 text-sm mb-2">
+                    <p className="text-gray-700 text-base mb-2">
                       {incident.description}
                     </p>
                   )}
 
-                  <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                  <div className="flex flex-wrap gap-6 text-sm text-gray-600">
                     <div>
                       <span className="font-medium">ประเภท:</span>{' '}
                       {getDisasterTypeLabel(incident.disasterType)}
@@ -233,7 +233,7 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
                   </div>
 
                   {incident._count && (
-                    <div className="flex gap-4 mt-2 text-sm text-gray-500">
+                    <div className="flex gap-6 mt-3 text-sm text-gray-600 font-medium">
                       <div>งาน: {incident._count.tasks}</div>
                       <div>สำรวจ: {incident._count.surveys}</div>
                       <div>รายงาน: {incident._count.reports}</div>
@@ -249,11 +249,11 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
                             key={idx}
                             src={`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${url}`}
                             alt={`Image ${idx + 1}`}
-                            className="w-20 h-20 object-cover rounded border"
+                            className="w-20 h-20 object-cover rounded-lg border-2 border-gray-300 shadow-sm"
                           />
                         ))}
                         {incident.images.length > 3 && (
-                          <div className="w-20 h-20 flex items-center justify-center bg-gray-100 rounded border text-sm text-gray-600">
+                          <div className="w-20 h-20 flex items-center justify-center bg-gray-100 rounded-lg border-2 border-gray-300 text-base text-gray-600 font-semibold">
                             +{incident.images.length - 3}
                           </div>
                         )}
@@ -264,7 +264,7 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
 
                 <div className="flex gap-2 ml-4">
                   <button
-                    className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded"
+                    className="px-4 py-2 text-base text-blue-600 hover:bg-blue-50 rounded-xl font-medium transition-colors border border-blue-200"
                     onClick={() => setSelectedIncidentId(incident.id)}
                   >
                     ดูรายละเอียด

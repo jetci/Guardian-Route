@@ -13,23 +13,12 @@ import {
   Select,
   Checkbox,
   Text,
-  Divider,
   Spinner,
-  Flex,
-  useDisclosure,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalCloseButton,
-  ModalBody,
-  ModalFooter,
 } from '@chakra-ui/react';
-import { AddIcon, DeleteIcon, EditIcon, CheckIcon, CloseIcon } from '@chakra-ui/icons';
-import { useAuthStore } from '../../stores/authStore';
+import { AddIcon, DeleteIcon, EditIcon, CheckIcon, CloseIcon, ArrowUpIcon, ArrowDownIcon } from '@chakra-ui/icons';
 import { apiClient } from "../../api/client";
-import { SurveyTemplate } from '../../types/Survey';
-import { FormField, FieldType } from '../../types/FormBuilder';
+import type { SurveyTemplate } from '../../types/Survey';
+import type { FormField, FieldType } from '../../types/FormBuilder';
 
 // --- Field Components ---
 
@@ -38,15 +27,18 @@ interface FieldProps {
   index: number;
   onUpdate: (index: number, newField: FormField) => void;
   onDelete: (index: number) => void;
+  onMove: (index: number, direction: 'up' | 'down') => void;
+  isFirst: boolean;
+  isLast: boolean;
 }
 
-const FieldEditor: React.FC<FieldProps> = ({ field, index, onUpdate, onDelete }) => {
+const FieldEditor: React.FC<FieldProps> = ({ field, index, onUpdate, onDelete, onMove, isFirst, isLast }) => {
   const [isEditing, setIsEditing] = useState(field.id === 'new');
   const [tempField, setTempField] = useState<FormField>(field);
 
   const handleSave = () => {
     if (!tempField.label || !tempField.name) {
-      alert('Label and Name are required.');
+      alert('โปรดระบุชื่อฟิลด์และชื่อตัวแปร');
       return;
     }
     onUpdate(index, { ...tempField, id: field.id === 'new' ? Date.now().toString() : field.id });
@@ -69,7 +61,7 @@ const FieldEditor: React.FC<FieldProps> = ({ field, index, onUpdate, onDelete })
   };
 
   const handleAddOption = () => {
-    setTempField({ ...tempField, options: [...(tempField.options || []), ''] });
+    setTempField({ ...tempField, options: [...(tempField.options || []), 'ตัวเลือกใหม่'] });
   };
 
   const handleRemoveOption = (optionIndex: number) => {
@@ -81,91 +73,125 @@ const FieldEditor: React.FC<FieldProps> = ({ field, index, onUpdate, onDelete })
     if (tempField.type !== 'select' && tempField.type !== 'radio' && tempField.type !== 'checkboxGroup') return null;
 
     return (
-      <VStack align="start" spacing={2} mt={2} p={2} borderWidth="1px" borderRadius="md">
-        <Text fontWeight="bold">Options:</Text>
+      <VStack align="start" spacing={3} mt={4} p={4} borderWidth="1px" borderRadius="xl" bg="gray.50">
+        <Text fontWeight="bold" fontSize="lg" color="gray.700">ตัวเลือก:</Text>
         {(tempField.options || []).map((option, optionIndex) => (
-          <HStack key={optionIndex} w="full">
+          <HStack key={optionIndex} w="full" spacing={2}>
             <Input
-              placeholder={`Option ${optionIndex + 1}`}
+              placeholder={`ตัวเลือกที่ ${optionIndex + 1}`}
               value={option}
               onChange={(e) => handleOptionChange(optionIndex, e.target.value)}
-              size="sm"
+              size="md"
+              bg="white"
+              borderRadius="lg"
             />
             <IconButton
               aria-label="Remove option"
               icon={<DeleteIcon />}
-              size="sm"
+              size="md"
+              colorScheme="red"
+              variant="ghost"
               onClick={() => handleRemoveOption(optionIndex)}
+              borderRadius="lg"
             />
           </HStack>
         ))}
-        <Button leftIcon={<AddIcon />} size="sm" onClick={handleAddOption} w="full">
-          Add Option
+        <Button leftIcon={<AddIcon />} size="md" onClick={handleAddOption} w="full" colorScheme="blue" variant="outline" borderRadius="lg">
+          เพิ่มตัวเลือก
         </Button>
       </VStack>
     );
   };
 
   return (
-    <Box p={4} borderWidth="1px" borderRadius="lg" w="full" bg="white" shadow="md">
-      <HStack justify="space-between" mb={2}>
-        <Heading size="sm">Field {index + 1}: {field.label || 'New Field'}</Heading>
-        <HStack>
+    <Box p={6} borderWidth="1px" borderRadius="xl" w="full" bg="white" shadow="lg" transition="all 0.2s" _hover={{ shadow: 'xl' }}>
+      <HStack justify="space-between" mb={4}>
+        <Heading size="md" color="gray.800">ฟิลด์ที่ {index + 1}: {field.label || 'ฟิลด์ใหม่'}</Heading>
+        <HStack spacing={2}>
+          <IconButton
+            aria-label="Move Up"
+            icon={<ArrowUpIcon />}
+            size="md"
+            onClick={() => onMove(index, 'up')}
+            isDisabled={isFirst}
+            variant="ghost"
+            borderRadius="lg"
+          />
+          <IconButton
+            aria-label="Move Down"
+            icon={<ArrowDownIcon />}
+            size="md"
+            onClick={() => onMove(index, 'down')}
+            isDisabled={isLast}
+            variant="ghost"
+            borderRadius="lg"
+          />
           {isEditing ? (
             <>
-              <IconButton aria-label="Save" icon={<CheckIcon />} colorScheme="green" size="sm" onClick={handleSave} />
-              <IconButton aria-label="Cancel" icon={<CloseIcon />} colorScheme="red" size="sm" onClick={handleCancel} />
+              <IconButton aria-label="Save" icon={<CheckIcon />} colorScheme="green" size="md" onClick={handleSave} borderRadius="lg" />
+              <IconButton aria-label="Cancel" icon={<CloseIcon />} colorScheme="red" size="md" onClick={handleCancel} borderRadius="lg" />
             </>
           ) : (
             <>
-              <IconButton aria-label="Edit" icon={<EditIcon />} size="sm" onClick={() => setIsEditing(true)} />
-              <IconButton aria-label="Delete" icon={<DeleteIcon />} colorScheme="red" size="sm" onClick={() => onDelete(index)} />
+              <IconButton aria-label="Edit" icon={<EditIcon />} size="md" colorScheme="blue" variant="outline" onClick={() => setIsEditing(true)} borderRadius="lg" />
+              <IconButton aria-label="Delete" icon={<DeleteIcon />} colorScheme="red" size="md" variant="outline" onClick={() => onDelete(index)} borderRadius="lg" />
             </>
           )}
         </HStack>
       </HStack>
 
       {isEditing ? (
-        <VStack align="start" spacing={3}>
+        <VStack align="start" spacing={4}>
           <Input
-            placeholder="Field Label (e.g., Number of Affected Houses)"
+            placeholder="ชื่อฟิลด์ (เช่น จำนวนบ้านที่ได้รับผลกระทบ)"
             value={tempField.label}
             onChange={(e) => setTempField({ ...tempField, label: e.target.value })}
+            size="lg"
+            bg="gray.50"
+            borderRadius="lg"
           />
           <Input
-            placeholder="Field Name (e.g., affected_houses) - Unique ID"
+            placeholder="ชื่อตัวแปร (เช่น affected_houses) - ต้องไม่ซ้ำกัน"
             value={tempField.name}
             onChange={(e) => setTempField({ ...tempField, name: e.target.value.replace(/\s/g, '_').toLowerCase() })}
+            size="lg"
+            bg="gray.50"
+            borderRadius="lg"
           />
           <Select
             value={tempField.type}
             onChange={(e) => setTempField({ ...tempField, type: e.target.value as FieldType, options: [] })}
+            size="lg"
+            bg="gray.50"
+            borderRadius="lg"
           >
-            <option value="text">Text Input</option>
-            <option value="number">Number Input</option>
-            <option value="textarea">Text Area</option>
-            <option value="select">Dropdown (Select)</option>
-            <option value="radio">Radio Buttons</option>
-            <option value="checkbox">Single Checkbox</option>
-            <option value="checkboxGroup">Checkbox Group</option>
-            <option value="date">Date Picker</option>
-            <option value="time">Time Picker</option>
+            <option value="text">ข้อความสั้น</option>
+            <option value="number">ตัวเลข</option>
+            <option value="textarea">ข้อความยาว</option>
+            <option value="select">ดรอปดาวน์ (Select)</option>
+            <option value="radio">ปุ่มตัวเลือก (Radio Buttons)</option>
+            <option value="checkbox">ช่องทำเครื่องหมายเดี่ยว</option>
+            <option value="checkboxGroup">กลุ่มช่องทำเครื่องหมาย</option>
+            <option value="date">วันที่</option>
+            <option value="time">เวลา</option>
           </Select>
           <Checkbox
             isChecked={tempField.required}
             onChange={(e) => setTempField({ ...tempField, required: e.target.checked })}
+            colorScheme="blue"
           >
-            Required Field
+            ฟิลด์ที่จำเป็นต้องกรอก
           </Checkbox>
           {renderOptionsEditor()}
         </VStack>
       ) : (
-        <VStack align="start" spacing={1}>
-          <Text><strong>Name:</strong> {field.name}</Text>
-          <Text><strong>Type:</strong> {field.type}</Text>
-          <Text><strong>Required:</strong> {field.required ? 'Yes' : 'No'}</Text>
+        <VStack align="start" spacing={1} p={2} bg="gray.50" borderRadius="lg">
+          <Text fontSize="md" color="gray.700"><strong>ชื่อฟิลด์:</strong> {field.label}</Text>
+          <Text fontSize="md" color="gray.700"><strong>ชื่อตัวแปร:</strong> {field.name}</Text>
+          <Text fontSize="md" color="gray.700"><strong>ประเภท:</strong> {field.type}</Text>
+          <Text fontSize="md" color="gray.700"><strong>จำเป็นต้องกรอก:</strong> {field.required ? 'ใช่' : 'ไม่'}</Text>
           {field.options && field.options.length > 0 && (
-            <Text><strong>Options:</strong> {field.options.join(', ')}</Text>
+            <Text fontSize="md" color="gray.700"><strong>ตัวเลือก:</strong> {field.options.join(', ')}</Text>
           )}
         </VStack>
       )}
@@ -179,7 +205,7 @@ const SurveyFormBuilder: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const toast = useToast();
-  const { token } = useAuthStore();  const [templateName, setTemplateName] = useState('');
+  const [templateName, setTemplateName] = useState('');
   const [templateDescription, setTemplateDescription] = useState('');
   const [fields, setFields] = useState<FormField[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -196,8 +222,8 @@ const SurveyFormBuilder: React.FC = () => {
       setFields(response.data.fields as FormField[]);
     } catch (error) {
       toast({
-        title: 'Error fetching template',
-        description: 'Could not load survey template data.',
+        title: 'ข้อผิดพลาดในการดึงข้อมูล',
+        description: 'ไม่สามารถโหลดข้อมูลเทมเพลตแบบสำรวจได้',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -236,11 +262,20 @@ const SurveyFormBuilder: React.FC = () => {
     setFields(fields.filter((_, i) => i !== index));
   };
 
+  const handleMoveField = (index: number, direction: 'up' | 'down') => {
+    const newFields = [...fields];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex >= 0 && newIndex < newFields.length) {
+      [newFields[index], newFields[newIndex]] = [newFields[newIndex], newFields[index]];
+      setFields(newFields);
+    }
+  };
+
   const handleSaveTemplate = async () => {
     if (!templateName.trim()) {
       toast({
-        title: 'Validation Error',
-        description: 'Template Name is required.',
+        title: 'ข้อผิดพลาดในการตรวจสอบ',
+        description: 'โปรดระบุชื่อเทมเพลต',
         status: 'warning',
         duration: 3000,
         isClosable: true,
@@ -251,8 +286,8 @@ const SurveyFormBuilder: React.FC = () => {
     const hasEmptyField = fields.some(field => !field.label || !field.name);
     if (hasEmptyField) {
       toast({
-        title: 'Validation Error',
-        description: 'All fields must have a Label and a Name.',
+        title: 'ข้อผิดพลาดในการตรวจสอบ',
+        description: 'ฟิลด์ทั้งหมดต้องมีชื่อฟิลด์และชื่อตัวแปร',
         status: 'warning',
         duration: 3000,
         isClosable: true,
@@ -264,8 +299,8 @@ const SurveyFormBuilder: React.FC = () => {
     const hasDuplicateName = new Set(fieldNames).size !== fieldNames.length;
     if (hasDuplicateName) {
       toast({
-        title: 'Validation Error',
-        description: 'All field names must be unique.',
+        title: 'ข้อผิดพลาดในการตรวจสอบ',
+        description: 'ชื่อตัวแปรของฟิลด์ทั้งหมดต้องไม่ซ้ำกัน',
         status: 'warning',
         duration: 3000,
         isClosable: true,
@@ -284,8 +319,8 @@ const SurveyFormBuilder: React.FC = () => {
       if (isEditMode) {
         await apiClient.patch(`/survey-templates/${id}`, payload);
         toast({
-          title: 'Success',
-          description: 'Survey Template updated successfully.',
+          title: 'สำเร็จ',
+          description: 'อัปเดตเทมเพลตแบบสำรวจเรียบร้อยแล้ว',
           status: 'success',
           duration: 3000,
           isClosable: true,
@@ -293,8 +328,8 @@ const SurveyFormBuilder: React.FC = () => {
       } else {
         await apiClient.post('/survey-templates', payload);
         toast({
-          title: 'Success',
-          description: 'Survey Template created successfully.',
+          title: 'สำเร็จ',
+          description: 'สร้างเทมเพลตแบบสำรวจเรียบร้อยแล้ว',
           status: 'success',
           duration: 3000,
           isClosable: true,
@@ -304,8 +339,8 @@ const SurveyFormBuilder: React.FC = () => {
     } catch (error) {
       console.error('Save Error:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to save survey template.',
+        title: 'ข้อผิดพลาด',
+        description: 'ไม่สามารถบันทึกเทมเพลตแบบสำรวจได้',
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -317,60 +352,69 @@ const SurveyFormBuilder: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Flex justify="center" align="center" h="100vh">
-        <Spinner size="xl" />
-      </Flex>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Spinner size="xl" color="blue.600" thickness="4px" />
+      </div>
     );
   }
 
   return (
-    <Box p={8} maxW="6xl" mx="auto">
-      <Heading mb={6} size="xl" color="teal.500">
-        {isEditMode ? 'Edit Survey Template' : 'New Survey Template'}
-      </Heading>
+    <div className="min-h-screen bg-gray-50 py-10">
+      <Box maxW="6xl" mx="auto" px={{ base: 4, sm: 6, lg: 8 }}>
+        <Heading mb={6} size="xl" color="gray.900" fontWeight="extrabold">
+          {isEditMode ? 'แก้ไขเทมเพลตแบบสำรวจ' : 'สร้างเทมเพลตแบบสำรวจใหม่'}
+        </Heading>
 
-      <VStack spacing={6} align="stretch" mb={8} p={6} borderWidth="1px" borderRadius="lg" bg="gray.50">
-        <Input
-          placeholder="Template Name (e.g., Initial Damage Assessment)"
-          value={templateName}
-          onChange={(e) => setTemplateName(e.target.value)}
-          size="lg"
-          bg="white"
-        />
-        <Textarea
-          placeholder="Description (e.g., This survey is used by field officers to assess initial damage after a flood incident.)"
-          value={templateDescription}
-          onChange={(e) => setTemplateDescription(e.target.value)}
-          size="md"
-          bg="white"
-        />
-      </VStack>
-
-      <Heading size="lg" mb={4}>Form Fields</Heading>
-      <VStack spacing={4} align="stretch" mb={8}>
-        {fields.map((field, index) => (
-          <FieldEditor
-            key={field.id || `new-${index}`}
-            field={field}
-            index={index}
-            onUpdate={handleUpdateField}
-            onDelete={handleDeleteField}
+        <VStack spacing={6} align="stretch" mb={8} p={8} borderWidth="1px" borderRadius="xl" bg="white" shadow="lg">
+          <Input
+            placeholder="ชื่อเทมเพลต (เช่น การประเมินความเสียหายเบื้องต้น)"
+            value={templateName}
+            onChange={(e) => setTemplateName(e.target.value)}
+            size="lg"
+            bg="gray.50"
+            borderRadius="lg"
+            borderColor="gray.300"
           />
-        ))}
-        <Button leftIcon={<AddIcon />} colorScheme="blue" onClick={handleAddField} size="lg" w="full">
-          Add New Field
-        </Button>
-      </VStack>
+          <Textarea
+            placeholder="คำอธิบาย (เช่น แบบสำรวจนี้ใช้โดยเจ้าหน้าที่ภาคสนามเพื่อประเมินความเสียหายเบื้องต้นหลังเกิดเหตุน้ำท่วม)"
+            value={templateDescription}
+            onChange={(e) => setTemplateDescription(e.target.value)}
+            size="md"
+            bg="gray.50"
+            borderRadius="lg"
+            borderColor="gray.300"
+          />
+        </VStack>
 
-      <HStack justify="flex-end">
-        <Button variant="ghost" onClick={() => navigate('/supervisor/survey-templates')} isDisabled={isSaving}>
-          Cancel
-        </Button>
-        <Button colorScheme="teal" onClick={handleSaveTemplate} isLoading={isSaving} loadingText="Saving">
-          {isEditMode ? 'Update Template' : 'Create Template'}
-        </Button>
-      </HStack>
-    </Box>
+        <Heading size="lg" mb={4} color="gray.800" fontWeight="bold">ฟิลด์แบบฟอร์ม</Heading>
+        <VStack spacing={6} align="stretch" mb={8}>
+          {fields.map((field, index) => (
+            <FieldEditor
+              key={field.id || `new-${index}`}
+              field={field}
+              index={index}
+              onUpdate={handleUpdateField}
+              onDelete={handleDeleteField}
+              onMove={handleMoveField}
+              isFirst={index === 0}
+              isLast={index === fields.length - 1}
+            />
+          ))}
+          <Button leftIcon={<AddIcon />} colorScheme="blue" onClick={handleAddField} size="lg" w="full" borderRadius="xl" className="shadow-md">
+            เพิ่มฟิลด์ใหม่
+          </Button>
+        </VStack>
+
+        <HStack justify="flex-end" spacing={4}>
+          <Button variant="outline" onClick={() => navigate('/supervisor/survey-templates')} disabled={isSaving} size="lg" borderRadius="lg">
+            ยกเลิก
+          </Button>
+          <Button colorScheme="blue" onClick={handleSaveTemplate} isLoading={isSaving} loadingText="กำลังบันทึก" size="lg" borderRadius="lg" className="shadow-md">
+            {isEditMode ? 'อัปเดตเทมเพลต' : 'สร้างเทมเพลต'}
+          </Button>
+        </HStack>
+      </Box>
+    </div>
   );
 };
 

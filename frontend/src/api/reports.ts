@@ -1,14 +1,14 @@
 import axios from 'axios';
 import {
-  Report,
-  CreateReportDto,
-  UpdateReportDto,
-  FilterReportDto,
-  SubmitReportDto,
-  ReviewReportDto,
-  GeneratePdfDto,
-  ReportStatistics,
-  ReportListResponse,
+  type Report,
+  type CreateReportDto,
+  type UpdateReportDto,
+  type FilterReportDto,
+  type SubmitReportDto,
+  type ReviewReportDto,
+  type GeneratePdfDto,
+  type ReportStatistics,
+  type ReportListResponse,
 } from '../types/Report';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';

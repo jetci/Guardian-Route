@@ -81,15 +81,15 @@ export const ImageUpload = ({ onUploadSuccess, maxSizeMB = 5 }: ImageUploadProps
           type="file"
           accept="image/*"
           onChange={handleFileSelect}
-          className="block w-full text-sm text-gray-500
+          className="block w-full text-base text-gray-700
             file:mr-4 file:py-2 file:px-4
-            file:rounded-lg file:border-0
-            file:text-sm file:font-semibold
+            file:rounded-xl file:border-0
+            file:text-base file:font-semibold
             file:bg-blue-50 file:text-blue-700
             hover:file:bg-blue-100
-            cursor-pointer"
+            cursor-pointer transition-colors"
         />
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-2 text-sm text-gray-600">
           รองรับ JPEG, PNG, WebP (สูงสุด {maxSizeMB}MB)
         </p>
       </div>
@@ -100,21 +100,21 @@ export const ImageUpload = ({ onUploadSuccess, maxSizeMB = 5 }: ImageUploadProps
             <img
               src={preview}
               alt="Preview"
-              className="w-full h-48 object-cover rounded-lg border-2 border-gray-200"
+              className="w-full h-48 object-cover rounded-xl border-4 border-gray-200 shadow-md"
             />
           </div>
           <div className="flex gap-2">
             <button
               onClick={handleUpload}
               disabled={uploading}
-              className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium shadow-md"
             >
               {uploading ? 'กำลังอัปโหลด...' : 'อัปโหลด'}
             </button>
             <button
               onClick={handleCancel}
               disabled={uploading}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
             >
               ยกเลิก
             </button>

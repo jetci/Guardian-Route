@@ -21,29 +21,29 @@ export const MapView = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <nav className="bg-white shadow">
+      <nav className="bg-white shadow-lg border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-extrabold text-gray-900">
                 แผนที่เหตุการณ์ - Guardian Route
               </h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-base text-gray-600 mt-1">
                 {user?.firstName} {user?.lastName} ({user?.role})
               </p>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => navigate('/supervisor')}
-                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-200 transition-colors font-medium shadow-sm"
               >
                 รายการเหตุการณ์
               </button>
               <button
                 onClick={handleLogout}
-                className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-200 transition-colors font-medium shadow-sm"
               >
                 ออกจากระบบ
               </button>
@@ -54,9 +54,9 @@ export const MapView = () => {
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-lg shadow p-4 mb-4">
+        <div className="bg-white rounded-xl shadow-md p-6 mb-6 border border-gray-100">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">แผนที่แสดงเหตุการณ์ทั้งหมด</h2>
+            <h2 className="text-xl font-bold text-gray-800">แผนที่แสดงเหตุการณ์ทั้งหมด</h2>
             <div className="flex gap-4 text-sm">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded-full bg-gray-500"></div>
@@ -79,17 +79,17 @@ export const MapView = () => {
         </div>
 
         <IncidentsMap 
-          className="h-[calc(100vh-250px)] w-full rounded-lg shadow"
+          className="h-[calc(100vh-250px)] w-full rounded-xl shadow-xl border border-gray-200"
           onIncidentClick={handleIncidentClick}
         />
 
         {selectedIncident && (
-          <div className="mt-4 bg-white rounded-lg shadow p-4">
-            <h3 className="font-semibold mb-2">เหตุการณ์ที่เลือก:</h3>
-            <p className="text-lg">{selectedIncident.title}</p>
+          <div className="mt-6 bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <h3 className="text-lg font-bold mb-2 text-gray-800">เหตุการณ์ที่เลือก:</h3>
+            <p className="text-xl font-semibold text-blue-600">{selectedIncident.title}</p>
             <button
               onClick={() => toast('Detail page coming soon!', { icon: 'ℹ️' })}
-              className="mt-2 text-blue-600 hover:underline text-sm"
+              className="mt-3 text-blue-600 hover:text-blue-800 font-medium text-base"
             >
               ดูรายละเอียดเพิ่มเติม →
             </button>

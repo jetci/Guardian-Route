@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Report,
+  type Report,
   ReportType,
   ReportStatus,
-  FilterReportDto,
+  type FilterReportDto,
 } from '../../types/Report';
 import { getReports, deleteReport } from '../../api/reports';
 
@@ -98,19 +98,19 @@ const ReportList: React.FC<ReportListProps> = ({
   };
 
   const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('th-TH', {
+    return new Intl.DateTimeFormat('th-TH', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    });
+    }).format(new Date(dateString));
   };
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600"></div>
       </div>
     );
   }
@@ -119,7 +119,7 @@ const ReportList: React.FC<ReportListProps> = ({
     <div className="space-y-4">
       {/* Filters */}
       {showFilters && (
-        <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Type Filter */}
             <div>
@@ -131,7 +131,7 @@ const ReportList: React.FC<ReportListProps> = ({
                 onChange={(e) =>
                   handleFilterChange('type', e.target.value || undefined)
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               >
                 <option value="">ทั้งหมด</option>
                 {Object.values(ReportType).map((type) => (
@@ -152,7 +152,7 @@ const ReportList: React.FC<ReportListProps> = ({
                 onChange={(e) =>
                   handleFilterChange('status', e.target.value || undefined)
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               >
                 <option value="">ทั้งหมด</option>
                 {Object.values(ReportStatus).map((status) => (
@@ -171,7 +171,7 @@ const ReportList: React.FC<ReportListProps> = ({
               <select
                 value={filters.sortBy || 'createdAt'}
                 onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               >
                 <option value="createdAt">วันที่สร้าง</option>
                 <option value="updatedAt">วันที่แก้ไข</option>
@@ -191,7 +191,7 @@ const ReportList: React.FC<ReportListProps> = ({
                 onChange={(e) =>
                   handleFilterChange('sortOrder', e.target.value as 'asc' | 'desc')
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               >
                 <option value="desc">ใหม่สุด → เก่าสุด</option>
                 <option value="asc">เก่าสุด → ใหม่สุด</option>
@@ -203,15 +203,15 @@ const ReportList: React.FC<ReportListProps> = ({
 
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-50 border border-red-300 text-red-800 px-6 py-4 rounded-xl shadow-md font-medium">
           {error}
         </div>
       )}
 
       {/* Reports List */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
         {reports.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-xl text-gray-500">
             <svg
               className="mx-auto h-12 w-12 text-gray-400"
               fill="none"
@@ -230,40 +230,40 @@ const ReportList: React.FC<ReportListProps> = ({
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-100">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
                     รายงาน
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
                     ประเภท
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
                     สถานะ
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
                     ผู้สร้าง
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-sm font-bold text-gray-700 uppercase tracking-wider">
                     วันที่สร้าง
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-right text-sm font-bold text-gray-700 uppercase tracking-wider">
                     การจัดการ
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {reports.map((report) => (
-                  <tr key={report.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
+                  <tr key={report.id} className="hover:bg-blue-50/50 transition-colors cursor-pointer" onClick={() => window.location.href = `/reports/${report.id}`}>
+                    <td className="px-6 py-4 font-medium text-gray-900">
                       <Link
                         to={`/reports/${report.id}`}
-                        className="text-blue-600 hover:text-blue-800 font-medium"
+                        className="text-blue-700 hover:text-blue-900 font-extrabold text-lg"
                       >
                         {report.title}
                       </Link>
                       {report.summary && (
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-gray-600 mt-1">
                           {report.summary.substring(0, 100)}
                           {report.summary.length > 100 && '...'}
                         </p>
@@ -271,7 +271,7 @@ const ReportList: React.FC<ReportListProps> = ({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 text-xs font-semibold rounded-full ${getTypeBadgeClass(
+                        className={`px-3 py-1 text-xs font-bold rounded-full ${getTypeBadgeClass(
                           report.type
                         )}`}
                       >
@@ -280,23 +280,23 @@ const ReportList: React.FC<ReportListProps> = ({
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(
+                        className={`px-3 py-1 text-xs font-bold rounded-full ${getStatusBadgeClass(
                           report.status
                         )}`}
                       >
                         {report.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="px-6 py-4 whitespace-nowrap text-base text-gray-700 font-medium">
                       {report.author.firstName} {report.author.lastName}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {formatDate(report.createdAt)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                       <Link
                         to={`/reports/${report.id}`}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-blue-600 hover:text-blue-800 font-semibold"
                       >
                         ดู
                       </Link>
@@ -304,13 +304,13 @@ const ReportList: React.FC<ReportListProps> = ({
                         <>
                           <Link
                             to={`/reports/${report.id}/edit`}
-                            className="text-indigo-600 hover:text-indigo-900"
+                            className="text-indigo-600 hover:text-indigo-800 font-semibold"
                           >
                             แก้ไข
                           </Link>
                           <button
-                            onClick={() => handleDelete(report.id)}
-                            className="text-red-600 hover:text-red-900"
+                            onClick={(e) => { e.stopPropagation(); handleDelete(report.id); }}
+                            className="text-red-600 hover:text-red-800 font-semibold"
                           >
                             ลบ
                           </button>
@@ -326,26 +326,26 @@ const ReportList: React.FC<ReportListProps> = ({
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+          <div className="bg-gray-50 px-4 py-4 flex items-center justify-between border-t border-gray-200 sm:px-6 rounded-b-2xl">
             <div className="flex-1 flex justify-between sm:hidden">
               <button
                 onClick={() => setFilters((prev) => ({ ...prev, page: page - 1 }))}
                 disabled={page === 1}
-                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-100 disabled:opacity-50 transition-colors shadow-sm"
               >
                 ก่อนหน้า
               </button>
               <button
                 onClick={() => setFilters((prev) => ({ ...prev, page: page + 1 }))}
                 disabled={page === totalPages}
-                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-100 disabled:opacity-50 transition-colors shadow-sm"
               >
                 ถัดไป
               </button>
             </div>
             <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
               <div>
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-gray-600">
                   แสดง <span className="font-medium">{(page - 1) * (filters.limit || 10) + 1}</span> ถึง{' '}
                   <span className="font-medium">
                     {Math.min(page * (filters.limit || 10), total)}
@@ -354,11 +354,11 @@ const ReportList: React.FC<ReportListProps> = ({
                 </p>
               </div>
               <div>
-                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                <nav className="relative z-0 inline-flex rounded-xl shadow-md">
                   <button
                     onClick={() => setFilters((prev) => ({ ...prev, page: page - 1 }))}
                     disabled={page === 1}
-                    className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                    className="relative inline-flex items-center px-3 py-2 rounded-l-xl border border-gray-300 bg-white text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-colors"
                   >
                     ก่อนหน้า
                   </button>
@@ -366,10 +366,10 @@ const ReportList: React.FC<ReportListProps> = ({
                     <button
                       key={pageNum}
                       onClick={() => setFilters((prev) => ({ ...prev, page: pageNum }))}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors ${
                         pageNum === page
-                          ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                          : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                          ? 'z-10 bg-blue-600 border-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-100'
                       }`}
                     >
                       {pageNum}
@@ -378,7 +378,7 @@ const ReportList: React.FC<ReportListProps> = ({
                   <button
                     onClick={() => setFilters((prev) => ({ ...prev, page: page + 1 }))}
                     disabled={page === totalPages}
-                    className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+                    className="relative inline-flex items-center px-3 py-2 rounded-r-xl border border-gray-300 bg-white text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-colors"
                   >
                     ถัดไป
                   </button>

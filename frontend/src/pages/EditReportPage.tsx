@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ReportForm } from '../components/reports';
-import { Report } from '../types/Report';
+import type { Report } from '../types/Report';
 import { getReportById } from '../api/reports';
 
 const EditReportPage: React.FC = () => {
@@ -44,7 +44,7 @@ const EditReportPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
       </div>
     );
   }
@@ -53,7 +53,7 @@ const EditReportPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <div className="bg-red-50 border border-red-300 text-red-800 px-6 py-4 rounded-xl shadow-md">
             {error || 'Report not found'}
           </div>
           <div className="mt-4">
@@ -74,14 +74,14 @@ const EditReportPage: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">แก้ไขรายงาน</h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <h1 className="text-3xl font-extrabold text-gray-900">แก้ไขรายงาน</h1>
+          <p className="mt-2 text-base text-gray-600">
             แก้ไขข้อมูลรายงาน: {report.title}
           </p>
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
           <ReportForm
             report={report}
             onSuccess={handleSuccess}

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Report,
-  ReportType,
   ReportStatus,
+} from '../../types/Report';
+import type {
+  Report,
   ReviewReportDto,
 } from '../../types/Report';
 import { submitReport, reviewReport, generateReportPdf, downloadReportPdf } from '../../api/reports';
@@ -102,13 +103,13 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
   };
 
   const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleDateString('th-TH', {
+    return new Intl.DateTimeFormat('th-TH', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-    });
+    }).format(new Date(dateString));
   };
 
   const formatCurrency = (amount: number): string => {
@@ -122,16 +123,16 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
     <div className="space-y-6">
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-50 border border-red-300 text-red-800 px-6 py-4 rounded-xl shadow-md font-medium">
           {error}
         </div>
       )}
 
       {/* Header */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{report.title}</h1>
+            <h1 className="text-3xl font-extrabold text-gray-900">{report.title}</h1>
             <div className="flex items-center space-x-2 mt-2">
               <span
                 className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusBadgeClass(
@@ -140,15 +141,15 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
               >
                 {report.status}
               </span>
-              <span className="text-sm text-gray-500">•</span>
-              <span className="text-sm text-gray-600">ประเภท: {report.type}</span>
+              <span className="text-sm text-gray-400 mx-2">•</span>
+              <span className="text-base text-gray-600 font-medium">ประเภท: {report.type}</span>
             </div>
           </div>
           <div className="flex space-x-2">
             {canEdit && (
               <Link
                 to={`/reports/${report.id}/edit`}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium shadow-md"
               >
                 แก้ไข
               </Link>
@@ -157,7 +158,7 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium shadow-md"
               >
                 ส่งเพื่อตรวจสอบ
               </button>
@@ -165,7 +166,7 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
             {canReview && (
               <button
                 onClick={() => setShowReviewModal(true)}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium shadow-md"
               >
                 ตรวจสอบรายงาน
               </button>
@@ -173,14 +174,14 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
             <button
               onClick={handleGeneratePdf}
               disabled={loading}
-              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50"
+              className="px-6 py-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:opacity-50 transition-colors font-medium shadow-md"
             >
               สร้าง PDF
             </button>
             {report.pdfUrl && (
               <button
                 onClick={handleDownloadPdf}
-                className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                className="px-6 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors font-medium shadow-md"
               >
                 ดาวน์โหลด PDF
               </button>
@@ -189,60 +190,60 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
         </div>
 
         {report.summary && (
-          <p className="text-gray-700 mt-4">{report.summary}</p>
+          <p className="text-lg text-gray-700 mt-4 border-t pt-4">{report.summary}</p>
         )}
       </div>
 
       {/* Report Information */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">ข้อมูลรายงาน</h2>
+      <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+        <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">ข้อมูลรายงาน</h2>
         <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <dt className="text-sm font-medium text-gray-500">ผู้สร้างรายงาน</dt>
-            <dd className="mt-1 text-sm text-gray-900">
+            <dt className="text-sm font-medium text-gray-600">ผู้สร้างรายงาน</dt>
+            <dd className="mt-1 text-base text-gray-900 font-medium">
               {report.author.firstName} {report.author.lastName} ({report.author.role})
             </dd>
           </div>
           <div>
-            <dt className="text-sm font-medium text-gray-500">วันที่สร้าง</dt>
-            <dd className="mt-1 text-sm text-gray-900">{formatDate(report.createdAt)}</dd>
+            <dt className="text-sm font-medium text-gray-600">วันที่สร้าง</dt>
+            <dd className="mt-1 text-base text-gray-900 font-medium">{formatDate(report.createdAt)}</dd>
           </div>
           {report.periodStart && (
             <div>
-              <dt className="text-sm font-medium text-gray-500">ช่วงเวลาเริ่มต้น</dt>
-              <dd className="mt-1 text-sm text-gray-900">{formatDate(report.periodStart)}</dd>
+              <dt className="text-sm font-medium text-gray-600">ช่วงเวลาเริ่มต้น</dt>
+              <dd className="mt-1 text-base text-gray-900 font-medium">{formatDate(report.periodStart)}</dd>
             </div>
           )}
           {report.periodEnd && (
             <div>
-              <dt className="text-sm font-medium text-gray-500">ช่วงเวลาสิ้นสุด</dt>
-              <dd className="mt-1 text-sm text-gray-900">{formatDate(report.periodEnd)}</dd>
+              <dt className="text-sm font-medium text-gray-600">ช่วงเวลาสิ้นสุด</dt>
+              <dd className="mt-1 text-base text-gray-900 font-medium">{formatDate(report.periodEnd)}</dd>
             </div>
           )}
           {report.submittedAt && (
             <div>
-              <dt className="text-sm font-medium text-gray-500">วันที่ส่งตรวจสอบ</dt>
-              <dd className="mt-1 text-sm text-gray-900">{formatDate(report.submittedAt)}</dd>
+              <dt className="text-sm font-medium text-gray-600">วันที่ส่งตรวจสอบ</dt>
+              <dd className="mt-1 text-base text-gray-900 font-medium">{formatDate(report.submittedAt)}</dd>
             </div>
           )}
           {report.reviewedAt && report.reviewedBy && (
             <>
               <div>
-                <dt className="text-sm font-medium text-gray-500">ผู้ตรวจสอบ</dt>
-                <dd className="mt-1 text-sm text-gray-900">
+                <dt className="text-sm font-medium text-gray-600">ผู้ตรวจสอบ</dt>
+                <dd className="mt-1 text-base text-gray-900 font-medium">
                   {report.reviewedBy.firstName} {report.reviewedBy.lastName}
                 </dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">วันที่ตรวจสอบ</dt>
-                <dd className="mt-1 text-sm text-gray-900">{formatDate(report.reviewedAt)}</dd>
+                <dt className="text-sm font-medium text-gray-600">วันที่ตรวจสอบ</dt>
+                <dd className="mt-1 text-base text-gray-900 font-medium">{formatDate(report.reviewedAt)}</dd>
               </div>
             </>
           )}
           {report.approvedAt && (
             <div>
-              <dt className="text-sm font-medium text-gray-500">วันที่อนุมัติ</dt>
-              <dd className="mt-1 text-sm text-gray-900">{formatDate(report.approvedAt)}</dd>
+              <dt className="text-sm font-medium text-gray-600">วันที่อนุมัติ</dt>
+              <dd className="mt-1 text-base text-gray-900 font-medium">{formatDate(report.approvedAt)}</dd>
             </div>
           )}
         </dl>
@@ -250,11 +251,11 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
 
       {/* Damage Assessment */}
       {(report.totalDamageEstimate || report.affectedHouseholds || report.affectedPersons) && (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">ประเมินความเสียหาย</h2>
+        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+          <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">ประเมินความเสียหาย</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {report.totalDamageEstimate && (
-              <div className="bg-red-50 p-4 rounded-lg">
+              <div className="bg-red-50 p-6 rounded-xl border border-red-200 shadow-sm">
                 <p className="text-sm text-red-600 font-medium">ความเสียหายโดยประมาณ</p>
                 <p className="text-2xl font-bold text-red-900 mt-1">
                   {formatCurrency(Number(report.totalDamageEstimate))}
@@ -262,7 +263,7 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
               </div>
             )}
             {report.affectedHouseholds && (
-              <div className="bg-orange-50 p-4 rounded-lg">
+              <div className="bg-orange-50 p-6 rounded-xl border border-orange-200 shadow-sm">
                 <p className="text-sm text-orange-600 font-medium">ครัวเรือนที่ได้รับผลกระทบ</p>
                 <p className="text-2xl font-bold text-orange-900 mt-1">
                   {report.affectedHouseholds} ครัวเรือน
@@ -270,7 +271,7 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
               </div>
             )}
             {report.affectedPersons && (
-              <div className="bg-yellow-50 p-4 rounded-lg">
+              <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-200 shadow-sm">
                 <p className="text-sm text-yellow-600 font-medium">ผู้ได้รับผลกระทบ</p>
                 <p className="text-2xl font-bold text-yellow-900 mt-1">
                   {report.affectedPersons} คน
@@ -283,9 +284,9 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
 
       {/* Details */}
       {report.details && Object.keys(report.details).length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">รายละเอียด</h2>
-          <pre className="bg-gray-50 p-4 rounded-md overflow-x-auto text-sm">
+        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+          <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">รายละเอียด</h2>
+          <pre className="bg-gray-50 p-6 rounded-xl overflow-x-auto text-sm border border-gray-200">
             {JSON.stringify(report.details, null, 2)}
           </pre>
         </div>
@@ -293,9 +294,9 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
 
       {/* Photos */}
       {report.photoUrls && report.photoUrls.length > 0 && (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">รูปภาพ</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+          <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">รูปภาพ ({report.photoUrls.length})</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {report.photoUrls.map((url, index) => (
               <a
                 key={index}
@@ -307,7 +308,7 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
                 <img
                   src={url}
                   alt={`Photo ${index + 1}`}
-                  className="w-full h-48 object-cover rounded-lg hover:opacity-75 transition"
+                  className="w-full h-48 object-cover rounded-xl shadow-md hover:opacity-90 transition-opacity"
                 />
               </a>
             ))}
@@ -317,16 +318,16 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
 
       {/* Review Notes */}
       {report.reviewNotes && (
-        <div className="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
-          <h2 className="text-lg font-semibold text-yellow-900 mb-2">หมายเหตุจากการตรวจสอบ</h2>
+        <div className="bg-yellow-50 p-8 rounded-2xl border border-yellow-300 shadow-lg">
+          <h2 className="text-xl font-bold text-yellow-900 mb-4 border-b pb-2">หมายเหตุจากการตรวจสอบ</h2>
           <p className="text-yellow-800">{report.reviewNotes}</p>
         </div>
       )}
 
       {/* Incident Link */}
       {report.incident && (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">เหตุการณ์ที่เกี่ยวข้อง</h2>
+        <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
+          <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">เหตุการณ์ที่เกี่ยวข้อง</h2>
           <Link
             to={`/incidents/${report.incident.id}`}
             className="text-blue-600 hover:text-blue-800 font-medium"
@@ -341,9 +342,9 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
 
       {/* Review Modal */}
       {showReviewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">ตรวจสอบรายงาน</h3>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-gray-200">
+            <h3 className="text-2xl font-extrabold text-gray-900 mb-6">ตรวจสอบรายงาน</h3>
             
             <div className="space-y-4">
               <div>
@@ -358,7 +359,7 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
                       status: e.target.value as any,
                     }))
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 >
                   <option value={ReportStatus.APPROVED}>อนุมัติ</option>
                   <option value={ReportStatus.REVISION_REQUIRED}>ต้องแก้ไข</option>
@@ -380,7 +381,7 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
                   }
                   rows={4}
                   placeholder="ระบุหมายเหตุหรือข้อเสนอแนะ"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                 />
               </div>
             </div>
@@ -389,14 +390,14 @@ const ReportDetails: React.FC<ReportDetailsProps> = ({
               <button
                 onClick={() => setShowReviewModal(false)}
                 disabled={loading}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 disabled:opacity-50 transition-colors font-medium shadow-sm"
               >
                 ยกเลิก
               </button>
               <button
                 onClick={handleReview}
                 disabled={loading}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-50 transition-colors font-medium shadow-md"
               >
                 {loading ? 'กำลังบันทึก...' : 'บันทึกผลการตรวจสอบ'}
               </button>

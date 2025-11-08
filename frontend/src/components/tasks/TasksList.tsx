@@ -87,7 +87,7 @@ export const TasksList = ({ refreshKey = 0 }: TasksListProps) => {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-blue-600"></div>
       </div>
     );
   }
@@ -95,14 +95,14 @@ export const TasksList = ({ refreshKey = 0 }: TasksListProps) => {
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="bg-white p-4 rounded-lg shadow">
+      <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium mb-1">กรองตามสถานะ</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as TaskStatus | '')}
-              className="w-full px-4 py-2 border rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             >
               <option value="">ทั้งหมด</option>
               <option value="PENDING">รอดำเนินการ</option>
@@ -117,7 +117,7 @@ export const TasksList = ({ refreshKey = 0 }: TasksListProps) => {
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value as TaskPriority | '')}
-              className="w-full px-4 py-2 border rounded-lg"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             >
               <option value="">ทั้งหมด</option>
               <option value="LOW">ต่ำ</option>
@@ -131,37 +131,37 @@ export const TasksList = ({ refreshKey = 0 }: TasksListProps) => {
 
       {/* Tasks List */}
       {tasks.length === 0 ? (
-        <div className="bg-white p-8 rounded-lg shadow text-center text-gray-500">
+        <div className="bg-white p-12 rounded-2xl shadow-lg text-center text-xl text-gray-500 border border-gray-100">
           ไม่พบงานที่มอบหมาย
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {tasks.map((task) => (
-            <div key={task.id} className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+            <div key={task.id} className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-shadow border border-gray-100">
               <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  <h3 className="text-xl font-bold text-gray-900 mb-1">
                     {task.title}
                   </h3>
                   {task.description && (
-                    <p className="text-gray-600 text-sm mb-2">{task.description}</p>
+                    <p className="text-gray-700 text-base mb-2">{task.description}</p>
                   )}
                 </div>
                 <div className="flex gap-2 ml-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(task.status)}`}>
                     {getStatusLabel(task.status)}
                   </span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(task.priority)}`}>
                     {getPriorityLabel(task.priority)}
                   </span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-base">
                 {task.incident && (
                   <div>
-                    <span className="font-medium text-gray-700">เหตุการณ์:</span>{' '}
-                    <span className="text-gray-600">
+                    <span className="font-semibold text-gray-700">เหตุการณ์:</span>{' '}
+                    <span className="text-gray-800">
                       {task.incident.title} ({getDisasterTypeLabel(task.incident.disasterType)})
                     </span>
                   </div>
@@ -169,8 +169,8 @@ export const TasksList = ({ refreshKey = 0 }: TasksListProps) => {
 
                 {task.assignedTo && (
                   <div>
-                    <span className="font-medium text-gray-700">มอบหมายให้:</span>{' '}
-                    <span className="text-gray-600">
+                    <span className="font-semibold text-gray-700">มอบหมายให้:</span>{' '}
+                    <span className="text-gray-800">
                       {task.assignedTo.firstName} {task.assignedTo.lastName}
                     </span>
                   </div>
@@ -178,8 +178,8 @@ export const TasksList = ({ refreshKey = 0 }: TasksListProps) => {
 
                 {task.createdBy && (
                   <div>
-                    <span className="font-medium text-gray-700">มอบหมายโดย:</span>{' '}
-                    <span className="text-gray-600">
+                    <span className="font-semibold text-gray-700">มอบหมายโดย:</span>{' '}
+                    <span className="text-gray-800">
                       {task.createdBy.firstName} {task.createdBy.lastName}
                     </span>
                   </div>
@@ -187,15 +187,15 @@ export const TasksList = ({ refreshKey = 0 }: TasksListProps) => {
 
                 {task.dueDate && (
                   <div>
-                    <span className="font-medium text-gray-700">กำหนดเสร็จ:</span>{' '}
-                    <span className="text-gray-600">
+                    <span className="font-semibold text-gray-700">กำหนดเสร็จ:</span>{' '}
+                    <span className="text-gray-800">
                       {new Date(task.dueDate).toLocaleDateString('th-TH')}
                     </span>
                   </div>
                 )}
               </div>
 
-              <div className="mt-3 pt-3 border-t text-xs text-gray-500">
+              <div className="mt-4 pt-4 border-t border-gray-200 text-sm text-gray-600">
                 สร้างเมื่อ: {new Date(task.createdAt).toLocaleString('th-TH')}
               </div>
             </div>

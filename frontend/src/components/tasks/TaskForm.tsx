@@ -81,11 +81,11 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
         </label>
         <input
           {...register('title', { required: 'กรุณากรอกชื่องาน' })}
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           placeholder="เช่น สำรวจพื้นที่ประสบภัย"
         />
         {errors.title && (
-          <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+          <p className="text-red-600 text-sm mt-1 font-medium">{errors.title.message}</p>
         )}
       </div>
 
@@ -94,7 +94,7 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
         <label className="block text-sm font-medium mb-1">รายละเอียดงาน</label>
         <textarea
           {...register('description')}
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           rows={3}
           placeholder="รายละเอียดเพิ่มเติม..."
         />
@@ -107,7 +107,7 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
         </label>
         <select
           {...register('incidentId', { required: 'กรุณาเลือกเหตุการณ์' })}
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
         >
           <option value="">เลือกเหตุการณ์</option>
           {incidents.map((inc) => (
@@ -117,7 +117,7 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
           ))}
         </select>
         {errors.incidentId && (
-          <p className="text-red-500 text-sm mt-1">{errors.incidentId.message}</p>
+          <p className="text-red-600 text-sm mt-1 font-medium">{errors.incidentId.message}</p>
         )}
       </div>
 
@@ -128,7 +128,7 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
         </label>
         <select
           {...register('assignedToId', { required: 'กรุณาเลือกผู้รับผิดชอบ' })}
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
         >
           <option value="">เลือกเจ้าหน้าที่</option>
           {users.map((user) => (
@@ -138,7 +138,7 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
           ))}
         </select>
         {errors.assignedToId && (
-          <p className="text-red-500 text-sm mt-1">{errors.assignedToId.message}</p>
+          <p className="text-red-600 text-sm mt-1 font-medium">{errors.assignedToId.message}</p>
         )}
       </div>
 
@@ -149,7 +149,7 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
         </label>
         <select
           {...register('priority', { required: 'กรุณาเลือกความสำคัญ' })}
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
         >
           <option value="">เลือกความสำคัญ</option>
           <option value="LOW">ต่ำ</option>
@@ -158,7 +158,7 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
           <option value="URGENT">เร่งด่วน</option>
         </select>
         {errors.priority && (
-          <p className="text-red-500 text-sm mt-1">{errors.priority.message}</p>
+          <p className="text-red-600 text-sm mt-1 font-medium">{errors.priority.message}</p>
         )}
       </div>
 
@@ -168,7 +168,7 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
         <input
           type="date"
           {...register('dueDate')}
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
         />
       </div>
 
@@ -177,7 +177,7 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
         <button
           type="submit"
           disabled={loading}
-          className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="flex-1 bg-blue-600 text-white py-3 px-4 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-md"
         >
           {loading ? 'กำลังมอบหมาย...' : 'มอบหมายงาน'}
         </button>
@@ -185,7 +185,7 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
           <button
             type="button"
             onClick={onCancel}
-            className="px-6 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+            className="px-6 bg-white text-gray-700 py-3 rounded-xl hover:bg-gray-100 transition-colors font-medium border border-gray-300 shadow-sm"
           >
             ยกเลิก
           </button>

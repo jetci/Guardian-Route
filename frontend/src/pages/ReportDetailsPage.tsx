@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ReportDetails } from '../components/reports';
-import { Report } from '../types/Report';
+import type { Report } from '../types/Report';
 import { getReportById } from '../api/reports';
 import { useAuthStore } from '../stores/authStore';
 
@@ -38,7 +38,7 @@ const ReportDetailsPage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
       </div>
     );
   }
@@ -47,7 +47,7 @@ const ReportDetailsPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+          <div className="bg-red-50 border border-red-300 text-red-800 px-6 py-4 rounded-xl shadow-md">
             {error || 'Report not found'}
           </div>
           <div className="mt-4">
@@ -72,18 +72,18 @@ const ReportDetailsPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
-        <nav className="mb-8" aria-label="Breadcrumb">
-          <ol className="flex items-center space-x-2 text-sm">
+        <nav className="mb-6 p-4 bg-white rounded-xl shadow-sm border border-gray-100" aria-label="Breadcrumb">
+          <ol className="flex items-center space-x-3 text-base">
             <li>
               <Link to="/reports" className="text-gray-500 hover:text-gray-700">
                 รายงาน
               </Link>
             </li>
             <li>
-              <span className="text-gray-400">/</span>
+              <svg className="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>
             </li>
             <li>
-              <span className="text-gray-900 font-medium">{report.title}</span>
+              <span className="text-gray-900 font-extrabold">{report.title}</span>
             </li>
           </ol>
         </nav>
@@ -96,7 +96,7 @@ const ReportDetailsPage: React.FC = () => {
         />
 
         {/* Back Button */}
-        <div className="mt-8">
+        <div className="mt-10">
           <Link
             to="/reports"
             className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"

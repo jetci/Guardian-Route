@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { incidentsApi } from '../../api/incidents';
 import { ImageUpload } from '../upload/ImageUpload';
 import { ImageGallery } from '../upload/ImageGallery';
 import { apiClient } from '../../api/client';
-import { SurveyTemplate } from '../../types/Survey';
+import type { SurveyTemplate } from '../../types/Survey';
 import toast from 'react-hot-toast';
 import type { DisasterType, Priority } from '../../types';
 
@@ -93,11 +93,11 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
         </label>
         <input
           {...register('title', { required: 'กรุณากรอกชื่อเหตุการณ์' })}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           placeholder="เช่น น้ำท่วมบ้านหนองตุ้ม"
         />
         {errors.title && (
-          <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+          <p className="text-red-600 text-sm mt-1 font-medium">{errors.title.message}</p>
         )}
       </div>
 
@@ -108,7 +108,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
         </label>
         <textarea
           {...register('description')}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           rows={3}
           placeholder="รายละเอียดเพิ่มเติม..."
         />
@@ -122,7 +122,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
           </label>
           <select
             {...register('disasterType', { required: 'กรุณาเลือกประเภทภัย' })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           >
             <option value="">เลือกประเภทภัย</option>
             <option value="FLOOD">น้ำท่วม</option>
@@ -133,7 +133,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
             <option value="OTHER">อื่นๆ</option>
           </select>
           {errors.disasterType && (
-            <p className="text-red-500 text-sm mt-1">{errors.disasterType.message}</p>
+            <p className="text-red-600 text-sm mt-1 font-medium">{errors.disasterType.message}</p>
           )}
         </div>
 
@@ -143,7 +143,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
           </label>
           <select
             {...register('priority', { required: 'กรุณาเลือกระดับความสำคัญ' })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           >
             <option value="LOW">ต่ำ</option>
             <option value="MEDIUM">ปานกลาง</option>
@@ -151,7 +151,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
             <option value="CRITICAL">วิกฤต</option>
           </select>
           {errors.priority && (
-            <p className="text-red-500 text-sm mt-1">{errors.priority.message}</p>
+            <p className="text-red-600 text-sm mt-1 font-medium">{errors.priority.message}</p>
           )}
         </div>
       </div>
@@ -163,7 +163,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
 	        </label>
 	        <select
 	          {...register('villageId')}
-	          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+	          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
 	        >
 	          <option value="">เลือกหมู่บ้าน (ถ้ามี)</option>
 	          {/* VillageSelector will be integrated later */}
@@ -177,7 +177,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
 	        </label>
 	        <select
 	          {...register('surveyTemplateId')}
-	          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+	          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
 	        >
 	          <option value="">ไม่สร้างแบบสำรวจ</option>
 	          {surveyTemplates.map(template => (
@@ -203,11 +203,11 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
               max: { value: 90, message: 'ละติจูดต้องอยู่ระหว่าง -90 ถึง 90' },
               valueAsNumber: true,
             })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             placeholder="19.9263"
           />
           {errors.latitude && (
-            <p className="text-red-500 text-sm mt-1">{errors.latitude.message}</p>
+            <p className="text-red-600 text-sm mt-1 font-medium">{errors.latitude.message}</p>
           )}
         </div>
         <div>
@@ -223,11 +223,11 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
               max: { value: 180, message: 'ลองจิจูดต้องอยู่ระหว่าง -180 ถึง 180' },
               valueAsNumber: true,
             })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             placeholder="99.8832"
           />
           {errors.longitude && (
-            <p className="text-red-500 text-sm mt-1">{errors.longitude.message}</p>
+            <p className="text-red-600 text-sm mt-1 font-medium">{errors.longitude.message}</p>
           )}
         </div>
       </div>
@@ -239,14 +239,14 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
         </label>
         <input
           {...register('address')}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           placeholder="เช่น 123 หมู่ 1 บ้านหนองตุ้ม"
         />
       </div>
 
       {/* Image Upload */}
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-semibold mb-4">รูปภาพประกอบ</h3>
+      <div className="pt-6 border-t border-gray-200">
+        <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">รูปภาพประกอบ</h3>
         
         <ImageUpload 
           onUploadSuccess={(url) => setUploadedImages(prev => [...prev, url])}
@@ -254,7 +254,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
         
         {uploadedImages.length > 0 && (
           <div className="mt-4">
-            <p className="text-sm text-gray-600 mb-2">
+            <p className="text-base text-gray-600 mb-2 font-medium">
               รูปภาพที่อัปโหลดแล้ว ({uploadedImages.length})
             </p>
             <ImageGallery 
@@ -269,7 +269,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full bg-blue-600 text-white py-3 px-4 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-md"
       >
         {loading ? 'กำลังสร้าง...' : 'สร้างเหตุการณ์'}
       </button>
