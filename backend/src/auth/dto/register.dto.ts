@@ -10,6 +10,12 @@ import {
 import { Role } from '@prisma/client';
 
 export class RegisterDto {
+  @ApiProperty({ example: 'johndoe' })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(3, { message: 'Username must be at least 3 characters long' })
+  username: string;
+
   @ApiProperty({ example: 'john.doe@obtwiang.go.th' })
   @IsEmail()
   @IsNotEmpty()
@@ -35,6 +41,11 @@ export class RegisterDto {
   @IsString()
   @IsOptional()
   phone?: string;
+
+  @ApiProperty({ example: 'IT Department', required: false })
+  @IsString()
+  @IsOptional()
+  department?: string;
 
   @ApiProperty({
     enum: Role,

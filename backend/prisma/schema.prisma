@@ -84,10 +84,11 @@ model User {
   lastName  String?  @map("last_name")
   department String?
   phone     String?
-  role      Role     @default(FIELD_OFFICER)
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  role         Role     @default(FIELD_OFFICER)
+  isActive     Boolean  @default(true) @map("is_active")
+  refreshToken String?  @map("refresh_token") // JWT Refresh Token
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relations
   createdIncidents  Incident[] @relation("CreatedBy")

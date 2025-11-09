@@ -15,13 +15,21 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto, requestingUser?: any) {
-    // Check if user exists
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: registerDto.email },
+    // Check if user exists (email or username)
+    const existingUser = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: registerDto.email },
+          { username: registerDto.username },
+        ],
+      },
     });
 
     if (existingUser) {
-      throw new UnauthorizedException('Email already exists');
+      if (existingUser.email === registerDto.email) {
+        throw new UnauthorizedException('Email already exists');
+      }
+      throw new UnauthorizedException('Username already exists');
     }
 
     // Hash password
@@ -36,11 +44,14 @@ export class AuthService {
     // Create user
     const user = await this.prisma.user.create({
       data: {
+        username: registerDto.username,
         email: registerDto.email,
         password: hashedPassword,
+        fullName: `${registerDto.firstName} ${registerDto.lastName}`.trim(),
         firstName: registerDto.firstName,
         lastName: registerDto.lastName,
         phone: registerDto.phone,
+        department: registerDto.department,
         role,
       },
       select: {
@@ -68,9 +79,15 @@ export class AuthService {
     return user;
   }
 
-  async validateUser(email: string, password: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
+  async validateUser(emailOrUsername: string, password: string) {
+    // Support login with email or username
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: emailOrUsername },
+          { username: emailOrUsername },
+        ],
+      },
     });
 
     if (!user) {
@@ -108,6 +125,12 @@ export class AuthService {
         this.configService.get('REFRESH_TOKEN_SECRET') ||
         this.configService.get('JWT_SECRET'),
       expiresIn: this.configService.get('REFRESH_TOKEN_EXPIRATION') || '7d',
+    });
+
+    // Store refresh token in database
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken },
     });
 
     // Log activity
@@ -150,10 +173,16 @@ export class AuthService {
           lastName: true,
           role: true,
           isActive: true,
+          refreshToken: true,
         },
       });
 
       if (!user || !user.isActive) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      // Validate refresh token matches stored token
+      if (user.refreshToken !== refreshToken) {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
@@ -175,6 +204,12 @@ export class AuthService {
           this.configService.get('REFRESH_TOKEN_EXPIRATION') || '7d',
       });
 
+      // Update refresh token in database
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { refreshToken: newRefreshToken },
+      });
+
       return {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
@@ -192,6 +227,12 @@ export class AuthService {
   }
 
   async logout(userId: string) {
+    // Clear refresh token
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { refreshToken: null },
+    });
+
     // Log activity
     await this.prisma.activityLog.create({
       data: {
