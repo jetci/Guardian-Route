@@ -487,3 +487,48 @@ model SystemConfig {
 
   @@map("system_config")
 }
+
+// ========================================
+// ROLE & PERMISSION MANAGEMENT
+// ========================================
+
+// Role Metadata - เก็บข้อมูลเพิ่มเติมของแต่ละ Role
+model RoleMetadata {
+  role        Role     @id
+  displayName String   @map("display_name") // ชื่อแสดง เช่น "ผู้ดูแลระบบ"
+  description String   // คำอธิบายบทบาท
+  permissions RolePermission[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("role_metadata")
+}
+
+// Permission - สิทธิ์การเข้าถึงระบบ
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique // เช่น "CREATE_USER", "VIEW_ANALYTICS"
+  displayName String   @map("display_name") // ชื่อแสดง เช่น "สร้างผู้ใช้"
+  description String   // คำอธิบายสิทธิ์
+  category    String   // หมวดหมู่ เช่น "User Management", "Analytics"
+  roles       RolePermission[]
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([category])
+  @@map("permissions")
+}
+
+// Role-Permission Junction Table
+model RolePermission {
+  role         Role           @map("role")
+  permissionId String         @map("permission_id")
+  roleMetadata RoleMetadata   @relation(fields: [role], references: [role], onDelete: Cascade)
+  permission   Permission     @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  assignedAt   DateTime       @default(now()) @map("assigned_at")
+
+  @@id([role, permissionId])
+  @@index([role])
+  @@index([permissionId])
+  @@map("role_permissions")
+}

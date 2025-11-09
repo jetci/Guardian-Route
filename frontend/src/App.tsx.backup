@@ -1,6 +1,17 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SupervisorDashboard } from './pages/supervisor/SupervisorDashboard';
@@ -26,17 +37,6 @@ import TaskDetailPage from './pages/tasks/TaskDetailPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import { RoleProtectedRoute } from './components/RoleProtectedRoute';
 import { Role } from './components/guards/RoleGuard';
-
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
 
 function App() {
   return (
