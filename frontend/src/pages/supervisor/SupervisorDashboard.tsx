@@ -5,9 +5,12 @@ import { useAuthStore } from '../../stores/authStore';
 import { useNavigate } from 'react-router-dom';
 import { incidentsApi } from '../../api/incidents';
 import { tasksApi } from '../../api/tasks';
+import { BroadcastModal } from '../../components/notifications/BroadcastModal';
+import { NotificationBell } from '../../components/notifications/NotificationBell';
 
 export const SupervisorDashboard = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [stats, setStats] = useState({
     totalIncidents: 0,
@@ -75,6 +78,18 @@ export const SupervisorDashboard = () => {
 
             {/* Right: Actions */}
             <div className="flex items-center gap-3">
+              <NotificationBell />
+              
+              <button
+                onClick={() => setShowBroadcastModal(true)}
+                className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2.5 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-colors font-medium shadow-md"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                </svg>
+                Broadcast
+              </button>
+
               <button
                 onClick={() => setShowCreateForm(true)}
                 className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-colors font-medium shadow-md"
@@ -210,6 +225,12 @@ export const SupervisorDashboard = () => {
 	          <IncidentsList key={refreshKey} refreshKey={refreshKey} />
         </div>
       </div>
+
+      {/* Modal สำหรับ Broadcast */}
+      <BroadcastModal
+        isOpen={showBroadcastModal}
+        onClose={() => setShowBroadcastModal(false)}
+      />
 
       {/* Modal สำหรับสร้าง Incident */}
       {showCreateForm && (

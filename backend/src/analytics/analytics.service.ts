@@ -71,3 +71,175 @@ export class AnalyticsService {
     return result;
   }
 }
+
+  /**
+   * Get incident trend data for the last 6 months
+   */
+  async getTrendData() {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const incidents = await this.prisma.incident.findMany({
+      where: {
+        createdAt: {
+          gte: sixMonthsAgo,
+        },
+      },
+      select: {
+        createdAt: true,
+        resolvedAt: true,
+      },
+    });
+
+    // Group by month
+    const monthlyData = new Map<string, { count: number; totalResponseTime: number }>();
+
+    for (const incident of incidents) {
+      const month = incident.createdAt.toISOString().substring(0, 7); // YYYY-MM
+      
+      if (!monthlyData.has(month)) {
+        monthlyData.set(month, { count: 0, totalResponseTime: 0 });
+      }
+
+      const data = monthlyData.get(month)!;
+      data.count++;
+
+      if (incident.resolvedAt) {
+        const responseTime = (incident.resolvedAt.getTime() - incident.createdAt.getTime()) / (1000 * 60 * 60);
+        data.totalResponseTime += responseTime;
+      }
+    }
+
+    // Convert to array and calculate averages
+    const result = Array.from(monthlyData.entries()).map(([month, data]) => ({
+      month,
+      count: data.count,
+      avgResponseTime: data.count > 0 ? Math.round(data.totalResponseTime / data.count) : 0,
+    }));
+
+    // Sort by month
+    result.sort((a, b) => a.month.localeCompare(b.month));
+
+    return result;
+  }
+
+  /**
+   * Get incidents grouped by type
+   */
+  async getIncidentsByType() {
+    const incidents = await this.prisma.incident.groupBy({
+      by: ['type'],
+      _count: {
+        type: true,
+      },
+    });
+
+    const total = incidents.reduce((sum, item) => sum + item._count.type, 0);
+
+    return incidents.map((item) => ({
+      type: item.type,
+      count: item._count.type,
+      percentage: total > 0 ? Math.round((item._count.type / total) * 100) : 0,
+    }));
+  }
+
+  /**
+   * Get critical incidents (HIGH and CRITICAL priority)
+   */
+  async getCriticalIncidents(limit = 10) {
+    const incidents = await this.prisma.incident.findMany({
+      where: {
+        priority: {
+          in: ['HIGH', 'CRITICAL'],
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: limit,
+      select: {
+        id: true,
+        title: true,
+        priority: true,
+        status: true,
+        location: true,
+        createdAt: true,
+      },
+    });
+
+    return incidents.map((incident) => ({
+      id: incident.id,
+      title: incident.title,
+      priority: incident.priority,
+      status: incident.status,
+      location: incident.location?.coordinates
+        ? `${incident.location.coordinates[1]}, ${incident.location.coordinates[0]}`
+        : 'N/A',
+      createdAt: incident.createdAt,
+    }));
+  }
+
+  /**
+   * Get risk areas (hotspots) based on incident density
+   */
+  async getRiskAreas() {
+    const incidents = await this.prisma.incident.findMany({
+      where: {
+        location: {
+          not: null,
+        },
+      },
+      select: {
+        location: true,
+        priority: true,
+      },
+    });
+
+    // Group incidents by approximate location (grid-based)
+    const gridSize = 0.1; // ~11km
+    const locationMap = new Map<string, { lat: number; lng: number; count: number; totalSeverity: number }>();
+
+    for (const incident of incidents) {
+      if (!incident.location?.coordinates) continue;
+
+      const [lng, lat] = incident.location.coordinates;
+      const gridLat = Math.floor(lat / gridSize) * gridSize;
+      const gridLng = Math.floor(lng / gridSize) * gridSize;
+      const key = `${gridLat},${gridLng}`;
+
+      if (!locationMap.has(key)) {
+        locationMap.set(key, {
+          lat: gridLat + gridSize / 2,
+          lng: gridLng + gridSize / 2,
+          count: 0,
+          totalSeverity: 0,
+        });
+      }
+
+      const data = locationMap.get(key)!;
+      data.count++;
+
+      // Calculate severity score
+      const severityScore = {
+        CRITICAL: 4,
+        HIGH: 3,
+        MEDIUM: 2,
+        LOW: 1,
+      }[incident.priority] || 1;
+
+      data.totalSeverity += severityScore;
+    }
+
+    // Convert to array and calculate severity
+    return Array.from(locationMap.values())
+      .map((data) => ({
+        lat: data.lat,
+        lng: data.lng,
+        count: data.count,
+        severity: Math.min(5, Math.ceil(data.totalSeverity / data.count)),
+      }))
+      .filter((area) => area.count >= 2) // Only show areas with 2+ incidents
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 20); // Top 20 risk areas
+  }
+}

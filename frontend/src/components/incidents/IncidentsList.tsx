@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { incidentsApi } from '../../api/incidents';
 import type { Incident, IncidentStatus, Priority, DisasterType } from '../../types';
 import IncidentDetailsModal from './IncidentDetailsModal';
+import { AssignIncidentModal } from '../supervisor/AssignIncidentModal';
+import { ReviewIncidentModal } from '../supervisor/ReviewIncidentModal';
+import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
 
 export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
@@ -14,6 +17,10 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
     priority: '' as Priority | '',
     disasterType: '' as DisasterType | '',
   });
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
+  const { user } = useAuthStore();
 
   useEffect(() => {
     loadIncidents();
@@ -40,17 +47,41 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
     setListRefreshKey(prev => prev + 1);
   };
 
+  const handleAssignClick = (incident: Incident) => {
+    setSelectedIncident(incident);
+    setAssignModalOpen(true);
+  };
+
+  const handleReviewClick = (incident: Incident) => {
+    setSelectedIncident(incident);
+    setReviewModalOpen(true);
+  };
+
+  const handleAssignSuccess = () => {
+    setListRefreshKey(prev => prev + 1);
+  };
+
+  const handleReviewSuccess = () => {
+    setListRefreshKey(prev => prev + 1);
+  };
+
+  const isSupervisor = user?.role === 'SUPERVISOR' || user?.role === 'ADMIN';
+
   const getStatusBadge = (status: IncidentStatus) => {
-    const badges = {
+    const badges: Record<IncidentStatus, string> = {
       PENDING: 'bg-yellow-100 text-yellow-800',
       IN_PROGRESS: 'bg-blue-100 text-blue-800',
+      INVESTIGATING: 'bg-purple-100 text-purple-800',
       RESOLVED: 'bg-green-100 text-green-800',
+      REJECTED: 'bg-red-100 text-red-800',
       CLOSED: 'bg-gray-100 text-gray-800',
     };
-    const labels = {
+    const labels: Record<IncidentStatus, string> = {
       PENDING: 'รอดำเนินการ',
       IN_PROGRESS: 'กำลังดำเนินการ',
+      INVESTIGATING: 'กำลังตรวจสอบ',
       RESOLVED: 'แก้ไขแล้ว',
+      REJECTED: 'ปฏิเสธ',
       CLOSED: 'ปิดงาน',
     };
     return (
@@ -118,6 +149,18 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
         isOpen={!!selectedIncidentId}
         onClose={() => setSelectedIncidentId(null)}
         onUpdate={handleIncidentUpdate}
+      />
+      <AssignIncidentModal
+        isOpen={assignModalOpen}
+        onClose={() => setAssignModalOpen(false)}
+        incident={selectedIncident}
+        onSuccess={handleAssignSuccess}
+      />
+      <ReviewIncidentModal
+        isOpen={reviewModalOpen}
+        onClose={() => setReviewModalOpen(false)}
+        incident={selectedIncident}
+        onSuccess={handleReviewSuccess}
       />
       {/* Filters */}
       <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
@@ -262,13 +305,29 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
                   )}
                 </div>
 
-                <div className="flex gap-2 ml-4">
+                <div className="flex flex-col gap-2 ml-4">
                   <button
                     className="px-4 py-2 text-base text-blue-600 hover:bg-blue-50 rounded-xl font-medium transition-colors border border-blue-200"
                     onClick={() => setSelectedIncidentId(incident.id)}
                   >
                     ดูรายละเอียด
                   </button>
+                  {isSupervisor && incident.status === 'PENDING' && (
+                    <>
+                      <button
+                        className="px-4 py-2 text-base text-green-600 hover:bg-green-50 rounded-xl font-medium transition-colors border border-green-200"
+                        onClick={() => handleAssignClick(incident)}
+                      >
+                        มอบหมาย
+                      </button>
+                      <button
+                        className="px-4 py-2 text-base text-purple-600 hover:bg-purple-50 rounded-xl font-medium transition-colors border border-purple-200"
+                        onClick={() => handleReviewClick(incident)}
+                      >
+                        ตรวจสอบ
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

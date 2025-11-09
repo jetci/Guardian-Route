@@ -39,6 +39,7 @@ enum Priority {
 enum TaskStatus {
   PENDING
   IN_PROGRESS
+  SURVEYED
   COMPLETED
   CANCELLED
 }
@@ -75,10 +76,13 @@ enum DisasterType {
 
 model User {
   id        String   @id @default(uuid())
+  username  String   @unique
   email     String   @unique
   password  String   // bcrypt hashed
-  firstName String   @map("first_name")
-  lastName  String   @map("last_name")
+  fullName  String   @map("full_name")
+  firstName String?  @map("first_name")
+  lastName  String?  @map("last_name")
+  department String?
   phone     String?
   role      Role     @default(FIELD_OFFICER)
   isActive  Boolean  @default(true) @map("is_active")
@@ -86,8 +90,10 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  createdIncidents Incident[]    @relation("CreatedBy")
-  assignedTasks    Task[]        @relation("AssignedTo")
+  createdIncidents  Incident[] @relation("CreatedBy")
+  assignedIncidents Incident[] @relation("AssignedIncidents")
+  reviewedIncidents Incident[] @relation("ReviewedIncidents")
+  assignedTasks     Task[]     @relation("AssignedTo")
   createdTasks     Task[]        @relation("TaskCreator")
   reports          Report[]      @relation("ReportAuthor")
   reviewedReports  Report[]      @relation("ReviewedBy")
@@ -153,11 +159,20 @@ model Incident {
   createdAt  DateTime  @default(now()) @map("created_at")
   updatedAt  DateTime  @updatedAt @map("updated_at")
 
+  // Assignment and Review
+  assignedToId String?   @map("assigned_to_id")
+  assignedAt   DateTime? @map("assigned_at")
+  reviewNotes  String?   @map("review_notes")
+  reviewedAt   DateTime? @map("reviewed_at")
+  reviewedById String?   @map("reviewed_by_id")
+
   // Foreign Keys
   createdById String @map("created_by_id")
 
   // Relations
-  createdBy User     @relation("CreatedBy", fields: [createdById], references: [id])
+  createdBy  User  @relation("CreatedBy", fields: [createdById], references: [id])
+  assignedTo User? @relation("AssignedIncidents", fields: [assignedToId], references: [id])
+  reviewedBy User? @relation("ReviewedIncidents", fields: [reviewedById], references: [id])
   village   Village? @relation(fields: [villageId], references: [id])
   tasks     Task[]
   surveys   Survey[]
@@ -193,6 +208,14 @@ model Task {
   priority    TaskPriority @default(MEDIUM)
   dueDate     DateTime?    @map("due_date")
   completedAt DateTime?    @map("completed_at")
+  
+  // Field Survey Data
+  surveyedAt      DateTime?              @map("surveyed_at")
+  surveyLocation  Unsupported("geometry(Point, 4326)")? @map("survey_location")
+  surveyArea      Unsupported("geometry(Polygon, 4326)")? @map("survey_area")
+  surveyNotes     String?                @map("survey_notes")
+  surveyPhotos    String[]               @default([]) @map("survey_photos")
+  
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")
 
@@ -352,6 +375,43 @@ model ActivityLog {
   @@index([action])
   @@index([createdAt])
   @@map("activity_logs")
+}
+
+// Admin Audit Logs - สำหรับติดตาม Admin Actions
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  username   String
+  action     String   // 'CREATE_USER', 'SUSPEND_USER', 'DELETE_USER', 'CHANGE_ROLE', 'UPLOAD_GEOJSON', 'EDIT_POLYGON', 'UPDATE_SETTINGS'
+  targetType String?  @map("target_type") // 'USER', 'GEOJSON', 'POLYGON', 'SETTINGS'
+  targetId   String?  @map("target_id")
+  details    Json?    // Additional details
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([action])
+  @@index([targetType])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// GeoJSON Boundaries - สำหรับจัดการขอบเขตภูมิศาสตร์
+model GeoBoundary {
+  id          String   @id @default(uuid())
+  name        String   // ชื่อขอบเขต
+  type        String   // 'village', 'district', 'province', 'custom'
+  geojson     Json     // GeoJSON data
+  properties  Json?    // Additional properties
+  villageId   String?  @map("village_id")
+  uploadedBy  String   @map("uploaded_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@index([villageId])
+  @@map("geo_boundaries")
 }
 
 // System configuration and settings

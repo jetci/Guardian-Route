@@ -15,6 +15,10 @@ import { UploadModule } from './upload/upload.module';
 import { ReportModule } from './report/report.module';
 import { CommonModule } from './common/common.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { NotificationsModule } from './notifications/notifications.module';
+import { AnalysisModule } from './analysis/analysis.module';
+import { AdminModule } from './admin/admin.module';
+import { AuditLogModule } from './audit-log/audit-log.module';
 
 @Module({
   imports: [
@@ -38,6 +42,10 @@ import { AnalyticsModule } from './analytics/analytics.module';
     SurveyModule,
     ReportModule,
     AnalyticsModule,
+    NotificationsModule,
+    AnalysisModule,
+    AdminModule,
+    AuditLogModule,
   ],
   controllers: [AppController],
   providers: [

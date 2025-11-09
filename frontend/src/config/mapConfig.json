@@ -1,0 +1,97 @@
+{
+  "defaultCenter": {
+    "lat": 19.9167,
+    "lng": 99.2333,
+    "description": "ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่"
+  },
+  "defaultZoom": 13,
+  "minZoom": 10,
+  "maxZoom": 18,
+  "bounds": {
+    "north": 20.05,
+    "south": 19.78,
+    "east": 99.38,
+    "west": 99.08
+  },
+  "tileLayers": {
+    "default": {
+      "name": "OpenStreetMap",
+      "url": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      "attribution": "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors",
+      "maxZoom": 19
+    },
+    "satellite": {
+      "name": "Esri Satellite",
+      "url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      "attribution": "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
+      "maxZoom": 18
+    },
+    "terrain": {
+      "name": "OpenTopoMap",
+      "url": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+      "attribution": "Map data: &copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, <a href=\"http://viewfinderpanoramas.org\">SRTM</a> | Map style: &copy; <a href=\"https://opentopomap.org\">OpenTopoMap</a>",
+      "maxZoom": 17
+    }
+  },
+  "markerIcons": {
+    "incident": {
+      "default": "🔴",
+      "flood": "🌊",
+      "fire": "🔥",
+      "landslide": "⛰️",
+      "earthquake": "🌍",
+      "storm": "🌪️",
+      "drought": "☀️",
+      "other": "⚠️"
+    },
+    "village": "🏘️",
+    "user": "📍"
+  },
+  "polygonStyles": {
+    "village": {
+      "color": "#3388ff",
+      "fillColor": "#3388ff",
+      "fillOpacity": 0.2,
+      "weight": 2
+    },
+    "riskArea": {
+      "low": {
+        "color": "#00ff00",
+        "fillColor": "#00ff00",
+        "fillOpacity": 0.3,
+        "weight": 2
+      },
+      "medium": {
+        "color": "#ffff00",
+        "fillColor": "#ffff00",
+        "fillOpacity": 0.3,
+        "weight": 2
+      },
+      "high": {
+        "color": "#ff0000",
+        "fillColor": "#ff0000",
+        "fillOpacity": 0.3,
+        "weight": 2
+      }
+    }
+  },
+  "clustering": {
+    "enabled": true,
+    "maxClusterRadius": 80,
+    "disableClusteringAtZoom": 15
+  },
+  "geolocation": {
+    "enabled": true,
+    "watch": true,
+    "setView": true,
+    "maxZoom": 16,
+    "timeout": 10000,
+    "maximumAge": 0,
+    "enableHighAccuracy": true
+  },
+  "offline": {
+    "enabled": true,
+    "maxTilesToCache": 1000,
+    "tileExpirationDays": 30
+  }
+}

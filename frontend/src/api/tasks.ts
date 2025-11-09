@@ -44,4 +44,33 @@ export const tasksApi = {
     const response = await apiClient.get('/tasks/statistics');
     return response.data;
   },
+
+  async getMyTasks(status?: TaskStatus): Promise<Task[]> {
+    const params = status ? `?status=${status}` : '';
+    const response = await apiClient.get(`/tasks/my-tasks${params}`);
+    return response.data;
+  },
+
+  async acceptTask(id: string): Promise<Task> {
+    const response = await apiClient.post(`/tasks/${id}/accept`);
+    return response.data;
+  },
+
+  async submitSurveyData(
+    id: string,
+    data: {
+      surveyLocation?: { type: 'Point'; coordinates: [number, number] };
+      surveyArea?: { type: 'Polygon'; coordinates: number[][][] };
+      surveyNotes: string;
+      surveyPhotos?: string[];
+    },
+  ): Promise<Task> {
+    const response = await apiClient.post(`/tasks/${id}/survey`, data);
+    return response.data;
+  },
+
+  async getTaskById(id: string): Promise<Task> {
+    const response = await apiClient.get(`/tasks/${id}`);
+    return response.data;
+  },
 };

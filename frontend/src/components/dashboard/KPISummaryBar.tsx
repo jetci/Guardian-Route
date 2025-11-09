@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Box, Card, CardBody, SimpleGrid, Stat, StatLabel, StatNumber, Spinner, Alert, AlertIcon } from "@chakra-ui/react";
+import { Card, CardBody, SimpleGrid, Stat, StatLabel, StatNumber, Spinner, Alert, AlertIcon } from "@chakra-ui/react";
 import { analyticsApi, type KpiSummary } from "../../api/analytics";
 
 export const KPISummaryBar = () => {

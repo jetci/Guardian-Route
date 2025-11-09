@@ -8,6 +8,8 @@ import type {
   DisasterType
 } from '../types';
 
+export type { Incident };
+
 export const incidentsApi = {
   getAll: async (filters?: {
     status?: IncidentStatus;
@@ -32,6 +34,11 @@ export const incidentsApi = {
     return response.data;
   },
 
+  getMy: async (): Promise<Incident[]> => {
+    const response = await apiClient.get<Incident[]>('/incidents/my');
+    return response.data;
+  },
+
   create: async (data: CreateIncidentDto): Promise<Incident> => {
     const response = await apiClient.post<Incident>('/incidents', data);
     return response.data;
@@ -48,6 +55,22 @@ export const incidentsApi = {
 
   getStatistics: async (): Promise<any> => {
     const response = await apiClient.get('/incidents/statistics');
+    return response.data;
+  },
+
+  // Supervisor methods
+  getUnassigned: async (): Promise<Incident[]> => {
+    const response = await apiClient.get<Incident[]>('/incidents/unassigned');
+    return response.data;
+  },
+
+  assign: async (id: string, data: { fieldOfficerId: string; notes?: string }): Promise<Incident> => {
+    const response = await apiClient.patch<Incident>(`/incidents/${id}/assign`, data);
+    return response.data;
+  },
+
+  review: async (id: string, data: { status: IncidentStatus; reviewNotes: string; additionalNotes?: string }): Promise<Incident> => {
+    const response = await apiClient.patch<Incident>(`/incidents/${id}/review`, data);
     return response.data;
   },
 };

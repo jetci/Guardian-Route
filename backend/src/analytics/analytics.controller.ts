@@ -33,3 +33,39 @@ export class AnalyticsController {
     return this.analyticsService.getIncidentsByStatus();
   }
 }
+
+  @Get('trend')
+  @HttpCode(HttpStatus.OK)
+  @Roles(Role.ADMIN, Role.EXECUTIVE)
+  @ApiOperation({ summary: 'Get incident trend data for last 6 months' })
+  @ApiResponse({ status: 200, description: 'Trend data retrieved' })
+  async getTrendData() {
+    return this.analyticsService.getTrendData();
+  }
+
+  @Get('by-type')
+  @HttpCode(HttpStatus.OK)
+  @Roles(Role.ADMIN, Role.SUPERVISOR, Role.EXECUTIVE)
+  @ApiOperation({ summary: 'Get incidents count by type' })
+  @ApiResponse({ status: 200, description: 'Incidents by type retrieved' })
+  async getIncidentsByType() {
+    return this.analyticsService.getIncidentsByType();
+  }
+
+  @Get('critical-incidents')
+  @HttpCode(HttpStatus.OK)
+  @Roles(Role.ADMIN, Role.SUPERVISOR, Role.EXECUTIVE)
+  @ApiOperation({ summary: 'Get critical incidents (HIGH and CRITICAL priority)' })
+  @ApiResponse({ status: 200, description: 'Critical incidents retrieved' })
+  async getCriticalIncidents() {
+    return this.analyticsService.getCriticalIncidents();
+  }
+
+  @Get('risk-areas')
+  @HttpCode(HttpStatus.OK)
+  @Roles(Role.ADMIN, Role.EXECUTIVE)
+  @ApiOperation({ summary: 'Get risk areas (hotspots) based on incident density' })
+  @ApiResponse({ status: 200, description: 'Risk areas retrieved' })
+  async getRiskAreas() {
+    return this.analyticsService.getRiskAreas();
+  }

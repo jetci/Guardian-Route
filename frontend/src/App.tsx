@@ -14,6 +14,8 @@ import ReportDetailsPage from './pages/ReportDetailsPage';
 import EditReportPage from './pages/EditReportPage';
 import AuditLogsPage from './pages/admin/AuditLogsPage';
 import { ExecutiveDashboardPage } from './pages/ExecutiveDashboardPage';
+import { CreateFullReportPage } from './pages/reports/CreateFullReportPage';
+import { OverlayMapPage } from './pages/analysis/OverlayMapPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -35,6 +37,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ExecutiveDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/create-full/:taskId"
+            element={
+              <ProtectedRoute>
+                <CreateFullReportPage />
               </ProtectedRoute>
             }
           />
@@ -131,6 +141,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AuditLogsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analysis/overlay"
+            element={
+              <ProtectedRoute>
+                <OverlayMapPage />
               </ProtectedRoute>
             }
           />

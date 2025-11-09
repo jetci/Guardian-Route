@@ -1,24 +1,28 @@
-import { Box, Grid, GridItem, Heading, Text } from "@chakra-ui/react";
+import { Box, Grid, GridItem, Heading, Text, Flex } from "@chakra-ui/react";
 import { KPISummaryBar } from "../components/dashboard/KPISummaryBar";
-import { IncidentsByStatusChart } from "../components/dashboard/IncidentsByStatusChart";
-import { IncidentsByPriorityChart } from "../components/dashboard/IncidentsByPriorityChart";
-import { IncidentHotspotsMap } from "../components/dashboard/IncidentHotspotsMap";
-import { IncidentTrendChart } from "../components/dashboard/IncidentTrendChart";
-import { FieldOfficerWorkloadTable } from "../components/dashboard/FieldOfficerWorkloadTable";
-import { ExportToPDFButton } from "../components/dashboard/ExportToPDFButton";
+import { TrendChart } from "../components/dashboard/TrendChart";
+import { TypeDonutChart } from "../components/dashboard/TypeDonutChart";
+import { CriticalIncidentsTable } from "../components/dashboard/CriticalIncidentsTable";
+import { RiskHeatmap } from "../components/dashboard/RiskHeatmap";
+import { ExportButton } from "../components/dashboard/ExportButton";
 
 export const ExecutiveDashboardPage = () => {
   return (
     <Box p={6}>
-      <Heading mb={6}>Executive Dashboard</Heading>
-      <Text mb={4} color="gray.600">
-        Last Updated: {new Date().toLocaleString()}
-      </Text>
+      <Flex justify="space-between" align="center" mb={6}>
+        <Box>
+          <Heading mb={2}>Executive Dashboard</Heading>
+          <Text color="gray.600">
+            Last Updated: {new Date().toLocaleString('th-TH')}
+          </Text>
+        </Box>
+        <ExportButton />
+      </Flex>
       
       <Grid
         templateAreas={{
-          base: `"kpi" "status" "priority" "trend" "map" "workload" "export"`,
-          lg: `"kpi kpi" "status trend" "priority map" "workload workload" "export export"`,
+          base: `"kpi" "trend" "type" "critical" "heatmap"`,
+          lg: `"kpi kpi" "trend type" "critical critical" "heatmap heatmap"`,
         }}
         templateColumns={{ base: "1fr", lg: "1fr 1fr" }}
         gap={6}
@@ -27,28 +31,20 @@ export const ExecutiveDashboardPage = () => {
           <KPISummaryBar />
         </GridItem>
         
-        <GridItem area="status">
-          <IncidentsByStatusChart />
-        </GridItem>
-        
         <GridItem area="trend">
-          <IncidentTrendChart />
+          <TrendChart />
         </GridItem>
         
-        <GridItem area="priority">
-          <IncidentsByPriorityChart />
+        <GridItem area="type">
+          <TypeDonutChart />
         </GridItem>
         
-        <GridItem area="map">
-          <IncidentHotspotsMap />
+        <GridItem area="critical">
+          <CriticalIncidentsTable />
         </GridItem>
         
-        <GridItem area="workload">
-          <FieldOfficerWorkloadTable />
-        </GridItem>
-        
-        <GridItem area="export">
-          <ExportToPDFButton />
+        <GridItem area="heatmap">
+          <RiskHeatmap />
         </GridItem>
       </Grid>
     </Box>

@@ -38,8 +38,10 @@ interface IncidentDetailsModalProps {
 const statusColors: Record<IncidentStatus, string> = {
   PENDING: 'orange',
   IN_PROGRESS: 'blue',
+  INVESTIGATING: 'purple',
   RESOLVED: 'green',
-  CLOSED: 'red',
+  REJECTED: 'red',
+  CLOSED: 'gray',
 };
 
 const IncidentDetailsModal: React.FC<IncidentDetailsModalProps> = ({ incidentId, isOpen, onClose, onUpdate }) => {

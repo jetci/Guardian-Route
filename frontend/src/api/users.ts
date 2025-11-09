@@ -14,4 +14,8 @@ export const usersApi = {
     const response = await apiClient.get(`/users/${id}`);
     return response.data;
   },
+
+  async getFieldOfficers(): Promise<User[]> {
+    return this.getAll({ role: 'FIELD_OFFICER' });
+  },
 };

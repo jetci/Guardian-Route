@@ -8,6 +8,7 @@ export enum Role {
 export interface User {
   id: string;
   email: string;
+  username?: string;
   firstName: string;
   lastName: string;
   role: Role;
@@ -15,7 +16,17 @@ export interface User {
 
 export interface LoginResponse {
   accessToken: string;
+  refreshToken: string;
   user: User;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  role?: Role;
 }
 
 export interface Village {
@@ -55,8 +66,10 @@ export interface VillageStatistics {
 
 export enum IncidentStatus {
   PENDING = 'PENDING',
+  INVESTIGATING = 'INVESTIGATING',
   IN_PROGRESS = 'IN_PROGRESS',
   RESOLVED = 'RESOLVED',
+  REJECTED = 'REJECTED',
   CLOSED = 'CLOSED',
 }
 

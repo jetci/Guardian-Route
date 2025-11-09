@@ -4,8 +4,10 @@ import type { User } from '../types';
 
 interface AuthState {
   user: User | null;
-  token: string | null;
-  setAuth: (user: User, token: string) => void;
+  accessToken: string | null;
+  refreshToken: string | null;
+  setAuth: (user: User, accessToken: string, refreshToken: string) => void;
+  updateTokens: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
   isAuthenticated: () => boolean;
 }
@@ -14,22 +16,27 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
-      token: null,
-      
-      setAuth: (user, token) => {
-        set({ user, token });
+      accessToken: null,
+      refreshToken: null,
+
+      setAuth: (user, accessToken, refreshToken) => {
+        set({ user, accessToken, refreshToken });
       },
-      
+
+      updateTokens: (accessToken, refreshToken) => {
+        set({ accessToken, refreshToken });
+      },
+
       logout: () => {
-        set({ user: null, token: null });
+        set({ user: null, accessToken: null, refreshToken: null });
       },
-      
+
       isAuthenticated: () => {
-        return !!get().token && !!get().user;
+        return !!get().accessToken && !!get().user;
       },
     }),
     {
       name: 'auth-storage',
-    }
-  )
+    },
+  ),
 );

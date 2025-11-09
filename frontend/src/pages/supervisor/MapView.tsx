@@ -4,6 +4,7 @@ import { useAuthStore } from '../../stores/authStore';
 import { useNavigate } from 'react-router-dom';
 import type { Incident } from '../../types';
 import toast from 'react-hot-toast';
+import { NotificationBell } from '../../components/notifications/NotificationBell';
 
 export const MapView = () => {
   const { user, logout } = useAuthStore();
@@ -35,6 +36,7 @@ export const MapView = () => {
               </p>
             </div>
             <div className="flex gap-3">
+              <NotificationBell />
               <button
                 onClick={() => navigate('/supervisor')}
                 className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-200 transition-colors font-medium shadow-sm"
