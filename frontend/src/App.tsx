@@ -13,146 +13,214 @@ import CreateReportPage from './pages/CreateReportPage';
 import ReportDetailsPage from './pages/ReportDetailsPage';
 import EditReportPage from './pages/EditReportPage';
 import AuditLogsPage from './pages/admin/AuditLogsPage';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import RoleManagementPage from './pages/admin/RoleManagementPage';
 import { ExecutiveDashboardPage } from './pages/ExecutiveDashboardPage';
 import { CreateFullReportPage } from './pages/reports/CreateFullReportPage';
 import { OverlayMapPage } from './pages/analysis/OverlayMapPage';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import MyIncidentsPage from './pages/incidents/MyIncidentsPage';
+import ReportIncidentPage from './pages/incidents/ReportIncidentPage';
+import MyTasksPage from './pages/tasks/MyTasksPage';
+import TaskDetailPage from './pages/tasks/TaskDetailPage';
+import UnauthorizedPage from './pages/UnauthorizedPage';
+import { RoleProtectedRoute } from './components/RoleProtectedRoute';
+import { Role } from './components/guards/RoleGuard';
 
 function App() {
   return (
     <>
       <BrowserRouter>
         <Routes>
+          {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+          {/* ADMIN Only Routes */}
           <Route
-            path="/dashboard"
+            path="/admin/dashboard"
             element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/executive-dashboard"
-            element={
-              <ProtectedRoute>
-                <ExecutiveDashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports/create-full/:taskId"
-            element={
-              <ProtectedRoute>
-                <CreateFullReportPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/supervisor"
-            element={
-              <ProtectedRoute>
-                <SupervisorDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/map"
-            element={
-              <ProtectedRoute>
-                <MapView />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tasks"
-            element={
-              <ProtectedRoute>
-                <TasksPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/supervisor/survey-templates"
-            element={
-              <ProtectedRoute>
-                <SurveyTemplateList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/supervisor/survey-templates/new"
-            element={
-              <ProtectedRoute>
-                <SurveyFormBuilder />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/supervisor/survey-templates/edit/:id"
-            element={
-              <ProtectedRoute>
-                <SurveyFormBuilder />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/survey/:surveyId/respond"
-            element={
-              <ProtectedRoute>
-                <SurveyResponseForm />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute>
-                <ReportsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports/new"
-            element={
-              <ProtectedRoute>
-                <CreateReportPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports/:id"
-            element={
-              <ProtectedRoute>
-                <ReportDetailsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports/:id/edit"
-            element={
-              <ProtectedRoute>
-                <EditReportPage />
-              </ProtectedRoute>
+              <RoleProtectedRoute requiredRoles={[Role.ADMIN]}>
+                <AdminDashboardPage />
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/admin/audit-logs"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute requiredRoles={[Role.ADMIN]}>
                 <AuditLogsPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/roles"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.ADMIN]}>
+                <RoleManagementPage />
+              </RoleProtectedRoute>
+            }
+          />
+
+          {/* EXECUTIVE & Above Routes */}
+          <Route
+            path="/executive-dashboard"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.EXECUTIVE]}>
+                <ExecutiveDashboardPage />
+              </RoleProtectedRoute>
             }
           />
           <Route
             path="/analysis/overlay"
             element={
-              <ProtectedRoute>
+              <RoleProtectedRoute requiredRoles={[Role.EXECUTIVE]}>
                 <OverlayMapPage />
-              </ProtectedRoute>
+              </RoleProtectedRoute>
             }
           />
-          <Route path="/" element={<Navigate to="/supervisor" replace />} />
+
+          {/* SUPERVISOR & Above Routes */}
+          <Route
+            path="/supervisor"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.SUPERVISOR]}>
+                <SupervisorDashboard />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/map"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.SUPERVISOR]}>
+                <MapView />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/tasks"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.SUPERVISOR]}>
+                <TasksPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/supervisor/survey-templates"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.SUPERVISOR]}>
+                <SurveyTemplateList />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/supervisor/survey-templates/new"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.SUPERVISOR]}>
+                <SurveyFormBuilder />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/supervisor/survey-templates/edit/:id"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.SUPERVISOR]}>
+                <SurveyFormBuilder />
+              </RoleProtectedRoute>
+            }
+          />
+
+          {/* FIELD_OFFICER & Above Routes (All authenticated users) */}
+          <Route
+            path="/dashboard"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.FIELD_OFFICER]}>
+                <DashboardPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.FIELD_OFFICER]}>
+                <ReportsPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/new"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.FIELD_OFFICER]}>
+                <CreateReportPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/:id"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.FIELD_OFFICER]}>
+                <ReportDetailsPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/:id/edit"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.FIELD_OFFICER]}>
+                <EditReportPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports/create-full/:taskId"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.FIELD_OFFICER]}>
+                <CreateFullReportPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/survey/:surveyId/respond"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.FIELD_OFFICER]}>
+                <SurveyResponseForm />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/incidents"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.FIELD_OFFICER]}>
+                <MyIncidentsPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/incidents/report"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.FIELD_OFFICER]}>
+                <ReportIncidentPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-tasks"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.FIELD_OFFICER]}>
+                <MyTasksPage />
+              </RoleProtectedRoute>
+            }
+          />
+          <Route
+            path="/tasks/:id"
+            element={
+              <RoleProtectedRoute requiredRoles={[Role.FIELD_OFFICER]}>
+                <TaskDetailPage />
+              </RoleProtectedRoute>
+            }
+          />
+
+          {/* Default Redirect based on role */}
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
       <Toaster position="top-right" />
