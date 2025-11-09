@@ -12,6 +12,8 @@ import ReportsPage from './pages/ReportsPage';
 import CreateReportPage from './pages/CreateReportPage';
 import ReportDetailsPage from './pages/ReportDetailsPage';
 import EditReportPage from './pages/EditReportPage';
+import AuditLogsPage from './pages/admin/AuditLogsPage';
+import { ExecutiveDashboardPage } from './pages/ExecutiveDashboardPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -25,6 +27,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/executive-dashboard"
+            element={
+              <ProtectedRoute>
+                <ExecutiveDashboardPage />
               </ProtectedRoute>
             }
           />
@@ -113,6 +123,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <EditReportPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/audit-logs"
+            element={
+              <ProtectedRoute>
+                <AuditLogsPage />
               </ProtectedRoute>
             }
           />
