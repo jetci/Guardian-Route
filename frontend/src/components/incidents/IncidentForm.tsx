@@ -5,7 +5,7 @@ import { ImageUpload } from '../upload/ImageUpload';
 import { ImageGallery } from '../upload/ImageGallery';
 import { apiClient } from '../../api/client';
 import type { SurveyTemplate } from '../../types/Survey';
-import toast from 'react-hot-toast';
+import { useToast } from '@chakra-ui/react';
 import type { DisasterType, Priority } from '../../types';
 
 interface IncidentFormData {
@@ -25,6 +25,7 @@ interface IncidentFormProps {
 }
 
 export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
+  const toast = useToast();
   const { register, handleSubmit, formState: { errors } } = useForm<IncidentFormData>({
     defaultValues: {
       priority: 'MEDIUM' as Priority,
@@ -71,14 +72,35 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
           villageId: data.villageId, // Pass villageId if available
           // polygon: GeoJSON for survey area can be added here if needed
         });
-        toast.success('สร้างแบบสำรวจเริ่มต้นสำเร็จ!');
+        toast({
+          title: 'สำเร็จ',
+          description: 'สร้างแบบสำรวจเริ่มต้นสำเร็จ!',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+          position: 'top-right',
+        });
       }
       
-      toast.success('สร้างเหตุการณ์สำเร็จ!');
+      toast({
+        title: 'สำเร็จ',
+        description: 'สร้างเหตุการณ์สำเร็จ!',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+        position: 'top-right',
+      });
       onSuccess?.();
     } catch (error: any) {
       console.error('Error creating incident:', error);
-      toast.error(error.response?.data?.message || 'เกิดข้อผิดพลาด');
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: error.response?.data?.message || 'ไม่สามารถสร้างเหตุการณ์ได้',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position: 'top-right',
+      });
     } finally {
       setLoading(false);
     }

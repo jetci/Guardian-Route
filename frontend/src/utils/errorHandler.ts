@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios';
-import { toast } from 'react-hot-toast';
+import { CreateToastFnReturn } from '@chakra-ui/react';
 
 /**
  * Error response structure from backend
@@ -12,58 +12,130 @@ interface ErrorResponse {
 
 /**
  * Handle API errors and show appropriate messages
+ * @param error - The error object
+ * @param toast - Chakra UI toast function
  */
-export const handleApiError = (error: unknown): void => {
+export const handleApiError = (error: unknown, toast: CreateToastFnReturn): void => {
   if (error instanceof AxiosError) {
     const response = error.response;
     const data = response?.data as ErrorResponse;
 
     switch (response?.status) {
       case 400:
-        toast.error(data?.message || 'ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง');
+        toast({
+          title: 'ข้อมูลไม่ถูกต้อง',
+          description: data?.message || 'กรุณาตรวจสอบข้อมูลอีกครั้ง',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+          position: 'top-right',
+        });
         break;
 
       case 401:
-        toast.error('กรุณาเข้าสู่ระบบอีกครั้ง');
+        toast({
+          title: 'กรุณาเข้าสู่ระบบอีกครั้ง',
+          description: 'Session หมดอายุ',
+          status: 'warning',
+          duration: 3000,
+          isClosable: true,
+          position: 'top-right',
+        });
         // Handled by API client interceptor
         break;
 
       case 403:
-        handleForbiddenError(data?.message);
+        handleForbiddenError(data?.message, toast);
         break;
 
       case 404:
-        toast.error('ไม่พบข้อมูลที่ต้องการ');
+        toast({
+          title: 'ไม่พบข้อมูล',
+          description: 'ไม่พบข้อมูลที่ต้องการ',
+          status: 'error',
+          duration: 4000,
+          isClosable: true,
+          position: 'top-right',
+        });
         break;
 
       case 409:
-        toast.error(data?.message || 'ข้อมูลซ้ำกัน');
+        toast({
+          title: 'ข้อมูลซ้ำกัน',
+          description: data?.message || 'ข้อมูลนี้มีอยู่ในระบบแล้ว',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+          position: 'top-right',
+        });
         break;
 
       case 429:
-        toast.error('คุณส่งคำขอบ่อยเกินไป กรุณารอสักครู่');
+        toast({
+          title: 'คำขอบ่อยเกินไป',
+          description: 'กรุณารอสักครู่แล้วลองใหม่อีกครั้ง',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+          position: 'top-right',
+        });
         break;
 
       case 500:
-        toast.error('เกิดข้อผิดพลาดในระบบ กรุณาลองใหม่อีกครั้ง');
+        toast({
+          title: 'เกิดข้อผิดพลาดในระบบ',
+          description: 'กรุณาลองใหม่อีกครั้ง หรือติดต่อผู้ดูแลระบบ',
+          status: 'error',
+          duration: 6000,
+          isClosable: true,
+          position: 'top-right',
+        });
         break;
 
       default:
-        toast.error(data?.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+        toast({
+          title: 'เกิดข้อผิดพลาด',
+          description: data?.message || 'กรุณาลองใหม่อีกครั้ง',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+          position: 'top-right',
+        });
     }
   } else if (error instanceof Error) {
-    toast.error(error.message);
+    toast({
+      title: 'เกิดข้อผิดพลาด',
+      description: error.message,
+      status: 'error',
+      duration: 5000,
+      isClosable: true,
+      position: 'top-right',
+    });
   } else {
-    toast.error('เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ');
+    toast({
+      title: 'เกิดข้อผิดพลาด',
+      description: 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ',
+      status: 'error',
+      duration: 5000,
+      isClosable: true,
+      position: 'top-right',
+    });
   }
 };
 
 /**
  * Handle 403 Forbidden errors with specific messages
  */
-const handleForbiddenError = (message?: string): void => {
+const handleForbiddenError = (message: string | undefined, toast: CreateToastFnReturn): void => {
   if (!message) {
-    toast.error('คุณไม่มีสิทธิ์เข้าถึงส่วนนี้');
+    toast({
+      title: 'ไม่มีสิทธิ์เข้าถึง',
+      description: 'คุณไม่มีสิทธิ์เข้าถึงส่วนนี้',
+      status: 'error',
+      duration: 5000,
+      isClosable: true,
+      position: 'top-right',
+    });
     return;
   }
 
@@ -72,22 +144,53 @@ const handleForbiddenError = (message?: string): void => {
     // Extract roles from message
     const rolesMatch = message.match(/Required roles: ([A-Z_, ]+)/);
     const roles = rolesMatch ? rolesMatch[1] : '';
-    toast.error(`ต้องการบทบาท: ${roles}`, {
+    toast({
+      title: 'ต้องการบทบาทที่สูงกว่า',
+      description: `ต้องการบทบาท: ${roles}`,
+      status: 'error',
       duration: 5000,
+      isClosable: true,
+      position: 'top-right',
     });
   } else if (message.includes('Required permissions:')) {
     // Extract permissions from message
     const permsMatch = message.match(/Required permissions: ([A-Z_, ]+)/);
     const perms = permsMatch ? permsMatch[1] : '';
-    toast.error(`ต้องการสิทธิ์: ${perms}`, {
+    toast({
+      title: 'ต้องการสิทธิ์เพิ่มเติม',
+      description: `ต้องการสิทธิ์: ${perms}`,
+      status: 'error',
       duration: 5000,
+      isClosable: true,
+      position: 'top-right',
     });
   } else if (message.includes('You can only access your own resources')) {
-    toast.error('คุณสามารถเข้าถึงเฉพาะข้อมูลของคุณเองเท่านั้น');
+    toast({
+      title: 'ไม่สามารถเข้าถึงได้',
+      description: 'คุณสามารถเข้าถึงเฉพาะข้อมูลของคุณเองเท่านั้น',
+      status: 'error',
+      duration: 5000,
+      isClosable: true,
+      position: 'top-right',
+    });
   } else if (message.includes('User account is inactive')) {
-    toast.error('บัญชีของคุณถูกระงับ กรุณาติดต่อผู้ดูแลระบบ');
+    toast({
+      title: 'บัญชีถูกระงับ',
+      description: 'บัญชีของคุณถูกระงับ กรุณาติดต่อผู้ดูแลระบบ',
+      status: 'error',
+      duration: 6000,
+      isClosable: true,
+      position: 'top-right',
+    });
   } else {
-    toast.error(message);
+    toast({
+      title: 'ไม่มีสิทธิ์เข้าถึง',
+      description: message,
+      status: 'error',
+      duration: 5000,
+      isClosable: true,
+      position: 'top-right',
+    });
   }
 };
 
@@ -153,32 +256,55 @@ export const getErrorMessage = (error: unknown): string => {
 /**
  * Show success toast
  */
-export const showSuccess = (message: string): void => {
-  toast.success(message);
+export const showSuccess = (message: string, toast: CreateToastFnReturn): void => {
+  toast({
+    title: 'สำเร็จ',
+    description: message,
+    status: 'success',
+    duration: 3000,
+    isClosable: true,
+    position: 'top-right',
+  });
 };
 
 /**
  * Show error toast
  */
-export const showError = (message: string): void => {
-  toast.error(message);
+export const showError = (message: string, toast: CreateToastFnReturn): void => {
+  toast({
+    title: 'เกิดข้อผิดพลาด',
+    description: message,
+    status: 'error',
+    duration: 5000,
+    isClosable: true,
+    position: 'top-right',
+  });
 };
 
 /**
  * Show info toast
  */
-export const showInfo = (message: string): void => {
-  toast(message, {
-    icon: 'ℹ️',
+export const showInfo = (message: string, toast: CreateToastFnReturn): void => {
+  toast({
+    title: 'แจ้งเตือน',
+    description: message,
+    status: 'info',
+    duration: 4000,
+    isClosable: true,
+    position: 'top-right',
   });
 };
 
 /**
  * Show warning toast
  */
-export const showWarning = (message: string): void => {
-  toast(message, {
-    icon: '⚠️',
+export const showWarning = (message: string, toast: CreateToastFnReturn): void => {
+  toast({
+    title: 'คำเตือน',
+    description: message,
+    status: 'warning',
     duration: 4000,
+    isClosable: true,
+    position: 'top-right',
   });
 };

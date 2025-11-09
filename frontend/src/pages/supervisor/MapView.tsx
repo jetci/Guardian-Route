@@ -3,10 +3,11 @@ import { IncidentsMap } from '../../components/maps/IncidentsMap';
 import { useAuthStore } from '../../stores/authStore';
 import { useNavigate } from 'react-router-dom';
 import type { Incident } from '../../types';
-import toast from 'react-hot-toast';
+import { useToast } from '@chakra-ui/react';
 import { NotificationBell } from '../../components/notifications/NotificationBell';
 
 export const MapView = () => {
+  const toast = useToast();
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
@@ -18,7 +19,14 @@ export const MapView = () => {
 
   const handleIncidentClick = (incident: Incident) => {
     setSelectedIncident(incident);
-    toast.success(`เลือก: ${incident.title}`);
+    toast({
+      title: 'เลือกเหตุการณ์',
+      description: incident.title,
+      status: 'success',
+      duration: 3000,
+      isClosable: true,
+      position: 'top-right',
+    });
   };
 
   return (
@@ -90,7 +98,14 @@ export const MapView = () => {
             <h3 className="text-lg font-bold mb-2 text-gray-800">เหตุการณ์ที่เลือก:</h3>
             <p className="text-xl font-semibold text-blue-600">{selectedIncident.title}</p>
             <button
-              onClick={() => toast('Detail page coming soon!', { icon: 'ℹ️' })}
+              onClick={() => toast({
+                title: 'แจ้งเตือน',
+                description: 'Detail page coming soon!',
+                status: 'info',
+                duration: 3000,
+                isClosable: true,
+                position: 'top-right',
+              })}
               className="mt-3 text-blue-600 hover:text-blue-800 font-medium text-base"
             >
               ดูรายละเอียดเพิ่มเติม →

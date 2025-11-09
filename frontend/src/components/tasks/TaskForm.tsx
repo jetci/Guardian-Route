@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { tasksApi } from '../../api/tasks';
 import { incidentsApi } from '../../api/incidents';
 import { usersApi } from '../../api/users';
-import toast from 'react-hot-toast';
+import { useToast } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 import type { CreateTaskDto, TaskPriority, Incident, User, Role } from '../../types';
 
@@ -21,6 +21,7 @@ interface TaskFormProps {
 }
 
 export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
+  const toast = useToast();
   const { register, handleSubmit, formState: { errors } } = useForm<TaskFormData>();
   const [loading, setLoading] = useState(false);
   const [incidents, setIncidents] = useState<Incident[]>([]);
@@ -62,11 +63,25 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
       };
       
       await tasksApi.create(createData);
-      toast.success('มอบหมายงานสำเร็จ!');
+      toast({
+        title: 'สำเร็จ',
+        description: 'มอบหมายงานสำเร็จ!',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+        position: 'top-right',
+      });
       onSuccess?.();
     } catch (error) {
       console.error('Error creating task:', error);
-      toast.error('เกิดข้อผิดพลาด');
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถมอบหมายงานได้',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position: 'top-right',
+      });
     } finally {
       setLoading(false);
     }

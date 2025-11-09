@@ -5,9 +5,10 @@ import IncidentDetailsModal from './IncidentDetailsModal';
 import { AssignIncidentModal } from '../supervisor/AssignIncidentModal';
 import { ReviewIncidentModal } from '../supervisor/ReviewIncidentModal';
 import { useAuthStore } from '../../stores/authStore';
-import toast from 'react-hot-toast';
+import { useToast } from '@chakra-ui/react';
 
 export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
+  const toast = useToast();
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedIncidentId, setSelectedIncidentId] = useState<string | null>(null);
@@ -37,7 +38,14 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
       setIncidents(data);
     } catch (error) {
       console.error('Error loading incidents:', error);
-      toast.error('ไม่สามารถโหลดข้อมูลได้');
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'ไม่สามารถโหลดข้อมูลได้',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position: 'top-right',
+      });
     } finally {
       setLoading(false);
     }

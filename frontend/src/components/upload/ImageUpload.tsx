@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { uploadApi } from '../../api/upload';
-import toast from 'react-hot-toast';
+import { useToast } from '@chakra-ui/react';
 
 interface ImageUploadProps {
   onUploadSuccess: (url: string) => void;
@@ -8,6 +8,7 @@ interface ImageUploadProps {
 }
 
 export const ImageUpload = ({ onUploadSuccess, maxSizeMB = 5 }: ImageUploadProps) => {
+  const toast = useToast();
   const [preview, setPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -19,13 +20,27 @@ export const ImageUpload = ({ onUploadSuccess, maxSizeMB = 5 }: ImageUploadProps
 
     // Validate file size
     if (file.size > maxSizeMB * 1024 * 1024) {
-      toast.error(`ไฟล์ใหญ่เกิน ${maxSizeMB}MB`);
+      toast({
+        title: 'ไฟล์ใหญ่เกินไป',
+        description: `ไฟล์ใหญ่เกิน ${maxSizeMB}MB`,
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+        position: 'top-right',
+      });
       return;
     }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('กรุณาเลือกไฟล์รูปภาพ');
+      toast({
+        title: 'ไฟล์ไม่ถูกต้อง',
+        description: 'กรุณาเลือกไฟล์รูปภาพ',
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+        position: 'top-right',
+      });
       return;
     }
 
@@ -45,7 +60,14 @@ export const ImageUpload = ({ onUploadSuccess, maxSizeMB = 5 }: ImageUploadProps
     setUploading(true);
     try {
       const result = await uploadApi.uploadImage(selectedFile);
-      toast.success('อัปโหลดรูปภาพสำเร็จ');
+      toast({
+        title: 'สำเร็จ',
+        description: 'อัปโหลดรูปภาพสำเร็จ',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+        position: 'top-right',
+      });
       onUploadSuccess(result.url);
       
       // Reset
@@ -56,7 +78,14 @@ export const ImageUpload = ({ onUploadSuccess, maxSizeMB = 5 }: ImageUploadProps
       }
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('อัปโหลดรูปภาพล้มเหลว');
+      toast({
+        title: 'เกิดข้อผิดพลาด',
+        description: 'อัปโหลดรูปภาพล้มเหลว',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position: 'top-right',
+      });
     } finally {
       setUploading(false);
     }

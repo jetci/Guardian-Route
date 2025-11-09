@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@chakra-ui/react';
 import { useAuthStore } from '../stores/authStore';
 import { authApi } from '../api/auth';
-import toast from 'react-hot-toast';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const toast = useToast();
   const setAuth = useAuthStore((state) => state.setAuth);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,11 +18,34 @@ export function LoginPage() {
 
     try {
       const response = await authApi.login(email, password);
-      setAuth(response.user, response.accessToken);
-      toast.success(`ยินดีต้อนรับ ${response.user.firstName} ${response.user.lastName}!`);
-      navigate('/dashboard');
+      
+      // Fix: บันทึก refreshToken ด้วย
+      setAuth(response.user, response.accessToken, response.refreshToken);
+      
+      // เปลี่ยนเป็น Chakra UI Toast
+      toast({
+        title: 'เข้าสู่ระบบสำเร็จ',
+        description: `ยินดีต้อนรับ ${response.user.firstName} ${response.user.lastName}!`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+        position: 'top-right',
+      });
+      
+      // เพิ่ม delay เล็กน้อยเพื่อให้ toast แสดงก่อน redirect
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 300);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'เข้าสู่ระบบไม่สำเร็จ');
+      // เปลี่ยนเป็น Chakra UI Toast
+      toast({
+        title: 'เข้าสู่ระบบไม่สำเร็จ',
+        description: error.response?.data?.message || 'กรุณาตรวจสอบอีเมลและรหัสผ่านของคุณ',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+        position: 'top-right',
+      });
     } finally {
       setLoading(false);
     }
@@ -122,6 +146,7 @@ export function LoginPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none"
                 placeholder="your.email@obtwiang.go.th"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -136,14 +161,21 @@ export function LoginPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all outline-none"
                 placeholder="••••••••"
                 required
+                disabled={loading}
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+              className="w-full bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg flex items-center justify-center gap-2"
             >
+              {loading && (
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              )}
               {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
             </button>
           </form>
@@ -155,19 +187,22 @@ export function LoginPage() {
             <div className="grid grid-cols-3 gap-3">
               <button
                 onClick={() => quickLogin('ADMIN')}
-                className="px-3 py-2 text-xs font-medium text-purple-800 bg-purple-100 hover:bg-purple-200 rounded-md transition-colors"
+                disabled={loading}
+                className="px-3 py-2 text-xs font-medium text-purple-800 bg-purple-100 hover:bg-purple-200 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 👤 Admin
               </button>
               <button
                 onClick={() => quickLogin('SUPERVISOR')}
-                className="px-3 py-2 text-xs font-medium text-blue-800 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors"
+                disabled={loading}
+                className="px-3 py-2 text-xs font-medium text-blue-800 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 👨‍💼 Supervisor
               </button>
               <button
                 onClick={() => quickLogin('FIELD_OFFICER')}
-                className="px-3 py-2 text-xs font-medium text-green-800 bg-green-100 hover:bg-green-200 rounded-md transition-colors"
+                disabled={loading}
+                className="px-3 py-2 text-xs font-medium text-green-800 bg-green-100 hover:bg-green-200 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 🚨 Field
               </button>
