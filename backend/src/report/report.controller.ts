@@ -22,6 +22,7 @@ import {
 } from '@nestjs/swagger';
 import { ReportService } from './report.service';
 import { CreateReportDto } from './dto/create-report.dto';
+import { CreateFullReportWizardDto } from './dto/create-full-report-wizard.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { FilterReportDto } from './dto/filter-report.dto';
 import { SubmitReportDto } from './dto/submit-report.dto';
@@ -255,3 +256,83 @@ export class ReportController {
     return this.reportService.generatePdf(id, generatePdfDto);
   }
 }
+
+  @Get('drafts/my-drafts')
+  @ApiOperation({ summary: 'Get current user\'s report drafts' })
+  @ApiResponse({
+    status: 200,
+    description: 'Drafts retrieved successfully',
+  })
+  getMyDrafts(@Request() req) {
+    return this.reportService.getMyDrafts(req.user.id);
+  }
+
+  @Post('drafts')
+  @ApiOperation({ summary: 'Save a report draft' })
+  @ApiResponse({
+    status: 201,
+    description: 'Draft saved successfully',
+  })
+  saveDraft(@Body() saveDraftDto: any, @Request() req) {
+    return this.reportService.saveDraft(saveDraftDto, req.user.id);
+  }
+
+  @Get('preliminary-data/:taskId')
+  @ApiOperation({ summary: 'Get preliminary survey data for a task' })
+  @ApiParam({
+    name: 'taskId',
+    description: 'Task ID',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Preliminary data retrieved successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Task or preliminary data not found',
+  })
+  getPreliminaryData(@Param('taskId') taskId: string) {
+    return this.reportService.getPreliminaryData(taskId);
+  }
+
+  @Post('analyze-images')
+  @ApiOperation({ summary: 'Analyze images using Gemini AI' })
+  @ApiResponse({
+    status: 200,
+    description: 'Images analyzed successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - no images provided',
+  })
+  analyzeImages(@Body() body: { imageUrls: string[] }) {
+    return this.reportService.analyzeImages(body.imageUrls);
+  }
+
+  @Post('full-wizard')
+  @ApiOperation({ summary: 'Create full report from wizard' })
+  @ApiResponse({
+    status: 201,
+    description: 'Full report created successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - validation failed',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - not authorized for this task',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Task not found',
+  })
+  createFullReportFromWizard(
+    @Body() createFullReportDto: CreateFullReportWizardDto,
+    @Request() req,
+  ) {
+    return this.reportService.createFullReportFromWizard(
+      createFullReportDto,
+      req.user.id,
+    );
+  }

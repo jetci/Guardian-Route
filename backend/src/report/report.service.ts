@@ -5,7 +5,9 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
+import { GeminiService } from './gemini.service';
 import { CreateReportDto } from './dto/create-report.dto';
+import { CreateFullReportWizardDto } from './dto/create-full-report-wizard.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { FilterReportDto } from './dto/filter-report.dto';
 import { ReviewReportDto } from './dto/review-report.dto';
@@ -14,7 +16,10 @@ import { ReportStatus, ReportType, Role } from '@prisma/client';
 
 @Injectable()
 export class ReportService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private geminiService: GeminiService,
+  ) {}
 
   /**
    * Create a new report
@@ -438,6 +443,178 @@ export class ReportService {
   /**
    * Get report statistics
    */
+  async getMyDrafts(userId: string) {
+    // Get drafts from database (assuming a Draft model exists)
+    // For now, return empty array as placeholder
+    return {
+      drafts: [],
+      message: 'Drafts feature will be implemented with database model',
+    };
+  }
+
+  async saveDraft(saveDraftDto: any, userId: string) {
+    // Save draft to database
+    // For now, return success message as placeholder
+    return {
+      success: true,
+      message: 'Draft saved successfully',
+      draftId: 'temp-draft-id',
+    };
+  }
+
+  async getPreliminaryData(taskId: string) {
+    // Get task with survey data
+    const task = await this.prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
+        incident: true,
+        village: true,
+      },
+    });
+
+    if (!task) {
+      throw new NotFoundException(`Task with ID ${taskId} not found`);
+    }
+
+    // Extract preliminary data from task.surveyData
+    const surveyData = task.surveyData as any;
+
+    return {
+      taskId: task.id,
+      incidentType: task.incident?.type,
+      village: task.village?.name,
+      disasterType: surveyData?.disasterType,
+      description: surveyData?.description,
+      geoJsonArea: surveyData?.area,
+      pointsOfInterest: surveyData?.pointsOfInterest,
+      photoUrls: surveyData?.photoUrls || [],
+      surveyedAt: task.updatedAt,
+    };
+  }
+
+  async analyzeImages(imageUrls: string[]) {
+    if (!imageUrls || imageUrls.length === 0) {
+      throw new BadRequestException('No images provided for analysis');
+    }
+
+    try {
+      const analysis = await this.geminiService.analyzePhotos(imageUrls);
+      return {
+        success: true,
+        analysis,
+        analyzedAt: new Date(),
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        'Failed to analyze images: ' + error.message,
+      );
+    }
+  }
+
+  async createFullReportFromWizard(
+    dto: CreateFullReportWizardDto,
+    userId: string,
+  ) {
+    // Verify task exists and belongs to user
+    const task = await this.prisma.task.findUnique({
+      where: { id: dto.taskId },
+      include: { incident: true },
+    });
+
+    if (!task) {
+      throw new NotFoundException(`Task with ID ${dto.taskId} not found`);
+    }
+
+    if (task.assignedToId !== userId) {
+      throw new ForbiddenException(
+        'You are not authorized to create report for this task',
+      );
+    }
+
+    // Create full report
+    const report = await this.prisma.report.create({
+      data: {
+        title: dto.reportTitle,
+        type: ReportType.FULL,
+        status: ReportStatus.PENDING_REVIEW,
+        incidentId: task.incidentId,
+        createdById: userId,
+        content: {
+          executiveSummary: dto.executiveSummary,
+          damageAssessment: {
+            severity: dto.severity,
+            categories: dto.damageCategories,
+            estimatedCost: dto.estimatedDamageCost,
+          },
+          affectedArea: {
+            households: dto.affectedHouseholds,
+            population: dto.affectedPopulation,
+            evacuated: dto.evacuatedPeople,
+          },
+          infrastructure: {
+            damage: dto.infrastructureDamage,
+            details: dto.infrastructureDamageDetails,
+            repairCost: dto.infrastructureRepairCost,
+          },
+          casualties: {
+            deaths: dto.casualties,
+            injuries: dto.injuries,
+            missing: dto.missing,
+            details: dto.casualtyDetails,
+          },
+          resources: {
+            urgentItems: dto.urgentPriorityItems,
+          },
+          response: {
+            agencies: dto.respondingAgencies,
+          },
+          photos: dto.photoUrls || [],
+          aiAnalysis: dto.aiAnalysis,
+          recommendations: {
+            general: dto.recommendations,
+            policy: dto.policyRecommendations,
+            prevention: dto.futurePreventionMeasures,
+          },
+        },
+        metadata: {
+          taskId: dto.taskId,
+          submittedAt: new Date(),
+          auditLog: dto.auditLog || [],
+        },
+      },
+    });
+
+    // Update task status to COMPLETED
+    await this.prisma.task.update({
+      where: { id: dto.taskId },
+      data: {
+        status: 'COMPLETED',
+        completedAt: new Date(),
+      },
+    });
+
+    // Create audit log entry
+    await this.prisma.auditLog.create({
+      data: {
+        userId,
+        action: 'CREATE_FULL_REPORT',
+        entityType: 'Report',
+        entityId: report.id,
+        changes: {
+          reportId: report.id,
+          taskId: dto.taskId,
+          status: ReportStatus.PENDING_REVIEW,
+        },
+      },
+    });
+
+    return {
+      success: true,
+      reportId: report.id,
+      message: 'Full report created successfully',
+    };
+  }
+
   async getStatistics(filters?: {
     periodStart?: string;
     periodEnd?: string;

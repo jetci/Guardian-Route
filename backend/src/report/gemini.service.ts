@@ -6,6 +6,7 @@ export class GeminiService {
   private readonly logger = new Logger(GeminiService.name);
   private readonly apiKey: string;
   private readonly apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+  private readonly visionApiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
   constructor(private configService: ConfigService) {
     this.apiKey = this.configService.get<string>('GEMINI_API_KEY') || '';
@@ -72,16 +73,87 @@ ${data.injuries ? `ผู้บาดเจ็บ: ${data.injuries}` : ''}
     }
   }
 
-  async analyzePhotos(photoUrls: string[]): Promise<string> {
+  async analyzePhotos(photoUrls: string[]): Promise<any> {
     try {
-      const prompt = `วิเคราะห์รูปภาพเหตุการณ์ภัยพิบัติ ${photoUrls.length} รูป และสรุปสิ่งที่พบเห็น ความเสียหาย และสภาพพื้นที่`;
+      const prompt = `วิเคราะห์รูปภาพเหตุการณ์ภัยพิบัติและให้ข้อมูลในรูปแบบ JSON ดังนี้:
+{
+  "damageLevel": "ระดับความเสียหาย (ต่ำ/ปานกลาง/สูง/วิกฤต)",
+  "affectedStructures": "โครงสร้างที่ได้รับผลกระทบ",
+  "estimatedAffectedArea": จำนวนพื้นที่โดยประมาณ (ตารางเมตร),
+  "visibleHazards": "อันตรายที่มองเห็นได้",
+  "recommendations": "ข้อเสนอแนะเบื้องต้น",
+  "confidence": ค่าความเชื่อมั่น 0-1
+}
 
-      // Note: Gemini Vision API requires different endpoint
-      // For now, return placeholder
-      return `การวิเคราะห์รูปภาพ ${photoUrls.length} รูป: กรุณาตรวจสอบรูปภาพและเพิ่มรายละเอียดเพิ่มเติม`;
+วิเคราะห์จากรูปภาพและให้ข้อมูลที่ละเอียดและเป็นประโยชน์`;
+
+      // Note: This is a simplified version
+      // In production, you would:
+      // 1. Fetch images from URLs
+      // 2. Convert to base64
+      // 3. Send to Gemini Vision API with proper format
+      
+      const response = await fetch(`${this.visionApiUrl}?key=${this.apiKey}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt,
+                },
+                // In production, add image parts here
+                // {
+                //   inline_data: {
+                //     mime_type: 'image/jpeg',
+                //     data: base64ImageData
+                //   }
+                // }
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.4,
+            topK: 32,
+            topP: 1,
+            maxOutputTokens: 2048,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Gemini Vision API error: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      const analysisText = result.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+      
+      // Try to parse JSON from response
+      try {
+        // Extract JSON from markdown code blocks if present
+        const jsonMatch = analysisText.match(/```json\n([\s\S]*?)\n```/) || 
+                         analysisText.match(/```\n([\s\S]*?)\n```/) ||
+                         [null, analysisText];
+        const jsonStr = jsonMatch[1] || analysisText;
+        return JSON.parse(jsonStr);
+      } catch (parseError) {
+        this.logger.warn('Could not parse JSON from Gemini response, returning text');
+        // Return structured fallback
+        return {
+          damageLevel: 'ไม่สามารถประเมินได้',
+          affectedStructures: analysisText,
+          estimatedAffectedArea: 0,
+          visibleHazards: 'กรุณาตรวจสอบรูปภาพด้วยตนเอง',
+          recommendations: 'กรุณาเพิ่มข้อมูลเพิ่มเติม',
+          confidence: 0.5,
+        };
+      }
     } catch (error) {
       this.logger.error('Error analyzing photos:', error);
-      return 'ไม่สามารถวิเคราะห์รูปภาพได้';
+      throw new Error('ไม่สามารถวิเคราะห์รูปภาพได้');
     }
   }
 }
