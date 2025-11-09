@@ -23,6 +23,8 @@ import UserManagement from '../../components/admin/UserManagement';
 import GeoJSONManagement from '../../components/admin/GeoJSONManagement';
 import AuditLogTable from '../../components/admin/AuditLogTable';
 import SystemSettings from '../../components/admin/SystemSettings';
+import { SettingsNotifications } from '../../components/admin/SettingsNotifications';
+import { CustomLayerEditor } from '../../components/admin/CustomLayerEditor';
 
 interface DashboardStats {
   users: {
@@ -101,9 +103,12 @@ const AdminDashboardPage: React.FC = () => {
 
   return (
     <Container maxW="container.xl" py={8}>
-      <Heading mb={6} size="lg">
-        ระบบผู้ดูแลระบบ
-      </Heading>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={6}>
+        <Heading size="lg">
+          ระบบผู้ดูแลระบบ
+        </Heading>
+        <SettingsNotifications />
+      </Box>
 
       {/* Stats Overview */}
       <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={8}>
@@ -142,6 +147,7 @@ const AdminDashboardPage: React.FC = () => {
         <TabList>
           <Tab>จัดการผู้ใช้</Tab>
           <Tab>ขอบเขตภูมิศาสตร์</Tab>
+          <Tab>Custom Layers</Tab>
           <Tab>บันทึกการตรวจสอบ</Tab>
           <Tab>การตั้งค่าระบบ</Tab>
         </TabList>
@@ -166,6 +172,17 @@ const AdminDashboardPage: React.FC = () => {
               bg={useColorModeValue('white', 'gray.700')}
             >
               <GeoJSONManagement />
+            </Box>
+          </TabPanel>
+
+          <TabPanel>
+            <Box
+              p={4}
+              borderWidth="1px"
+              borderRadius="lg"
+              bg={useColorModeValue('white', 'gray.700')}
+            >
+              <CustomLayerEditor />
             </Box>
           </TabPanel>
 

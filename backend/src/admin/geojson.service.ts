@@ -6,12 +6,14 @@ import {
 import { PrismaService } from '../database/prisma.service';
 import { UploadGeoJsonDto, UploadMode } from './dto/upload-geojson.dto';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { GeoJsonHistoryService } from './geojson-history.service';
 
 @Injectable()
 export class GeoJsonService {
   constructor(
     private prisma: PrismaService,
     private auditLogService: AuditLogService,
+    private geoJsonHistoryService: GeoJsonHistoryService,
   ) {}
 
   /**
@@ -93,6 +95,19 @@ export class GeoJsonService {
         properties: dto.properties || {},
         villageId: dto.villageId,
         uploadedBy: adminUser.id,
+      },
+    });
+
+    // บันทึกประวัติ
+    await this.geoJsonHistoryService.createHistory(boundary.id, 'CREATE', {
+      name: dto.name,
+      type: dto.type,
+      geojson: dto.geojson,
+      properties: dto.properties,
+      changedBy: adminUser.id,
+      changeDetails: {
+        mode: dto.mode || 'merge',
+        villageId: dto.villageId,
       },
     });
 
@@ -191,6 +206,18 @@ export class GeoJsonService {
       data: { geojson },
     });
 
+    // บันทึกประวัติ
+    await this.geoJsonHistoryService.createHistory(id, 'UPDATE', {
+      name: updated.name,
+      type: updated.type,
+      geojson: updated.geojson,
+      properties: updated.properties,
+      changedBy: adminUser.id,
+      changeDetails: {
+        previousGeojson: boundary.geojson,
+      },
+    });
+
     // Audit log
     await this.auditLogService.create({
       userId: adminUser.id,
@@ -218,6 +245,15 @@ export class GeoJsonService {
     if (!boundary) {
       throw new NotFoundException('ไม่พบข้อมูล GeoJSON');
     }
+
+    // บันทึกประวัติก่อนลบ (เพื่อ Restore ได้)
+    await this.geoJsonHistoryService.createHistory(id, 'DELETE', {
+      name: boundary.name,
+      type: boundary.type,
+      geojson: boundary.geojson,
+      properties: boundary.properties,
+      changedBy: adminUser.id,
+    });
 
     await this.prisma.geoBoundary.delete({ where: { id } });
 

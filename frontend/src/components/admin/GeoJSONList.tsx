@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { GeoJSONHistoryViewer } from './GeoJSONHistoryViewer';
 import {
   Box,
   Table,
@@ -26,9 +27,19 @@ import {
   FiTrash2,
   FiMap,
   FiDownload,
+  FiClock,
 } from 'react-icons/fi';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import {
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+} from '@chakra-ui/react';
 
 interface GeoBoundary {
   id: string;
@@ -43,6 +54,8 @@ interface GeoBoundary {
 const GeoJSONList: React.FC = () => {
   const [page, setPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState('');
+  const [selectedBoundaryId, setSelectedBoundaryId] = useState<string | null>(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
   const queryClient = useQueryClient();
 
@@ -191,6 +204,15 @@ const GeoJSONList: React.FC = () => {
                       <MenuList>
                         <MenuItem icon={<FiMap />}>แสดงบนแผนที่</MenuItem>
                         <MenuItem
+                          icon={<FiClock />}
+                          onClick={() => {
+                            setSelectedBoundaryId(boundary.id);
+                            onOpen();
+                          }}
+                        >
+                          ดูประวัติ
+                        </MenuItem>
+                        <MenuItem
                           icon={<FiDownload />}
                           onClick={() => handleDownload(boundary)}
                         >
@@ -238,6 +260,25 @@ const GeoJSONList: React.FC = () => {
           </HStack>
         </Flex>
       )}
+    </Box>
+  );
+};
+
+export default GeoJSONList;
+
+      {/* History Modal */}
+      <Modal isOpen={isOpen} onClose={onClose} size="6xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>ประวัติการเปลี่ยนแปลง GeoJSON</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            {selectedBoundaryId && (
+              <GeoJSONHistoryViewer boundaryId={selectedBoundaryId} />
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 };

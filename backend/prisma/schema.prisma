@@ -409,9 +409,72 @@ model GeoBoundary {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  // Relations
+  history     GeoBoundaryHistory[]
+
   @@index([type])
   @@index([villageId])
   @@map("geo_boundaries")
+}
+
+// GeoJSON History - บันทึกประวัติการเปลี่ยนแปลง GeoJSON
+model GeoBoundaryHistory {
+  id            String   @id @default(uuid())
+  boundaryId    String   @map("boundary_id")
+  version       Int      // Version number (auto-increment per boundary)
+  name          String   // ชื่อขอบเขต ณ เวลานั้น
+  type          String   // ประเภท ณ เวลานั้น
+  geojson       Json     // GeoJSON data ณ เวลานั้น
+  properties    Json?    // Properties ณ เวลานั้น
+  changeType    String   // 'CREATE', 'UPDATE', 'DELETE', 'RESTORE'
+  changeDetails Json?    // รายละเอียดการเปลี่ยนแปลง
+  changedBy     String   @map("changed_by")
+  changedAt     DateTime @default(now()) @map("changed_at")
+
+  // Relations
+  boundary      GeoBoundary @relation(fields: [boundaryId], references: [id], onDelete: Cascade)
+
+  @@index([boundaryId])
+  @@index([version])
+  @@index([changedAt])
+  @@map("geo_boundary_history")
+}
+
+// Custom Layers - สำหรับจัดการ Layer ที่ผู้ใช้สร้างเอง
+model CustomLayer {
+  id          String   @id @default(uuid())
+  name        String   // ชื่อ Layer
+  description String?  // คำอธิบาย
+  type        String   // 'marker', 'polygon', 'polyline', 'circle'
+  geojson     Json     // GeoJSON data
+  style       Json?    // Style properties (color, opacity, etc.)
+  zIndex      Int      @default(0) @map("z_index") // Layer order
+  isVisible   Boolean  @default(true) @map("is_visible") // เปิด/ปิด Layer
+  metadata    Json?    // Additional metadata
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@index([createdBy])
+  @@index([zIndex])
+  @@map("custom_layers")
+}
+
+// Settings Change Notifications - แจ้งเตือนการเปลี่ยนแปลง Settings
+model SettingsNotification {
+  id          String   @id @default(uuid())
+  settingKey  String   @map("setting_key") // Key ของ Setting ที่เปลี่ยน
+  oldValue    Json?    @map("old_value") // ค่าเก่า
+  newValue    Json?    @map("new_value") // ค่าใหม่
+  changedBy   String   @map("changed_by") // User ID ที่เปลี่ยน
+  notifiedTo  String[] @map("notified_to") // Array ของ User IDs ที่ต้องแจ้งเตือน
+  isRead      Boolean  @default(false) @map("is_read") // อ่านแล้วหรือยัง
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([changedBy])
+  @@index([createdAt])
+  @@map("settings_notifications")
 }
 
 // System configuration and settings

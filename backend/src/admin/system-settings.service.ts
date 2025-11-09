@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { UpdateSystemSettingsDto } from './dto/system-settings.dto';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { SettingsNotificationService } from './settings-notification.service';
 
 @Injectable()
 export class SystemSettingsService {
   constructor(
     private prisma: PrismaService,
     private auditLogService: AuditLogService,
+    private settingsNotificationService: SettingsNotificationService,
   ) {}
 
   /**
@@ -110,12 +112,26 @@ export class SystemSettingsService {
       });
     }
 
-    // Upsert all settings
+    // Upsert all settings and create notifications
     for (const update of updates) {
+      // ดึงค่าเก่า
+      const oldSetting = await this.prisma.systemConfig.findUnique({
+        where: { key: update.key },
+      });
+
+      // อัพเดท Setting
       await this.prisma.systemConfig.upsert({
         where: { key: update.key },
         update: { value: update.value },
         create: { key: update.key, value: update.value },
+      });
+
+      // สร้างการแจ้งเตือน
+      await this.settingsNotificationService.createNotification({
+        settingKey: update.key,
+        oldValue: oldSetting?.value || null,
+        newValue: update.value,
+        changedBy: adminUser.id,
       });
     }
 
