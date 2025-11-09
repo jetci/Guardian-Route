@@ -20,7 +20,7 @@ import {
   AlertDescription,
 } from '@chakra-ui/react';
 import { ArrowBackIcon } from '@chakra-ui/icons';
-import { FieldSurveyForm, FieldSurveyData } from '../../components/tasks/FieldSurveyForm';
+import { FieldSurveyFormEnhanced, FieldSurveyData } from '../../components/tasks/FieldSurveyFormEnhanced';
 import { tasksApi } from '../../api/tasks';
 
 interface TaskDetail {
@@ -170,7 +170,7 @@ export const TaskDetailPage = () => {
         >
           กลับ
         </Button>
-        <FieldSurveyForm
+        <FieldSurveyFormEnhanced
           taskId={task.id}
           incidentTitle={task.incident.title}
           onSubmit={handleSubmitSurvey}
