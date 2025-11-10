@@ -255,3 +255,72 @@ export class ReportController {
     return this.reportService.generatePdf(id, generatePdfDto);
   }
 }
+
+  @Get(':id/details')
+  @Roles(Role.SUPERVISOR, Role.EXECUTIVE, Role.ADMIN)
+  @ApiOperation({ summary: 'Get detailed report information for review (SUPERVISOR, EXECUTIVE, ADMIN only)' })
+  @ApiParam({
+    name: 'id',
+    description: 'Report ID',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Report details retrieved successfully',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Report not found',
+  })
+  getReportDetails(@Param('id') id: string) {
+    return this.reportService.getReportDetails(id);
+  }
+
+  @Patch(':id/approve')
+  @Roles(Role.SUPERVISOR, Role.EXECUTIVE, Role.ADMIN)
+  @ApiOperation({ summary: 'Approve a report (SUPERVISOR, EXECUTIVE, ADMIN only)' })
+  @ApiParam({
+    name: 'id',
+    description: 'Report ID',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Report approved successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - report cannot be approved',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Report not found',
+  })
+  approveReport(@Param('id') id: string, @Request() req) {
+    return this.reportService.approveReport(id, req.user.id);
+  }
+
+  @Patch(':id/request-revision')
+  @Roles(Role.SUPERVISOR, Role.EXECUTIVE, Role.ADMIN)
+  @ApiOperation({ summary: 'Request revision for a report (SUPERVISOR, EXECUTIVE, ADMIN only)' })
+  @ApiParam({
+    name: 'id',
+    description: 'Report ID',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Revision requested successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - invalid comments or report status',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Report not found',
+  })
+  requestRevision(
+    @Param('id') id: string,
+    @Body() body: { comments: string },
+    @Request() req,
+  ) {
+    return this.reportService.requestRevision(id, req.user.id, body.comments);
+  }

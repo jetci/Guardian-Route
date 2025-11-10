@@ -521,3 +521,198 @@ export class ReportService {
     };
   }
 }
+
+  /**
+   * Get detailed report information for supervisor review
+   */
+  async getReportDetails(id: string) {
+    const report = await this.prisma.report.findUnique({
+      where: { id },
+      include: {
+        author: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+        reviewedBy: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+        incident: {
+          select: {
+            id: true,
+            title: true,
+            disasterType: true,
+            location: true,
+          },
+        },
+      },
+    });
+
+    if (!report) {
+      throw new NotFoundException(`Report with ID ${id} not found`);
+    }
+
+    // Parse details JSON if exists
+    const details = report.details as any || {};
+
+    return {
+      id: report.id,
+      taskId: report.incidentId,
+      status: report.status,
+      
+      // Basic Info
+      title: report.title,
+      summary: report.summary || '',
+      
+      // Damage Assessment
+      severity: details.severity || 'MEDIUM',
+      damageCategories: details.damageCategories || [],
+      estimatedCost: report.totalDamageEstimate ? Number(report.totalDamageEstimate) : 0,
+      
+      // Affected Area
+      affectedHouseholds: report.affectedHouseholds || 0,
+      affectedPopulation: report.affectedPersons || 0,
+      
+      // Infrastructure
+      infrastructureDamage: details.infrastructureDamage || [],
+      infrastructureDetails: details.infrastructureDetails || '',
+      
+      // Casualties
+      casualties: details.casualties || 0,
+      injuries: details.injuries || 0,
+      missing: details.missing || 0,
+      casualtyDetails: details.casualtyDetails || '',
+      
+      // Resources & Response
+      urgentPriorityItems: details.urgentPriorityItems || [],
+      respondingAgencies: details.respondingAgencies || [],
+      
+      // Images & AI
+      images: report.photoUrls || [],
+      aiAnalysis: report.aiAnalysis as any,
+      
+      // Recommendations
+      generalRecommendations: details.generalRecommendations || '',
+      policyRecommendations: details.policyRecommendations || '',
+      preventionMeasures: details.preventionMeasures || '',
+      
+      // Audit Log (placeholder)
+      auditLog: [],
+      
+      // Metadata
+      submittedBy: {
+        id: report.author.id,
+        name: report.author.fullName,
+      },
+      submittedAt: report.submittedAt || report.createdAt,
+      reviewedBy: report.reviewedBy ? {
+        id: report.reviewedBy.id,
+        name: report.reviewedBy.fullName,
+      } : undefined,
+      reviewedAt: report.reviewedAt,
+      reviewComments: report.reviewNotes,
+    };
+  }
+
+  /**
+   * Approve a report
+   */
+  async approveReport(id: string, reviewerId: string) {
+    const report = await this.prisma.report.findUnique({
+      where: { id },
+    });
+
+    if (!report) {
+      throw new NotFoundException(`Report with ID ${id} not found`);
+    }
+
+    if (report.status !== ReportStatus.SUBMITTED && report.status !== ReportStatus.UNDER_REVIEW) {
+      throw new BadRequestException(
+        `Cannot approve report with status ${report.status}. Only SUBMITTED or UNDER_REVIEW reports can be approved.`,
+      );
+    }
+
+    return this.prisma.report.update({
+      where: { id },
+      data: {
+        status: ReportStatus.APPROVED,
+        reviewedById: reviewerId,
+        reviewedAt: new Date(),
+        approvedAt: new Date(),
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+        reviewedBy: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * Request revision for a report
+   */
+  async requestRevision(id: string, reviewerId: string, comments: string) {
+    const report = await this.prisma.report.findUnique({
+      where: { id },
+    });
+
+    if (!report) {
+      throw new NotFoundException(`Report with ID ${id} not found`);
+    }
+
+    if (report.status !== ReportStatus.SUBMITTED && report.status !== ReportStatus.UNDER_REVIEW) {
+      throw new BadRequestException(
+        `Cannot request revision for report with status ${report.status}. Only SUBMITTED or UNDER_REVIEW reports can be revised.`,
+      );
+    }
+
+    if (!comments || comments.trim().length < 20) {
+      throw new BadRequestException(
+        'Revision comments must be at least 20 characters long',
+      );
+    }
+
+    return this.prisma.report.update({
+      where: { id },
+      data: {
+        status: ReportStatus.REVISION_REQUIRED,
+        reviewedById: reviewerId,
+        reviewedAt: new Date(),
+        reviewNotes: comments,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+        reviewedBy: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+      },
+    });
+  }
+}
