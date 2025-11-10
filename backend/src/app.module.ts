@@ -19,6 +19,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AnalysisModule } from './analysis/analysis.module';
 import { AdminModule } from './admin/admin.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
+import { ResourceModule } from './resource/resource.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { AuditLogModule } from './audit-log/audit-log.module';
     AnalysisModule,
     AdminModule,
     AuditLogModule,
+    ResourceModule,
   ],
   controllers: [AppController],
   providers: [

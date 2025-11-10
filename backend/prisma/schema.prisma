@@ -100,6 +100,7 @@ model User {
   activityLogs     ActivityLog[]
   createdSurveys   Survey[]      @relation("CreatedSurveys")
   submittedResponses SurveyResponse[] @relation("SubmittedResponses")
+  allocations      AllocationRecord[]
 
   @@map("users")
 }
@@ -230,6 +231,7 @@ model Task {
   assignedTo User?    @relation("AssignedTo", fields: [assignedToId], references: [id])
   createdBy  User     @relation("TaskCreator", fields: [createdById], references: [id])
   village    Village? @relation(fields: [villageId], references: [id])
+  allocations AllocationRecord[]
 
   @@index([status])
   @@index([priority])
@@ -422,4 +424,62 @@ model SystemConfig {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("system_config")
+}
+
+// ========================================
+// RESOURCE MANAGEMENT (Sprint 9)
+// ========================================
+
+enum ResourceStatus {
+  AVAILABLE
+  IN_USE
+  MAINTENANCE
+}
+
+// Resource Types - ประเภททรัพยากร
+model ResourceType {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  resources   Resource[]
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@map("resource_types")
+}
+
+// Resources - ทรัพยากรแต่ละชิ้น
+model Resource {
+  id                 String             @id @default(uuid())
+  name               String
+  resourceTypeId     String             @map("resource_type_id")
+  resourceType       ResourceType       @relation(fields: [resourceTypeId], references: [id])
+  status             ResourceStatus     @default(AVAILABLE)
+  location           String
+  registrationNumber String?            @map("registration_number")
+  allocations        AllocationRecord[]
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  @@index([resourceTypeId])
+  @@index([status])
+  @@map("resources")
+}
+
+// Allocation Records - ประวัติการจัดสรร
+model AllocationRecord {
+  id            String    @id @default(uuid())
+  resourceId    String    @map("resource_id")
+  resource      Resource  @relation(fields: [resourceId], references: [id])
+  taskId        String    @map("task_id")
+  task          Task      @relation(fields: [taskId], references: [id])
+  allocatedById String    @map("allocated_by_id")
+  allocatedBy   User      @relation(fields: [allocatedById], references: [id])
+  allocatedAt   DateTime  @default(now()) @map("allocated_at")
+  reclaimedAt   DateTime? @map("reclaimed_at")
+
+  @@index([resourceId])
+  @@index([taskId])
+  @@index([allocatedById])
+  @@map("allocation_records")
 }
