@@ -3,6 +3,8 @@ import { ResourceFilterBar } from '../../components/resources/ResourceFilterBar'
 import { ResourceTable } from '../../components/resources/ResourceTable';
 import { ResourceForm } from '../../components/resources/ResourceForm';
 import { DeleteConfirmDialog } from '../../components/resources/DeleteConfirmDialog';
+import { AllocationDialog } from '../../components/resources/AllocationDialog';
+import { HistoryDrawer } from '../../components/resources/HistoryDrawer';
 import { useResources } from '../../hooks/resources/useResources';
 import { useResourceForm } from '../../hooks/resources/useResourceForm';
 import type { Resource, ResourceFilters } from '../../types/resource';
@@ -16,6 +18,10 @@ const ResourceDashboardPage: React.FC = () => {
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [resourceToDelete, setResourceToDelete] = useState<Resource | null>(null);
+  const [isAllocationDialogOpen, setIsAllocationDialogOpen] = useState(false);
+  const [resourceToAllocate, setResourceToAllocate] = useState<Resource | null>(null);
+  const [isHistoryDrawerOpen, setIsHistoryDrawerOpen] = useState(false);
+  const [resourceForHistory, setResourceForHistory] = useState<Resource | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const handleFiltersChange = (newFilters: ResourceFilters) => {
@@ -41,6 +47,16 @@ const ResourceDashboardPage: React.FC = () => {
     setIsDeleteDialogOpen(true);
   };
 
+  const handleAllocateResource = (resource: Resource) => {
+    setResourceToAllocate(resource);
+    setIsAllocationDialogOpen(true);
+  };
+
+  const handleViewHistory = (resource: Resource) => {
+    setResourceForHistory(resource);
+    setIsHistoryDrawerOpen(true);
+  };
+
   const handleConfirmDelete = async () => {
     if (!resourceToDelete) return;
 
@@ -59,6 +75,10 @@ const ResourceDashboardPage: React.FC = () => {
   };
 
   const handleFormSuccess = () => {
+    refetch();
+  };
+
+  const handleAllocationSuccess = () => {
     refetch();
   };
 
@@ -154,6 +174,8 @@ const ResourceDashboardPage: React.FC = () => {
           isLoading={isLoading}
           onEdit={handleEditResource}
           onDelete={handleDeleteResource}
+          onAllocate={handleAllocateResource}
+          onViewHistory={handleViewHistory}
         />
       </div>
 
@@ -175,6 +197,28 @@ const ResourceDashboardPage: React.FC = () => {
           setResourceToDelete(null);
         }}
         isDeleting={isDeleting}
+      />
+
+      {/* Allocation Dialog */}
+      <AllocationDialog
+        resource={resourceToAllocate}
+        isOpen={isAllocationDialogOpen}
+        onClose={() => {
+          setIsAllocationDialogOpen(false);
+          setResourceToAllocate(null);
+        }}
+        onSuccess={handleAllocationSuccess}
+      />
+
+      {/* History Drawer */}
+      <HistoryDrawer
+        resource={resourceForHistory}
+        isOpen={isHistoryDrawerOpen}
+        onClose={() => {
+          setIsHistoryDrawerOpen(false);
+          setResourceForHistory(null);
+        }}
+        onRefresh={refetch}
       />
     </div>
   );

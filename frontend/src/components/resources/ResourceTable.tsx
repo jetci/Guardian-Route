@@ -6,6 +6,8 @@ interface ResourceTableProps {
   isLoading: boolean;
   onEdit: (resource: Resource) => void;
   onDelete: (resource: Resource) => void;
+  onAllocate: (resource: Resource) => void;
+  onViewHistory: (resource: Resource) => void;
 }
 
 const STATUS_CONFIG = {
@@ -28,6 +30,8 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({
   isLoading,
   onEdit,
   onDelete,
+  onAllocate,
+  onViewHistory,
 }) => {
   if (isLoading) {
     return (
@@ -88,6 +92,8 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({
           <tbody className="bg-white divide-y divide-gray-200">
             {resources.map((resource) => {
               const statusConfig = STATUS_CONFIG[resource.status];
+              const canAllocate = resource.status === ResourceStatus.AVAILABLE;
+
               return (
                 <tr
                   key={resource.id}
@@ -118,18 +124,38 @@ export const ResourceTable: React.FC<ResourceTableProps> = ({
                     {resource.registrationNumber || '-'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      onClick={() => onEdit(resource)}
-                      className="text-blue-600 hover:text-blue-900 mr-3"
-                    >
-                      แก้ไข
-                    </button>
-                    <button
-                      onClick={() => onDelete(resource)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      ลบ
-                    </button>
+                    <div className="flex justify-end space-x-2">
+                      <button
+                        onClick={() => onAllocate(resource)}
+                        disabled={!canAllocate}
+                        className={`px-3 py-1 rounded ${
+                          canAllocate
+                            ? 'text-blue-600 hover:bg-blue-50'
+                            : 'text-gray-400 cursor-not-allowed'
+                        }`}
+                        title={canAllocate ? 'มอบหมาย' : 'ไม่สามารถมอบหมายได้'}
+                      >
+                        มอบหมาย
+                      </button>
+                      <button
+                        onClick={() => onViewHistory(resource)}
+                        className="px-3 py-1 text-purple-600 hover:bg-purple-50 rounded"
+                      >
+                        ประวัติ
+                      </button>
+                      <button
+                        onClick={() => onEdit(resource)}
+                        className="px-3 py-1 text-green-600 hover:bg-green-50 rounded"
+                      >
+                        แก้ไข
+                      </button>
+                      <button
+                        onClick={() => onDelete(resource)}
+                        className="px-3 py-1 text-red-600 hover:bg-red-50 rounded"
+                      >
+                        ลบ
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );

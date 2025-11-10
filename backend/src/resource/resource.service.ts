@@ -146,3 +146,135 @@ export class ResourceService {
     });
   }
 }
+
+  // Allocation
+  async allocate(resourceId: string, taskId: string, userId: string) {
+    // Verify resource exists and is available
+    const resource = await this.findOne(resourceId);
+
+    if (resource.status !== ResourceStatus.AVAILABLE) {
+      throw new BadRequestException(
+        `Cannot allocate resource with status ${resource.status}. Only AVAILABLE resources can be allocated.`,
+      );
+    }
+
+    // Verify task exists
+    const task = await this.prisma.task.findUnique({
+      where: { id: taskId },
+    });
+
+    if (!task) {
+      throw new BadRequestException('Task not found');
+    }
+
+    // Create allocation record and update resource status
+    const allocation = await this.prisma.allocationRecord.create({
+      data: {
+        resourceId,
+        taskId,
+        allocatedById: userId,
+      },
+      include: {
+        resource: {
+          include: {
+            resourceType: true,
+          },
+        },
+        task: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+        allocatedBy: {
+          select: {
+            id: true,
+            fullName: true,
+          },
+        },
+      },
+    });
+
+    // Update resource status to IN_USE
+    await this.prisma.resource.update({
+      where: { id: resourceId },
+      data: { status: ResourceStatus.IN_USE },
+    });
+
+    return allocation;
+  }
+
+  async reclaim(allocationId: string) {
+    // Verify allocation exists
+    const allocation = await this.prisma.allocationRecord.findUnique({
+      where: { id: allocationId },
+      include: {
+        resource: true,
+      },
+    });
+
+    if (!allocation) {
+      throw new NotFoundException('Allocation record not found');
+    }
+
+    if (allocation.reclaimedAt) {
+      throw new BadRequestException('Resource has already been reclaimed');
+    }
+
+    // Update allocation record
+    const updatedAllocation = await this.prisma.allocationRecord.update({
+      where: { id: allocationId },
+      data: { reclaimedAt: new Date() },
+      include: {
+        resource: {
+          include: {
+            resourceType: true,
+          },
+        },
+        task: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+        allocatedBy: {
+          select: {
+            id: true,
+            fullName: true,
+          },
+        },
+      },
+    });
+
+    // Update resource status to AVAILABLE
+    await this.prisma.resource.update({
+      where: { id: allocation.resourceId },
+      data: { status: ResourceStatus.AVAILABLE },
+    });
+
+    return updatedAllocation;
+  }
+
+  async getHistory(resourceId: string) {
+    // Verify resource exists
+    await this.findOne(resourceId);
+
+    return this.prisma.allocationRecord.findMany({
+      where: { resourceId },
+      include: {
+        task: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+        allocatedBy: {
+          select: {
+            id: true,
+            fullName: true,
+          },
+        },
+      },
+      orderBy: { allocatedAt: 'desc' },
+    });
+  }

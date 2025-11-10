@@ -13,9 +13,11 @@ import { ResourceService } from './resource.service';
 import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import { CreateResourceTypeDto } from './dto/create-resource-type.dto';
+import { AllocateResourceDto } from './dto/allocate-resource.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { Request } from 'express';
 import { Role, ResourceStatus } from '@prisma/client';
 
 @Controller('resources')
@@ -69,5 +71,28 @@ export class ResourceController {
   @Roles(Role.ADMIN)
   remove(@Param('id') id: string) {
     return this.resourceService.remove(id);
+  }
+
+  // Allocation
+  @Post(':id/allocate')
+  @Roles(Role.ADMIN, Role.SUPERVISOR)
+  allocate(
+    @Param('id') id: string,
+    @Body() dto: AllocateResourceDto,
+    @Request() req: any,
+  ) {
+    return this.resourceService.allocate(id, dto.taskId, req.user.userId);
+  }
+
+  @Post('reclaim/:allocationId')
+  @Roles(Role.ADMIN, Role.SUPERVISOR)
+  reclaim(@Param('allocationId') allocationId: string) {
+    return this.resourceService.reclaim(allocationId);
+  }
+
+  @Get(':id/history')
+  @Roles(Role.ADMIN, Role.EXECUTIVE, Role.SUPERVISOR)
+  getHistory(@Param('id') id: string) {
+    return this.resourceService.getHistory(id);
   }
 }
