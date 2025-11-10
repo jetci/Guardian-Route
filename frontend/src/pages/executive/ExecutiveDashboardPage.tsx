@@ -1,11 +1,23 @@
 import React, { useState } from 'react';
 import { useExecutiveDashboard } from '../../hooks/executive/useExecutiveDashboard';
 import { SummaryCard } from '../../components/executive/SummaryCard';
+import { TaskTrendsChart } from '../../components/executive/charts/TaskTrendsChart';
+import { IncidentDistributionChart } from '../../components/executive/charts/IncidentDistributionChart';
+import { TasksByRegionChart } from '../../components/executive/charts/TasksByRegionChart';
+import {
+  useTaskTrends,
+  useIncidentDistribution,
+  useTasksByRegion,
+} from '../../hooks/executive/useChartData';
 import { DashboardFilters } from '../../types/executive';
 
 const ExecutiveDashboardPage: React.FC = () => {
   const [filters, setFilters] = useState<DashboardFilters>({});
   const { summary, isLoading, error, refetch } = useExecutiveDashboard(filters);
+  const { data: trendsData, isLoading: trendsLoading } = useTaskTrends(filters);
+  const { data: distributionData, isLoading: distributionLoading } =
+    useIncidentDistribution(filters);
+  const { data: regionData, isLoading: regionLoading } = useTasksByRegion(filters);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -155,25 +167,34 @@ const ExecutiveDashboardPage: React.FC = () => {
         <section className="mb-8">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">การวิเคราะห์</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Placeholder for Trend Chart */}
+            {/* Task Trends Chart */}
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
                 แนวโน้มงานรายวัน
               </h3>
-              <div className="h-64 flex items-center justify-center bg-gray-50 rounded">
-                <p className="text-gray-500">📊 Chart will be added in Day 2</p>
-              </div>
+              <TaskTrendsChart data={trendsData} isLoading={trendsLoading} />
             </div>
 
-            {/* Placeholder for Distribution Chart */}
+            {/* Incident Distribution Chart */}
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
                 การกระจายตามประเภทภัย
               </h3>
-              <div className="h-64 flex items-center justify-center bg-gray-50 rounded">
-                <p className="text-gray-500">📊 Chart will be added in Day 2</p>
-              </div>
+              <IncidentDistributionChart
+                data={distributionData}
+                isLoading={distributionLoading}
+              />
             </div>
+          </div>
+        </section>
+
+        {/* Tasks by Region Chart */}
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            การกระจายงานตามจังหวัด
+          </h2>
+          <div className="bg-white rounded-lg shadow p-6">
+            <TasksByRegionChart data={regionData} isLoading={regionLoading} />
           </div>
         </section>
       </div>

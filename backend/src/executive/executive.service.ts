@@ -168,4 +168,121 @@ export class ExecutiveService {
       totalEstimatedDamage: damageStats._sum.totalDamageEstimate || 0,
     };
   }
+
+  /**
+   * Get task trends over time (daily aggregation)
+   */
+  async getTaskTrends(filters: DashboardFiltersDto) {
+    const startDate = filters.startDate
+      ? new Date(filters.startDate)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // Default: last 30 days
+    const endDate = filters.endDate ? new Date(filters.endDate) : new Date();
+
+    // Get all tasks within the date range
+    const tasks = await this.prisma.task.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      select: {
+        createdAt: true,
+        status: true,
+      },
+    });
+
+    // Group tasks by date
+    const trendMap = new Map<string, { total: number; completed: number; inProgress: number; pending: number }>();
+
+    tasks.forEach((task) => {
+      const dateKey = task.createdAt.toISOString().split('T')[0];
+      if (!trendMap.has(dateKey)) {
+        trendMap.set(dateKey, { total: 0, completed: 0, inProgress: 0, pending: 0 });
+      }
+      const dayData = trendMap.get(dateKey)!;
+      dayData.total++;
+      if (task.status === 'COMPLETED') dayData.completed++;
+      if (task.status === 'IN_PROGRESS') dayData.inProgress++;
+      if (task.status === 'PENDING') dayData.pending++;
+    });
+
+    // Convert to array and sort by date
+    const trends = Array.from(trendMap.entries())
+      .map(([date, data]) => ({ date, ...data }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    return trends;
+  }
+
+  /**
+   * Get incident distribution by disaster type
+   */
+  async getIncidentDistribution(filters: DashboardFiltersDto) {
+    const whereClause: any = {};
+
+    if (filters.startDate || filters.endDate) {
+      whereClause.createdAt = {};
+      if (filters.startDate) whereClause.createdAt.gte = new Date(filters.startDate);
+      if (filters.endDate) whereClause.createdAt.lte = new Date(filters.endDate);
+    }
+
+    const distribution = await this.prisma.incident.groupBy({
+      by: ['disasterType'],
+      where: whereClause,
+      _count: true,
+    });
+
+    const total = distribution.reduce((sum, item) => sum + item._count, 0);
+
+    return distribution.map((item) => ({
+      type: item.disasterType,
+      count: item._count,
+      percentage: total > 0 ? Math.round((item._count / total) * 100) : 0,
+    }));
+  }
+
+  /**
+   * Get tasks grouped by region/province
+   */
+  async getTasksByRegion(filters: DashboardFiltersDto) {
+    const whereClause: any = {};
+
+    if (filters.startDate || filters.endDate) {
+      whereClause.createdAt = {};
+      if (filters.startDate) whereClause.createdAt.gte = new Date(filters.startDate);
+      if (filters.endDate) whereClause.createdAt.lte = new Date(filters.endDate);
+    }
+
+    // Get tasks with incident location data
+    const tasks = await this.prisma.task.findMany({
+      where: whereClause,
+      include: {
+        incident: {
+          select: {
+            location: true,
+          },
+        },
+      },
+    });
+
+    // Group by province (assuming location has province field)
+    const regionMap = new Map<string, number>();
+
+    tasks.forEach((task) => {
+      if (task.incident?.location) {
+        const location = task.incident.location as any;
+        const province = location.province || location.district || 'Unknown';
+        regionMap.set(province, (regionMap.get(province) || 0) + 1);
+      }
+    });
+
+    // Convert to array and sort by count (descending)
+    const regions = Array.from(regionMap.entries())
+      .map(([region, count]) => ({ region, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10); // Top 10 regions
+
+    return regions;
+  }
 }

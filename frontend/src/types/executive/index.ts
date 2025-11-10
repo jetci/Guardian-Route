@@ -58,3 +58,8 @@ export interface DashboardFilters {
   disasterType?: string;
   priority?: string;
 }
+
+export interface RegionData {
+  region: string;
+  count: number;
+}

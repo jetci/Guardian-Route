@@ -30,4 +30,43 @@ export class ExecutiveController {
   async getDashboardSummary(@Query() filters: DashboardFiltersDto) {
     return this.executiveService.getDashboardSummary(filters);
   }
+
+  @Get('dashboard/task-trends')
+  @Roles(Role.EXECUTIVE, Role.ADMIN)
+  @ApiOperation({
+    summary: 'Get task trends over time (EXECUTIVE, ADMIN only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Task trends retrieved successfully',
+  })
+  async getTaskTrends(@Query() filters: DashboardFiltersDto) {
+    return this.executiveService.getTaskTrends(filters);
+  }
+
+  @Get('dashboard/incident-distribution')
+  @Roles(Role.EXECUTIVE, Role.ADMIN)
+  @ApiOperation({
+    summary: 'Get incident distribution by disaster type (EXECUTIVE, ADMIN only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Incident distribution retrieved successfully',
+  })
+  async getIncidentDistribution(@Query() filters: DashboardFiltersDto) {
+    return this.executiveService.getIncidentDistribution(filters);
+  }
+
+  @Get('dashboard/tasks-by-region')
+  @Roles(Role.EXECUTIVE, Role.ADMIN)
+  @ApiOperation({
+    summary: 'Get tasks grouped by region (EXECUTIVE, ADMIN only)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Tasks by region retrieved successfully',
+  })
+  async getTasksByRegion(@Query() filters: DashboardFiltersDto) {
+    return this.executiveService.getTasksByRegion(filters);
+  }
 }
