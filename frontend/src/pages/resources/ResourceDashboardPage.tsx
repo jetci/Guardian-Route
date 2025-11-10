@@ -5,14 +5,17 @@ import { ResourceForm } from '../../components/resources/ResourceForm';
 import { DeleteConfirmDialog } from '../../components/resources/DeleteConfirmDialog';
 import { AllocationDialog } from '../../components/resources/AllocationDialog';
 import { HistoryDrawer } from '../../components/resources/HistoryDrawer';
+import { ExportButton } from '../../components/resources/ExportButton';
 import { useResources } from '../../hooks/resources/useResources';
 import { useResourceForm } from '../../hooks/resources/useResourceForm';
+import { useResourceExport } from '../../hooks/resources/useResourceExport';
 import type { Resource, ResourceFilters } from '../../types/resource';
 
 const ResourceDashboardPage: React.FC = () => {
   const [filters, setFilters] = useState<ResourceFilters>({});
   const { resources, isLoading, error, refetch } = useResources(filters);
   const { deleteResource, isSubmitting: isDeleting } = useResourceForm();
+  const { exportToPDF, exportToExcel, isExporting } = useResourceExport();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedResource, setSelectedResource] = useState<Resource | null>(null);
@@ -82,6 +85,28 @@ const ResourceDashboardPage: React.FC = () => {
     refetch();
   };
 
+  const handleExportPDF = async () => {
+    try {
+      await exportToPDF(resources, filters);
+      setToast({ type: 'success', message: 'ส่งออก PDF สำเร็จ' });
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      setToast({ type: 'error', message: 'เกิดข้อผิดพลาดในการส่งออก PDF' });
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      await exportToExcel(resources, filters);
+      setToast({ type: 'success', message: 'ส่งออก Excel สำเร็จ' });
+      setTimeout(() => setToast(null), 3000);
+    } catch (error) {
+      setToast({ type: 'error', message: 'เกิดข้อผิดพลาดในการส่งออก Excel' });
+      setTimeout(() => setToast(null), 3000);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
@@ -97,6 +122,11 @@ const ResourceDashboardPage: React.FC = () => {
               </p>
             </div>
             <div className="flex items-center space-x-4">
+              <ExportButton
+                onExportPDF={handleExportPDF}
+                onExportExcel={handleExportExcel}
+                isExporting={isExporting}
+              />
               <button
                 onClick={refetch}
                 disabled={isLoading}
