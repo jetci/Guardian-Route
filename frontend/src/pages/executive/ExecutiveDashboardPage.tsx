@@ -9,6 +9,9 @@ import {
   useIncidentDistribution,
   useTasksByRegion,
 } from '../../hooks/executive/useChartData';
+import { useExecutiveTasks } from '../../hooks/executive/useExecutiveTasks';
+import { ExecutiveFilterBar } from '../../components/executive/ExecutiveFilterBar';
+import { ExecutiveMap } from '../../components/executive/map/ExecutiveMap';
 import { DashboardFilters } from '../../types/executive';
 
 const ExecutiveDashboardPage: React.FC = () => {
@@ -18,6 +21,15 @@ const ExecutiveDashboardPage: React.FC = () => {
   const { data: distributionData, isLoading: distributionLoading } =
     useIncidentDistribution(filters);
   const { data: regionData, isLoading: regionLoading } = useTasksByRegion(filters);
+  const { tasks, isLoading: tasksLoading, error: tasksError } = useExecutiveTasks(filters);
+
+  const handleFiltersChange = (newFilters: DashboardFilters) => {
+    setFilters(newFilters);
+  };
+
+  const handleResetFilters = () => {
+    setFilters({});
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -58,6 +70,13 @@ const ExecutiveDashboardPage: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Filter Bar */}
+        <ExecutiveFilterBar
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          onReset={handleResetFilters}
+        />
+
         {/* Summary Cards Section */}
         <section className="mb-8">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">สรุปภาพรวม</h2>
@@ -196,6 +215,14 @@ const ExecutiveDashboardPage: React.FC = () => {
           <div className="bg-white rounded-lg shadow p-6">
             <TasksByRegionChart data={regionData} isLoading={regionLoading} />
           </div>
+        </section>
+
+        {/* Map Section */}
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            แผนที่ภาพรวม
+          </h2>
+          <ExecutiveMap tasks={tasks} isLoading={tasksLoading} error={tasksError} />
         </section>
       </div>
     </div>
