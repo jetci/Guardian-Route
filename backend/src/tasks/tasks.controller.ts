@@ -13,6 +13,7 @@ import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto, TaskStatus } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { AssignTaskDto } from './dto/assign-task.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
@@ -45,6 +46,24 @@ export class TasksController {
     });
   }
 
+  @Get('supervisor-view')
+  @ApiOperation({ summary: 'Get supervisor dashboard view' })
+  getSupervisorView(
+    @Query('status') status?: string,
+    @Query('priority') priority?: string,
+    @Query('incidentType') incidentType?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.tasksService.getSupervisorView({
+      status,
+      priority,
+      incidentType,
+      dateFrom,
+      dateTo,
+    });
+  }
+
   @Get('statistics')
   @ApiOperation({ summary: 'Get task statistics' })
   getStatistics() {
@@ -55,6 +74,16 @@ export class TasksController {
   @ApiOperation({ summary: 'Get a task by ID' })
   findOne(@Param('id') id: string) {
     return this.tasksService.findOne(id);
+  }
+
+  @Patch(':id/assign')
+  @ApiOperation({ summary: 'Assign task to field officer' })
+  assign(
+    @Param('id') id: string,
+    @Body() assignTaskDto: AssignTaskDto,
+    @CurrentUser() user: any,
+  ) {
+    return this.tasksService.assignTask(id, assignTaskDto.officerId, user.sub);
   }
 
   @Patch(':id')

@@ -1,97 +1,69 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { CreateBroadcastDto, BroadcastTarget } from './dto/create-broadcast.dto';
-import { Role } from '@prisma/client';
+import { CreateBroadcastDto } from './dto/create-broadcast.dto';
+import { Role, NotificationType } from '@prisma/client';
 
 @Injectable()
 export class NotificationsService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Create and send broadcast notification
+   * Create and send a broadcast notification to a target group of users.
    */
   async createBroadcast(dto: CreateBroadcastDto, senderId: string) {
-    // Determine target users
-    let targetUserIds: string[] = [];
+    const targetWhereClause = {
+      where: {
+        isActive: true,
+        ...(dto.targetRole !== 'ALL' && { role: dto.targetRole }),
+      },
+      select: { id: true },
+    };
 
-    if (dto.target === BroadcastTarget.SPECIFIC_USERS) {
-      targetUserIds = dto.userIds || [];
-    } else {
-      const users = await this.getTargetUsers(dto.target);
-      targetUserIds = users.map((u) => u.id);
+    const targetUsers = await this.prisma.user.findMany(targetWhereClause);
+
+    if (targetUsers.length === 0) {
+      throw new NotFoundException('No active target users found for this broadcast.');
     }
 
-    if (targetUserIds.length === 0) {
-      throw new NotFoundException('No target users found');
-    }
+    const targetUserIds = targetUsers.map((u) => u.id);
 
-    // Create broadcast record
-    const broadcast = await this.prisma.notification.create({
+    // Create a single notification record for the broadcast event itself
+    const notification = await this.prisma.notification.create({
       data: {
         title: dto.title,
         message: dto.message,
-        type: dto.type,
+        type: NotificationType.BROADCAST, // Use a specific type for broadcasts
         senderId,
-        incidentId: dto.incidentId,
-        metadata: JSON.stringify({
-          target: dto.target,
+        metadata: {
+          priority: dto.priority,
+          targetRole: dto.targetRole,
           recipientCount: targetUserIds.length,
-        }),
+        },
       },
     });
 
-    // Create individual notifications for each user
+    // Create individual linking records for each recipient
     await this.prisma.userNotification.createMany({
       data: targetUserIds.map((userId) => ({
         userId,
-        notificationId: broadcast.id,
+        notificationId: notification.id,
         isRead: false,
       })),
     });
 
     return {
-      ...broadcast,
+      success: true,
+      message: 'Broadcast sent successfully.',
       recipientCount: targetUserIds.length,
+      broadcastId: notification.id,
     };
   }
 
   /**
-   * Get target users based on broadcast target
-   */
-  private async getTargetUsers(target: BroadcastTarget) {
-    switch (target) {
-      case BroadcastTarget.ALL_FIELD_OFFICERS:
-        return this.prisma.user.findMany({
-          where: { role: Role.FIELD_OFFICER },
-          select: { id: true },
-        });
-
-      case BroadcastTarget.ALL_REPORTERS:
-        return this.prisma.user.findMany({
-          where: { role: Role.REPORTER },
-          select: { id: true },
-        });
-
-      case BroadcastTarget.ALL_STAFF:
-        return this.prisma.user.findMany({
-          where: {
-            role: {
-              in: [Role.FIELD_OFFICER, Role.REPORTER, Role.SUPERVISOR],
-            },
-          },
-          select: { id: true },
-        });
-
-      default:
-        return [];
-    }
-  }
-
-  /**
-   * Get user's notifications
+   * Get a user's notifications, ordered by most recent.
    */
   async getUserNotifications(userId: string, limit = 20) {
-    const notifications = await this.prisma.userNotification.findMany({
+    const userNotifications = await this.prisma.userNotification.findMany({
       where: { userId },
       take: limit,
       orderBy: { notification: { createdAt: 'desc' } },
@@ -101,15 +73,8 @@ export class NotificationsService {
             sender: {
               select: {
                 id: true,
-                firstName: true,
-                lastName: true,
+                fullName: true,
                 role: true,
-              },
-            },
-            incident: {
-              select: {
-                id: true,
-                title: true,
               },
             },
           },
@@ -117,8 +82,9 @@ export class NotificationsService {
       },
     });
 
-    return notifications.map((un) => ({
-      id: un.id,
+    // Transform the data to a more user-friendly format
+    return userNotifications.map((un) => ({
+      userNotificationId: un.id,
       isRead: un.isRead,
       readAt: un.readAt,
       ...un.notification,
@@ -126,18 +92,24 @@ export class NotificationsService {
   }
 
   /**
-   * Mark notification as read
+   * Mark a specific notification as read for a user.
    */
   async markAsRead(userNotificationId: string, userId: string) {
     const userNotification = await this.prisma.userNotification.findFirst({
       where: {
         id: userNotificationId,
-        userId,
+        userId: userId,
       },
     });
 
     if (!userNotification) {
-      throw new NotFoundException('Notification not found');
+      throw new NotFoundException(
+        `Notification with ID ${userNotificationId} not found for this user.`,
+      );
+    }
+
+    if (userNotification.isRead) {
+      return userNotification; // Already read, no update needed
     }
 
     return this.prisma.userNotification.update({
@@ -150,10 +122,10 @@ export class NotificationsService {
   }
 
   /**
-   * Mark all notifications as read
+   * Mark all unread notifications as read for a user.
    */
   async markAllAsRead(userId: string) {
-    return this.prisma.userNotification.updateMany({
+    const result = await this.prisma.userNotification.updateMany({
       where: {
         userId,
         isRead: false,
@@ -163,17 +135,20 @@ export class NotificationsService {
         readAt: new Date(),
       },
     });
+
+    return { count: result.count };
   }
 
   /**
-   * Get unread count
+   * Get the count of unread notifications for a user.
    */
   async getUnreadCount(userId: string) {
-    return this.prisma.userNotification.count({
+    const count = await this.prisma.userNotification.count({
       where: {
         userId,
         isRead: false,
       },
     });
+    return { count };
   }
 }

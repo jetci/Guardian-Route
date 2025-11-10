@@ -1,44 +1,55 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsArray, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, MinLength, MaxLength, IsEnum } from 'class-validator';
 
-export enum BroadcastType {
-  EMERGENCY = 'EMERGENCY',
-  ALERT = 'ALERT',
-  INFO = 'INFO',
-  UPDATE = 'UPDATE',
+// Define enums based on user requirements for clarity and validation
+enum BroadcastPriority {
+  URGENT = 'URGENT',
+  NORMAL = 'NORMAL',
 }
 
-export enum BroadcastTarget {
-  ALL_FIELD_OFFICERS = 'ALL_FIELD_OFFICERS',
-  ALL_REPORTERS = 'ALL_REPORTERS',
-  ALL_STAFF = 'ALL_STAFF',
-  SPECIFIC_USERS = 'SPECIFIC_USERS',
+enum BroadcastTargetRole {
+  FIELD_OFFICER = 'FIELD_OFFICER',
+  ALL = 'ALL',
 }
 
 export class CreateBroadcastDto {
-  @ApiProperty()
+  @ApiProperty({
+    description: 'The title of the broadcast message.',
+    example: 'System Maintenance Alert',
+    minLength: 5,
+    maxLength: 100,
+  })
   @IsString()
+  @IsNotEmpty({ message: 'Title is required.' })
+  @MinLength(5)
+  @MaxLength(100)
   title: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'The main content of the broadcast message.',
+    example: 'The system will be down for maintenance tonight from 11 PM to 1 AM.',
+    minLength: 10,
+    maxLength: 500,
+  })
   @IsString()
+  @IsNotEmpty({ message: 'Message is required.' })
+  @MinLength(10)
+  @MaxLength(500)
   message: string;
 
-  @ApiProperty({ enum: BroadcastType })
-  @IsEnum(BroadcastType)
-  type: BroadcastType;
+  @ApiProperty({
+    description: 'The priority of the broadcast.',
+    enum: BroadcastPriority,
+    example: BroadcastPriority.URGENT,
+  })
+  @IsEnum(BroadcastPriority)
+  priority: BroadcastPriority;
 
-  @ApiProperty({ enum: BroadcastTarget })
-  @IsEnum(BroadcastTarget)
-  target: BroadcastTarget;
-
-  @ApiProperty({ type: [String], required: false })
-  @IsOptional()
-  @IsArray()
-  userIds?: string[];
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  incidentId?: string;
+  @ApiProperty({
+    description: 'The target role for the broadcast. Can be a specific role or ALL.',
+    enum: BroadcastTargetRole,
+    example: BroadcastTargetRole.FIELD_OFFICER,
+  })
+  @IsEnum(BroadcastTargetRole)
+  targetRole: BroadcastTargetRole;
 }

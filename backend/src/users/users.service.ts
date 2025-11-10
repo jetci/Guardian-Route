@@ -47,6 +47,53 @@ export class UsersService {
     return user;
   }
 
+  async getAvailableOfficers() {
+    // Get all field officers
+    const officers = await this.prisma.user.findMany({
+      where: {
+        role: Role.FIELD_OFFICER,
+        isActive: true,
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        updatedAt: true,
+      },
+    });
+
+    // Get task counts for each officer
+    const officersWithTaskCount = await Promise.all(
+      officers.map(async (officer) => {
+        const currentTaskCount = await this.prisma.task.count({
+          where: {
+            assignedToId: officer.id,
+            status: {
+              in: ['IN_PROGRESS', 'SURVEYED'],
+            },
+          },
+        });
+
+        // Consider officer available if they have less than 5 active tasks
+        const isAvailable = currentTaskCount < 5;
+
+        return {
+          id: officer.id,
+          name: `${officer.firstName} ${officer.lastName}`,
+          email: officer.email,
+          phone: officer.phone || '',
+          currentTaskCount,
+          isAvailable,
+          lastActive: officer.updatedAt,
+        };
+      })
+    );
+
+    return officersWithTaskCount;
+  }
+
   async findAll(role?: Role) {
     return this.prisma.user.findMany({
       where: role ? { role } : undefined,

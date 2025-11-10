@@ -32,6 +32,13 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @Get('available-officers')
+  @Roles(Role.SUPERVISOR, Role.ADMIN)
+  @ApiOperation({ summary: 'Get available field officers' })
+  getAvailableOfficers() {
+    return this.usersService.getAvailableOfficers();
+  }
+
   @Get()
   @Roles(Role.ADMIN, Role.SUPERVISOR)
   @ApiOperation({ summary: 'Get all users' })
