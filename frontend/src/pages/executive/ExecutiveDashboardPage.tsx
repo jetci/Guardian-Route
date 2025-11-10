@@ -12,6 +12,9 @@ import {
 import { useExecutiveTasks } from '../../hooks/executive/useExecutiveTasks';
 import { ExecutiveFilterBar } from '../../components/executive/ExecutiveFilterBar';
 import { ExecutiveMap } from '../../components/executive/map/ExecutiveMap';
+import { ExportButton } from '../../components/executive/ExportButton';
+import { UserRoleBadge } from '../../components/executive/UserRoleBadge';
+import { useAuthStore } from '../../stores/authStore';
 import { DashboardFilters } from '../../types/executive';
 
 const ExecutiveDashboardPage: React.FC = () => {
@@ -31,6 +34,8 @@ const ExecutiveDashboardPage: React.FC = () => {
     setFilters({});
   };
 
+  const { user } = useAuthStore();
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Header */}
@@ -45,14 +50,24 @@ const ExecutiveDashboardPage: React.FC = () => {
                 ภาพรวมข้อมูลและการวิเคราะห์ระบบจัดการภัยพิบัติ
               </p>
             </div>
-            <button
-              onClick={refetch}
-              disabled={isLoading}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-            >
-              <span className="mr-2">🔄</span>
-              {isLoading ? 'กำลังโหลด...' : 'รีเฟรช'}
-            </button>
+            <div className="flex items-center space-x-4">
+              <UserRoleBadge userName={user?.name} userRole={user?.role} />
+              <ExportButton
+                summary={summary}
+                trends={trendsData}
+                distribution={distributionData}
+                regions={regionData}
+                tasks={tasks}
+              />
+              <button
+                onClick={refetch}
+                disabled={isLoading}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+              >
+                <span className="mr-2">🔄</span>
+                {isLoading ? 'กำลังโหลด...' : 'รีเฟรช'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -182,8 +197,8 @@ const ExecutiveDashboardPage: React.FC = () => {
           </div>
         </section>
 
-        {/* Chart Placeholders */}
-        <section className="mb-8">
+        {/* Charts Section */}
+        <section className="mb-8 charts-section">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">การวิเคราะห์</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Task Trends Chart */}
