@@ -1,0 +1,126 @@
+import { useState, useRef } from 'react';
+import { uploadApi } from '../../api/upload';
+import toast from 'react-hot-toast';
+
+interface ImageUploadProps {
+  onUploadSuccess: (url: string) => void;
+  maxSizeMB?: number;
+}
+
+export const ImageUpload = ({ onUploadSuccess, maxSizeMB = 5 }: ImageUploadProps) => {
+  const [preview, setPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      toast.error(`ไฟล์ใหญ่เกิน ${maxSizeMB}MB`);
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('กรุณาเลือกไฟล์รูปภาพ');
+      return;
+    }
+
+    setSelectedFile(file);
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) return;
+
+    setUploading(true);
+    try {
+      const result = await uploadApi.uploadImage(selectedFile);
+      toast.success('อัปโหลดรูปภาพสำเร็จ');
+      onUploadSuccess(result.url);
+      
+      // Reset
+      setPreview(null);
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('อัปโหลดรูปภาพล้มเหลว');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setPreview(null);
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          อัปโหลดรูปภาพ
+        </label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileSelect}
+          className="block w-full text-base text-gray-700
+            file:mr-4 file:py-2 file:px-4
+            file:rounded-xl file:border-0
+            file:text-base file:font-semibold
+            file:bg-blue-50 file:text-blue-700
+            hover:file:bg-blue-100
+            cursor-pointer transition-colors"
+        />
+        <p className="mt-2 text-sm text-gray-600">
+          รองรับ JPEG, PNG, WebP (สูงสุด {maxSizeMB}MB)
+        </p>
+      </div>
+
+      {preview && (
+        <div className="space-y-3">
+          <div className="relative">
+            <img
+              src={preview}
+              alt="Preview"
+              className="w-full h-48 object-cover rounded-xl border-4 border-gray-200 shadow-md"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleUpload}
+              disabled={uploading}
+              className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors font-medium shadow-md"
+            >
+              {uploading ? 'กำลังอัปโหลด...' : 'อัปโหลด'}
+            </button>
+            <button
+              onClick={handleCancel}
+              disabled={uploading}
+              className="px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-sm"
+            >
+              ยกเลิก
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

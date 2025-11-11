@@ -1,0 +1,43 @@
+{
+  "name": "guardian-route",
+  "version": "1.0.0",
+  "description": "Disaster Management System for Tambon Wiang, Fang District, Chiang Mai Province",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "format:backend": "cd backend && npm run format",
+    "format:frontend": "cd frontend && prettier --write \"src/**/*.{ts,tsx}\"",
+    "format:all": "npm run format:backend && npm run format:frontend"
+  },
+  "lint-staged": {
+    "backend/**/*.ts": [
+      "cd backend && npm run lint",
+      "cd backend && npm run format"
+    ],
+    "frontend/**/*.{ts,tsx}": [
+      "cd frontend && npm run lint",
+      "cd frontend && prettier --write"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jetci/Guardian-Route.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jetci/Guardian-Route/issues"
+  },
+  "homepage": "https://github.com/jetci/Guardian-Route#readme",
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6"
+  }
+}
