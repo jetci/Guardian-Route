@@ -24,23 +24,7 @@ import GeoJSONManagement from '../../components/admin/GeoJSONManagement';
 import AuditLogTable from '../../components/admin/AuditLogTable';
 import SystemSettings from '../../components/admin/SystemSettings';
 
-interface DashboardStats {
-  users: {
-    total: number;
-    active: number;
-    inactive: number;
-    byRole: Array<{ role: string; count: number }>;
-  };
-  geojson: {
-    total: number;
-    byType: Array<{ type: string; count: number }>;
-  };
-  auditLogs: {
-    total: number;
-    last24Hours: number;
-    byAction: Array<{ action: string; count: number }>;
-  };
-}
+  
 
 const StatCard = ({ label, value, helpText, icon, color }: any) => {
   const bgColor = useColorModeValue('white', 'gray.700');

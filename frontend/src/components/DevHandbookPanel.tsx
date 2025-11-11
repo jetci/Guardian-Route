@@ -3,7 +3,7 @@ import { useDevHandbook } from '../context/DevHandbookContext';
 import { useRole } from '../context/RoleContext';
 import { HANDBOOK_CONTENT, HANDBOOK_TABS } from '../constants/devHandbookContent';
 import type { HandbookSection } from '../constants/devHandbookContent';
-import { BookOpen, X, ChevronLeft, Menu } from 'lucide-react';
+import { BookOpen, X, Menu } from 'lucide-react';
 
 // --- Helper Components ---
 

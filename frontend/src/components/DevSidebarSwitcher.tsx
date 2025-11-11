@@ -1,15 +1,16 @@
 import React from 'react';
-import { useRole, UserRole } from '../context/RoleContext';
-import { getRoleDisplayName, getRoleColor, getRoleIcon } from '../hooks/useMockRole'; // Reusing helper functions from the existing mock role hook
+import { useRole } from '../context/RoleContext';
+import type { UserRole } from '../context/RoleContext';
+import { getRoleDisplayName, getRoleIcon } from '../hooks/useMockRole'; // Reusing helper functions from the existing mock role hook
 import { LogOut, UserCheck } from 'lucide-react';
 
 // Available roles for mocking (excluding DEVELOPER and GUEST for a typical switch)
 const MOCKABLE_ROLES: UserRole[] = [
-  'ADMIN',
-  'SUPERVISOR',
-  'FIELD_OFFICER',
-  'EXECUTIVE',
-  'USER', // Assuming USER is a valid role
+'ADMIN' as UserRole,
+'SUPERVISOR' as UserRole,
+'FIELD_OFFICER' as UserRole,
+'EXECUTIVE' as UserRole,
+'USER' as UserRole, // Assuming USER is a valid role
 ];
 
 /**

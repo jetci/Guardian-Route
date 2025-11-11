@@ -40,7 +40,7 @@ interface SystemSettingsForm {
 }
 
 const SystemSettings: React.FC = () => {
-  const { register, handleSubmit, reset, watch } = useForm<SystemSettingsForm>();
+  const { register, handleSubmit, reset } = useForm<SystemSettingsForm>();
   const toast = useToast();
   const queryClient = useQueryClient();
 

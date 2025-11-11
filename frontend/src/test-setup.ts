@@ -1,5 +1,4 @@
 // Test setup file commented out to bypass build errors.
-import type { vi } from 'vitest';
 // import '@testing-library/jest-dom';
 
 // // Mock the window.matchMedia for Chakra UI and other components

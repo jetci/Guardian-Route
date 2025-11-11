@@ -1,8 +1,7 @@
-import { client } from './client';
+import client from './client';
 import type { ExportJobStatus } from '../types/export'; // Assuming a types file exists
 
 // Mock user ID for now, as per instruction
-const MOCK_USER_ID = 'mock-user-id-123';
 
 export interface ExportJob {
   jobId: string;

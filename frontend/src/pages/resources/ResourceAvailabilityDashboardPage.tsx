@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 // import { useResources } from '../../hooks/resources/useResources';
 import { useResourceEvents } from '../../hooks/resources/useResourceEvents';
 import type { ResourceEvent } from '../../hooks/resources/useResourceEvents';

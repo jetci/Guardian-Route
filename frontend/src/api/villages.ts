@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { Village, VillageStatistics } from '../types';
+import type { Village, VillageStatistics } from '../types';
 
 export const villagesApi = {
   getAll: async (): Promise<Village[]> => {

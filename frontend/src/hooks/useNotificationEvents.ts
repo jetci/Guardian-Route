@@ -65,7 +65,7 @@ export const useNotificationEvents = (token: string | null): UseNotificationEven
       return;
     }
 
-    const url = `${process.env.NEXT_PUBLIC_API_URL}/api/notification-events`;
+    const url = `${'http://localhost:3000'}/api/notification-events`;
     // SSE with Authorization header is tricky. We must pass the token as a query parameter
     // or rely on the server to handle the cookie/header from the initial request.
     // Since the backend is NestJS/Express, it likely expects the token in the Authorization header.

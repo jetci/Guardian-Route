@@ -22,7 +22,7 @@ export const initSentry = () => {
         'ResizeObserver loop limit exceeded',
         'Non-Error promise rejection captured',
       ],
-      beforeSend(event, hint) {
+      beforeSend(event, _hint) {
         // Filter out sensitive data
         if (event.request) {
           delete event.request.cookies;

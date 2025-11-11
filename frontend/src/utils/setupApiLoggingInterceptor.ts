@@ -1,4 +1,4 @@
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import type { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import type { AxiosError } from 'axios';
 import type { ApiLogEntry } from '../context/ApiLogContext';
 import { useApiLog } from '../context/ApiLogContext';

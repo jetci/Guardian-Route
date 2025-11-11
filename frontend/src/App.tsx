@@ -31,7 +31,7 @@ import OverlayAnalysisPage from './pages/OverlayAnalysisPage';
 import { DeveloperPage } from './pages/DeveloperPage';
 import MonitoringPage from './pages/MonitoringPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { DevGuard } from './components/dev/DevGuard';
+import DevGuard from './components/dev/DevGuard';
 
 function App() {
   // Hook to set the context functions for the interceptor

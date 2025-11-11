@@ -42,7 +42,6 @@ export interface FieldSurveyData {
 }
 
 export const FieldSurveyForm = ({
-  taskId,
   incidentTitle,
   onSubmit,
   onCancel,

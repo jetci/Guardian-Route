@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { useApiLog, ApiLogEntry } from '../context/ApiLogContext';
+import { useApiLog } from '../context/ApiLogContext';
+import type { ApiLogEntry } from '../context/ApiLogContext';
 import { useRole } from '../context/RoleContext';
 import { Code, X, ChevronDown, ChevronUp, RefreshCw, Filter, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 
@@ -93,13 +94,13 @@ const DevDebugPanel: React.FC = () => {
     return logs.filter((log) => {
       if (filter === 'ALL') return true;
       if (filter === 'PENDING') return log.status === 'PENDING';
-      if (filter === 'SUCCESS') return log.status >= 200 && log.status < 400;
-      if (filter === 'ERROR') return log.status >= 400 || log.error !== null || log.status === 0;
+      if (filter === 'SUCCESS') return Number(log.status) >= 200 && Number(log.status) < 400;
+      if (filter === 'ERROR') return Number(log.status) >= 400 || log.error !== null || Number(log.status) === 0;
       return true;
     });
   }, [logs, filter]);
 
-  const errorCount = logs.filter(log => log.status >= 400 || log.error !== null || log.status === 0).length;
+  const errorCount = logs.filter(log => Number(log.status) >= 400 || log.error !== null || Number(log.status) === 0).length;
 
   return (
     <>

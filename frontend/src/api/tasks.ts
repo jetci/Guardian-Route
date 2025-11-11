@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { Task, CreateTaskDto, UpdateTaskDto, TaskStatus, TaskPriority } from '../types';
+import type { Task, CreateTaskDto, UpdateTaskDto, TaskStatus, TaskPriority } from '../types';
 
 export const tasksApi = {
   async create(data: CreateTaskDto): Promise<Task> {

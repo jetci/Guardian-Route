@@ -3,7 +3,6 @@ import { MapContainer, TileLayer } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import ResourceMarker from './ResourceMarker';
 import './ResourceMap.css';
-import { Observable } from 'rxjs';
 
 // Define the Resource type (matching the placeholder in ResourceMarker.tsx)
 interface Resource {

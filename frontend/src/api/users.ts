@@ -1,5 +1,6 @@
 import { apiClient } from './client';
-import { User, Role } from '../types';
+import type { User } from '../types';
+import { Role } from '../types';
 
 export const usersApi = {
   async getAll(filters?: { role?: Role }): Promise<User[]> {
@@ -16,6 +17,6 @@ export const usersApi = {
   },
 
   async getFieldOfficers(): Promise<User[]> {
-    return this.getAll({ role: 'FIELD_OFFICER' });
+    return this.getAll({ role: Role.FIELD_OFFICER });
   },
 };
