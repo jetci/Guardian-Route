@@ -13,13 +13,47 @@
 
 **ต้องมีข้อมูล:**
 - ✅ Tasks ที่เสร็จ
-- 🐛 Bugs ที่พบ
+- 🐛 Bugs ที่พบ (ต้อง Log ตาม Priority)
 - 🚨 Blockers (ถ้ามี)
 - 📡 API Status
 
 **Location:** `FRONTEND-DEBUG-LOG.md`  
 **Update:** Real-time during testing  
 **Commit:** 17:00 น. ด้วย `chore: daily update - sprint-22 day-4`
+
+**⚠️ SA Additional Guidelines:**
+
+#### Bug Logging Priority (ต้องปฏิบัติ 100%)
+
+**P0 - Critical (หยุดงาน):**
+- 🚨 **Action:** แจ้ง SA ทันที
+- 📝 **Log:** สร้าง BLOCKER-LOG.md
+- ⏰ **Response Time:** < 15 นาที
+- **Examples:** System crash, Authentication failure, Data loss
+
+**P1 - High:**
+- 🚨 **Action:** แจ้งทีม w + note ใน debug log
+- 📝 **Log:** FRONTEND-DEBUG-LOG.md พร้อม details
+- ⏰ **Response Time:** < 1 ชั่วโมง
+- **Examples:** Core functionality broken, RBAC not working
+
+**P2 - Medium:**
+- 📝 **Action:** บันทึกไว้ และแก้ไขระหว่างวัน
+- 📋 **Log:** FRONTEND-DEBUG-LOG.md
+- ⏰ **Response Time:** Same day
+- **Examples:** UI/UX issues, Performance issues
+
+**P3 - Low:**
+- 📝 **Action:** บันทึกไว้ แก้ไขเมื่อมีเวลา
+- 📋 **Log:** FRONTEND-DEBUG-LOG.md
+- ⏰ **Response Time:** Next sprint
+- **Examples:** Cosmetic issues, Nice-to-have features
+
+**🔁 Recurring Bug Flag:**
+- ถ้า bug เกิดซ้ำหลายรอบ ต้องใส่ **"Recurring Bug"** flag
+- ระบุจำนวนครั้งที่เกิด
+- วิเคราะห์ root cause
+- เสนอแนวทางแก้ไขถาวร
 
 ---
 
@@ -33,6 +67,27 @@
 - 🎨 **UI** - หน้าจอแสดงถูกต้องตาม role
 - 📡 **API** - Permissions ทำงานถูกต้อง
 - 🔄 **Redirect Flow** - Navigation สอดคล้องกับ role
+
+**⚠️ SA Additional Guidelines:**
+
+#### ตรวจสอบ UX ที่ผิด Role (Critical!)
+
+**ตรวจสอบว่า FIELD_OFFICER:**
+- ❌ **ไม่สามารถ** เข้าถึงเมนู ADMIN
+- ❌ **ไม่สามารถ** เข้าถึงเมนู SUPERVISOR
+- ❌ **ไม่สามารถ** เห็น sensitive data
+- ❌ **ไม่สามารถ** เข้าถึง user management
+
+**ตรวจสอบทุกจุด:**
+- 🎯 **Menu** - เมนูที่ไม่ควรเห็นต้องซ่อน
+- 🎯 **Button** - ปุ่มที่ไม่ควรใช้ต้อง disable/hide
+- 🎯 **Routing** - URL ที่ไม่มีสิทธิ์ต้อง redirect หรือ 403
+- 🎯 **API** - Request ที่ไม่มีสิทธิ์ต้อง return 403
+
+**💡 RBAC ที่ดี = ความปลอดภัย + ความเข้าใจง่าย**
+- User ต้องเห็นเฉพาะสิ่งที่ใช้งานได้
+- ไม่ควรมี disabled button ที่ทำให้สับสน
+- Error message ต้องชัดเจนเมื่อไม่มีสิทธิ์
 
 **Test Matrix:**
 | Role | Page | Expected | UI | API | Redirect |
@@ -109,11 +164,46 @@
 - [ ] Token refresh on expiry
 - [ ] Logout clears token
 
+**⚠️ SA Additional Guidelines:**
+
+#### ทดสอบด้วย Expired Token (Critical for Production!)
+
+**🔐 ประเด็นนี้สำคัญในการเข้าสู่ Production**
+
+**Test Scenarios:**
+1. **Token หมดอายุระหว่างใช้งาน:**
+   - [ ] API ตอบกลับ 401 Unauthorized
+   - [ ] Frontend จับ error ได้
+   - [ ] แสดง message ให้ user ทราบ
+   - [ ] Redirect ไป login page อัตโนมัติ
+   - [ ] เก็บ redirect URL ไว้ (return to page after login)
+
+2. **Token หมดอายุก่อน API call:**
+   - [ ] ตรวจสอบ token expiry ก่อน call API
+   - [ ] Auto refresh token ถ้ายังไม่หมดอายุมาก
+   - [ ] Logout และ redirect ถ้าหมดอายุนาน
+
+3. **Refresh Token หมดอายุ:**
+   - [ ] ไม่สามารถ refresh ได้
+   - [ ] Force logout
+   - [ ] Clear all tokens
+   - [ ] Redirect to login
+
+**ตรวจพฤติกรรมทั้ง API และ UI:**
+- 📡 **API:** Return 401 consistently
+- 🎨 **UI:** Handle gracefully, no white screen
+- 🔄 **Flow:** Login ซ้ำอัตโนมัติหรือ redirect กลับ?
+- 💾 **State:** Clear application state on logout
+- 🔐 **Security:** No sensitive data in localStorage after logout
+
 **Success Criteria:**
 - ✅ Login returns JWT token
 - ✅ Token stored securely
 - ✅ API calls include token
 - ✅ 401 handled correctly
+- ✅ Expired token handled gracefully
+- ✅ Auto refresh works (if implemented)
+- ✅ Force logout works when needed
 
 ---
 
