@@ -11,7 +11,11 @@ export class CreateSurveyTemplateDto {
   @IsString()
   description: string;
 
-  @ApiProperty({ type: 'object', description: 'JSON schema of the survey form', additionalProperties: true })
+  @ApiProperty({
+    type: 'object',
+    description: 'JSON schema of the survey form',
+    additionalProperties: true,
+  })
   @IsObject()
   formSchema: any;
 }

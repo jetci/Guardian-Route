@@ -87,10 +87,7 @@ export class CreateReportDto {
 
   @ApiPropertyOptional({
     description: 'Array of photo URLs',
-    example: [
-      'https://example.com/photo1.jpg',
-      'https://example.com/photo2.jpg',
-    ],
+    example: ['https://example.com/photo1.jpg', 'https://example.com/photo2.jpg'],
   })
   @IsOptional()
   @IsArray()

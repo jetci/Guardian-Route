@@ -9,12 +9,7 @@ import { AuditLogModule } from '../audit-log/audit-log.module';
 @Module({
   imports: [AuditLogModule],
   controllers: [AdminController],
-  providers: [
-    AdminService,
-    GeoJsonService,
-    SystemSettingsService,
-    PrismaService,
-  ],
+  providers: [AdminService, GeoJsonService, SystemSettingsService, PrismaService],
   exports: [AdminService, GeoJsonService, SystemSettingsService],
 })
 export class AdminModule {}

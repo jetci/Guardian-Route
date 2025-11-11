@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Resource, AllocationRecord } from '../../types/resource';
+import type { Resource, AllocationRecord } from '../../types/resource';
 
 export type ResourceEventType =
   | 'resource.created'

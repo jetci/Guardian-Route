@@ -8,7 +8,11 @@ export class SurveyResponseDto {
   @ApiProperty({ description: 'ID of the Survey this response belongs to' })
   surveyId: string;
 
-  @ApiProperty({ type: 'object', description: 'Actual survey response data (key-value pairs)', additionalProperties: true })
+  @ApiProperty({
+    type: 'object',
+    description: 'Actual survey response data (key-value pairs)',
+    additionalProperties: true,
+  })
   data: any;
 
   @ApiProperty({ description: 'Date and time when the response was submitted' })

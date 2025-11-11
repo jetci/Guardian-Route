@@ -70,67 +70,84 @@ enum DisasterType {
   OTHER
 }
 
+enum ResourceStatus {
+  AVAILABLE
+  IN_USE
+  MAINTENANCE
+}
+
+enum ResourceType {
+  VEHICLE
+  EQUIPMENT
+  PERSONNEL
+  MEDICAL
+  SHELTER
+}
+
 // ========================================
 // MODELS
 // ========================================
 
 model User {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  email     String   @unique
-  password  String   // bcrypt hashed
-  fullName  String   @map("full_name")
-  firstName String?  @map("first_name")
-  lastName  String?  @map("last_name")
+  id         String   @id @default(uuid())
+  username   String   @unique
+  email      String   @unique
+  password   String // bcrypt hashed
+  fullName   String   @map("full_name")
+  firstName  String?  @map("first_name")
+  lastName   String?  @map("last_name")
   department String?
-  phone     String?
-  role      Role     @default(FIELD_OFFICER)
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  phone      String?
+  role       Role     @default(FIELD_OFFICER)
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   // Relations
-  createdIncidents  Incident[] @relation("CreatedBy")
-  assignedIncidents Incident[] @relation("AssignedIncidents")
-  reviewedIncidents Incident[] @relation("ReviewedIncidents")
-  assignedTasks     Task[]     @relation("AssignedTo")
-  createdTasks     Task[]        @relation("TaskCreator")
-  reports          Report[]      @relation("ReportAuthor")
-  reviewedReports  Report[]      @relation("ReviewedBy")
-  activityLogs     ActivityLog[]
-  createdSurveys   Survey[]      @relation("CreatedSurveys")
-  submittedResponses SurveyResponse[] @relation("SubmittedResponses")
+  createdIncidents   Incident[]         @relation("CreatedBy")
+  assignedIncidents  Incident[]         @relation("AssignedIncidents")
+  reviewedIncidents  Incident[]         @relation("ReviewedIncidents")
+  assignedTasks      Task[]             @relation("AssignedTo")
+  createdTasks       Task[]             @relation("TaskCreator")
+  reports            Report[]           @relation("ReportAuthor")
+  reviewedReports    Report[]           @relation("ReviewedBy")
+  activityLogs       ActivityLog[]
+  createdSurveys     Survey[]           @relation("CreatedSurveys")
+  submittedResponses SurveyResponse[]   @relation("SubmittedResponses")
+  notifications      UserNotification[]
+  sentNotifications  Notification[]     @relation("SenderNotifications")
+  overlayAnalyses    OverlayAnalysis[]
 
   @@map("users")
 }
 
 model Village {
-  id          String  @id @default(uuid())
-  villageNo   Int     @unique @map("village_no") // หมู่ที่ 1-20
-  name        String  // ชื่อหมู่บ้าน เช่น "หนองตุ้ม"
+  id             String   @id @default(uuid())
+  villageNo      Int      @unique @map("village_no") // หมู่ที่ 1-20
+  name           String // ชื่อหมู่บ้าน เช่น "หนองตุ้ม"
   alternateNames String[] @map("alternate_names") // ชื่อเรียกอื่น เช่น ["เวียงสุทโธ"] สำหรับหมู่ 3
-  
+
   // GeoJSON Point - ตำแหน่งศูนย์กลางหมู่บ้าน
   centerPoint Json? @map("center_point") // { type: "Point", coordinates: [lng, lat] }
-  
+
   // GeoJSON Polygon - ขอบเขตหมู่บ้าน (optional)
   boundary Json? // { type: "Polygon", coordinates: [...] }
-  
+
   // Statistics
   households Int? // จำนวนครัวเรือน
   population Int? // จำนวนประชากร
   area       Decimal? @db.Decimal(10, 2) // พื้นที่ (ตร.กม.)
-  
+
   description String? // รายละเอียดเพิ่มเติม
-  
+
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  
+
   // Relations
   incidents Incident[]
   tasks     Task[]
   surveys   Survey[]
-  
+
   @@index([villageNo])
   @@map("villages")
 }
@@ -145,10 +162,10 @@ model Incident {
   // GeoJSON Point - stored as JSON
   location Json // { type: "Point", coordinates: [lng, lat] }
   address  String?
-  
+
   // Images (array of URLs)
   images String[] @default([])
-  
+
   // Village relation (แทน village String?)
   villageId String? @map("village_id")
 
@@ -170,13 +187,14 @@ model Incident {
   createdById String @map("created_by_id")
 
   // Relations
-  createdBy  User  @relation("CreatedBy", fields: [createdById], references: [id])
-  assignedTo User? @relation("AssignedIncidents", fields: [assignedToId], references: [id])
-  reviewedBy User? @relation("ReviewedIncidents", fields: [reviewedById], references: [id])
-  village   Village? @relation(fields: [villageId], references: [id])
-  tasks     Task[]
-  surveys   Survey[]
-  reports   Report[]
+  createdBy     User           @relation("CreatedBy", fields: [createdById], references: [id])
+  assignedTo    User?          @relation("AssignedIncidents", fields: [assignedToId], references: [id])
+  reviewedBy    User?          @relation("ReviewedIncidents", fields: [reviewedById], references: [id])
+  village       Village?       @relation(fields: [villageId], references: [id])
+  tasks         Task[]
+  surveys       Survey[]
+  reports       Report[]
+  notifications Notification[] @relation("IncidentNotifications")
 
   @@index([status])
   @@index([priority])
@@ -208,16 +226,16 @@ model Task {
   priority    TaskPriority @default(MEDIUM)
   dueDate     DateTime?    @map("due_date")
   completedAt DateTime?    @map("completed_at")
-  
+
   // Field Survey Data
-  surveyedAt      DateTime?              @map("surveyed_at")
-  surveyLocation  Unsupported("geometry(Point, 4326)")? @map("survey_location")
-  surveyArea      Unsupported("geometry(Polygon, 4326)")? @map("survey_area")
-  surveyNotes     String?                @map("survey_notes")
-  surveyPhotos    String[]               @default([]) @map("survey_photos")
-  
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
+  surveyedAt     DateTime?                               @map("surveyed_at")
+  surveyLocation Unsupported("geometry(Point, 4326)")?   @map("survey_location")
+  surveyArea     Unsupported("geometry(Polygon, 4326)")? @map("survey_area")
+  surveyNotes    String?                                 @map("survey_notes")
+  surveyPhotos   String[]                                @default([]) @map("survey_photos")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Foreign Keys
   incidentId   String  @map("incident_id")
@@ -241,35 +259,35 @@ model Task {
 }
 
 model SurveyTemplate {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   description String?
-  fields      Json     // Dynamic field definitions
-  isActive    Boolean  @default(true)
+  fields      Json // Dynamic field definitions
+  isActive    Boolean @default(true)
 
-  surveys     Survey[]
+  surveys Survey[]
 
   @@map("survey_templates")
 }
 
 model Survey {
-  id          String   @id @default(uuid())
-  incidentId  String?  @map("incident_id")
-  villageId   String?  @map("village_id")
-  templateId  String   @map("template_id")
+  id          String       @id @default(uuid())
+  incidentId  String?      @map("incident_id")
+  villageId   String?      @map("village_id")
+  templateId  String       @map("template_id")
   status      SurveyStatus @default(PENDING)
-  completedAt DateTime? @map("completed_at")
-  polygon     Json?     // GeoJSON for survey area (optional)
+  completedAt DateTime?    @map("completed_at")
+  polygon     Json? // GeoJSON for survey area (optional)
 
   // Foreign Keys
   createdById String @map("created_by_id")
 
   // Relations
-  incident    Incident? @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  village     Village? @relation(fields: [villageId], references: [id])
-  template    SurveyTemplate @relation(fields: [templateId], references: [id])
-  responses   SurveyResponse[]
-  createdBy   User @relation("CreatedSurveys", fields: [createdById], references: [id])
+  incident  Incident?        @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  village   Village?         @relation(fields: [villageId], references: [id])
+  template  SurveyTemplate   @relation(fields: [templateId], references: [id])
+  responses SurveyResponse[]
+  createdBy User             @relation("CreatedSurveys", fields: [createdById], references: [id])
 
   @@index([incidentId])
   @@index([villageId])
@@ -281,7 +299,7 @@ model Survey {
 model SurveyResponse {
   id          String   @id @default(uuid())
   surveyId    String   @map("survey_id")
-  data        Json     // Actual survey response data (key-value pairs)
+  data        Json // Actual survey response data (key-value pairs)
   submittedAt DateTime @default(now()) @map("submitted_at")
 
   // Foreign Keys
@@ -289,7 +307,7 @@ model SurveyResponse {
 
   // Relations
   survey      Survey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  submittedBy User @relation("SubmittedResponses", fields: [submittedById], references: [id])
+  submittedBy User   @relation("SubmittedResponses", fields: [submittedById], references: [id])
 
   @@index([surveyId])
   @@index([submittedById])
@@ -321,7 +339,7 @@ model Report {
   templateId  String?   @map("template_id")
   periodStart DateTime? @map("period_start")
   periodEnd   DateTime? @map("period_end")
-  metadata    Json?     // Additional metadata for report generation
+  metadata    Json? // Additional metadata for report generation
 
   // PDF Generation
   pdfUrl         String?   @map("pdf_url")
@@ -357,10 +375,10 @@ model Report {
 
 model ActivityLog {
   id        String   @id @default(uuid())
-  action    String   // "LOGIN", "CREATE_INCIDENT", "APPROVE_REPORT", etc.
-  entity    String?  // "User", "Incident", "Report"
+  action    String // "LOGIN", "CREATE_INCIDENT", "APPROVE_REPORT", etc.
+  entity    String? // "User", "Incident", "Report"
   entityId  String?  @map("entity_id")
-  details   Json?    // Additional context
+  details   Json? // Additional context
   ipAddress String?  @map("ip_address")
   userAgent String?  @map("user_agent")
   createdAt DateTime @default(now()) @map("created_at")
@@ -381,11 +399,10 @@ model ActivityLog {
 model AuditLog {
   id         String   @id @default(uuid())
   userId     String   @map("user_id")
-  username   String
-  action     String   // 'CREATE_USER', 'SUSPEND_USER', 'DELETE_USER', 'CHANGE_ROLE', 'UPLOAD_GEOJSON', 'EDIT_POLYGON', 'UPDATE_SETTINGS'
+  action     String // 'CREATE_USER', 'SUSPEND_USER', 'DELETE_USER', 'CHANGE_ROLE', 'UPLOAD_GEOJSON', 'EDIT_POLYGON', 'UPDATE_SETTINGS'
   targetType String?  @map("target_type") // 'USER', 'GEOJSON', 'POLYGON', 'SETTINGS'
   targetId   String?  @map("target_id")
-  details    Json?    // Additional details
+  details    Json? // Additional details
   ipAddress  String?  @map("ip_address")
   userAgent  String?  @map("user_agent")
   createdAt  DateTime @default(now()) @map("created_at")
@@ -399,19 +416,83 @@ model AuditLog {
 
 // GeoJSON Boundaries - สำหรับจัดการขอบเขตภูมิศาสตร์
 model GeoBoundary {
-  id          String   @id @default(uuid())
-  name        String   // ชื่อขอบเขต
-  type        String   // 'village', 'district', 'province', 'custom'
-  geojson     Json     // GeoJSON data
-  properties  Json?    // Additional properties
-  villageId   String?  @map("village_id")
-  uploadedBy  String   @map("uploaded_by")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id         String   @id @default(uuid())
+  name       String // ชื่อขอบเขต
+  type       String // 'village', 'district', 'province', 'custom'
+  geojson    Json // GeoJSON data
+  properties Json? // Additional properties
+  villageId  String?  @map("village_id")
+  uploadedBy String   @map("uploaded_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@index([type])
   @@index([villageId])
   @@map("geo_boundaries")
+}
+
+// Resource Management - ทรัพยากรสำหรับการจัดการภัยพิบัติ
+model Resource {
+  id     String         @id @default(uuid())
+  name   String // ชื่อทรัพยากร
+  type   ResourceType // ประเภททรัพยากร
+  status ResourceStatus @default(AVAILABLE) // สถานะ
+
+  // GeoJSON Point - ตำแหน่งทรัพยากร
+  location Json // { type: "Point", coordinates: [lng, lat] }
+  address  String? // ที่อยู่/สถานที่
+
+  registrationNumber String? @map("registration_number") // หมายเลขทะเบียน (สำหรับยานพาหนะ)
+  description        String? // รายละเอียดเพิ่มเติม
+  capacity           Int? // ความจุ/ปริมาณ
+
+  // Allocation tracking
+  allocatedTo String?   @map("allocated_to") // Task/Incident ID ที่ถูกจัดสรร
+  allocatedAt DateTime? @map("allocated_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@index([status])
+  @@index([allocatedTo])
+  @@map("resources")
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  title      String
+  message    String
+  type       String
+  senderId   String   @map("sender_id")
+  incidentId String?  @map("incident_id")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  sender   User      @relation("SenderNotifications", fields: [senderId], references: [id])
+  incident Incident? @relation("IncidentNotifications", fields: [incidentId], references: [id])
+
+  // ✅ Back-relation แบบมีชื่อชัดเจน
+  userNotifications UserNotification[] @relation("NotificationToUser")
+
+  @@index([senderId])
+  @@index([incidentId])
+  @@map("notifications")
+}
+
+model UserNotification {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  notificationId String   @map("notification_id")
+  message        String
+  isRead         Boolean  @default(false) @map("is_read")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user         User         @relation(fields: [userId], references: [id])
+  notification Notification @relation("NotificationToUser", fields: [notificationId], references: [id])
+
+  @@index([userId])
+  @@map("user_notifications")
 }
 
 // System configuration and settings
@@ -422,4 +503,37 @@ model SystemConfig {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("system_config")
+}
+
+// ========================================
+// SPRINT 11 - Persistent Notification Log
+// ========================================
+
+model NotificationLog {
+  id        String   @id @default(uuid())
+  type      String   // "INFO" | "WARNING" | "ALERT"
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("notification_logs")
+}
+
+// ========================================
+// SPRINT 12 - Overlay Analysis
+// ========================================
+
+model OverlayAnalysis {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  polygon     Json
+  result      Json
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [createdBy], references: [id])
+
+  @@index([createdBy])
+  @@map("overlay_analysis")
 }

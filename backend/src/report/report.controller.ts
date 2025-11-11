@@ -138,17 +138,8 @@ export class ReportController {
     status: 404,
     description: 'Report not found',
   })
-  update(
-    @Param('id') id: string,
-    @Body() updateReportDto: UpdateReportDto,
-    @Request() req,
-  ) {
-    return this.reportService.update(
-      id,
-      updateReportDto,
-      req.user.id,
-      req.user.role,
-    );
+  update(@Param('id') id: string, @Body() updateReportDto: UpdateReportDto, @Request() req) {
+    return this.reportService.update(id, updateReportDto, req.user.id, req.user.role);
   }
 
   @Delete(':id')
@@ -192,11 +183,7 @@ export class ReportController {
     status: 403,
     description: 'Forbidden - can only submit own reports',
   })
-  submit(
-    @Param('id') id: string,
-    @Body() submitDto: SubmitReportDto,
-    @Request() req,
-  ) {
+  submit(@Param('id') id: string, @Body() submitDto: SubmitReportDto, @Request() req) {
     return this.reportService.submit(id, req.user.id);
   }
 
@@ -220,17 +207,8 @@ export class ReportController {
     status: 403,
     description: 'Forbidden - insufficient permissions',
   })
-  review(
-    @Param('id') id: string,
-    @Body() reviewDto: ReviewReportDto,
-    @Request() req,
-  ) {
-    return this.reportService.review(
-      id,
-      reviewDto,
-      req.user.id,
-      req.user.role,
-    );
+  review(@Param('id') id: string, @Body() reviewDto: ReviewReportDto, @Request() req) {
+    return this.reportService.review(id, reviewDto, req.user.id, req.user.role);
   }
 
   @Post(':id/generate-pdf')
@@ -248,10 +226,7 @@ export class ReportController {
     status: 404,
     description: 'Report not found',
   })
-  generatePdf(
-    @Param('id') id: string,
-    @Body() generatePdfDto: GeneratePdfDto,
-  ) {
+  generatePdf(@Param('id') id: string, @Body() generatePdfDto: GeneratePdfDto) {
     return this.reportService.generatePdf(id, generatePdfDto);
   }
 }

@@ -8,12 +8,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ReportServiceExtension } from './report.service.extension';
 import { CreateFullReportDto } from './dto/create-full-report.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -29,24 +24,18 @@ export class ReportControllerExtension {
   constructor(private readonly reportServiceExt: ReportServiceExtension) {}
 
   @Post('full')
-  @Roles(Role.REPORTER, Role.FIELD_OFFICER, Role.ADMIN)
+  @Roles(Role.FIELD_OFFICER, Role.FIELD_OFFICER, Role.ADMIN)
   @ApiOperation({ summary: 'Create full report with AI analysis' })
   @ApiResponse({
     status: 201,
     description: 'Full report created successfully',
   })
-  createFullReport(
-    @Body() createFullReportDto: CreateFullReportDto,
-    @Request() req,
-  ) {
-    return this.reportServiceExt.createFullReport(
-      createFullReportDto,
-      req.user.id,
-    );
+  createFullReport(@Body() createFullReportDto: CreateFullReportDto, @Request() req) {
+    return this.reportServiceExt.createFullReport(createFullReportDto, req.user.id);
   }
 
   @Post(':id/submit')
-  @Roles(Role.REPORTER, Role.FIELD_OFFICER, Role.ADMIN)
+  @Roles(Role.FIELD_OFFICER, Role.FIELD_OFFICER, Role.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Submit full report for review' })
   @ApiResponse({
@@ -58,7 +47,7 @@ export class ReportControllerExtension {
   }
 
   @Post('ai-analysis')
-  @Roles(Role.REPORTER, Role.FIELD_OFFICER, Role.ADMIN)
+  @Roles(Role.FIELD_OFFICER, Role.FIELD_OFFICER, Role.ADMIN)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Request AI analysis for report data' })
   @ApiResponse({

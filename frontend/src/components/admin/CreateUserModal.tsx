@@ -35,7 +35,7 @@ interface CreateUserModalProps {
 }
 
 const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose }) => {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<CreateUserFormData>();
+  const { register, handleSubmit, reset } = useForm<CreateUserFormData>();
   const toast = useToast();
   const queryClient = useQueryClient();
 

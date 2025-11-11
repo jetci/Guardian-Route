@@ -60,9 +60,7 @@ export class UploadService {
     }
 
     if (!this.allowedMimeTypes.includes(file.mimetype)) {
-      throw new BadRequestException(
-        'Invalid file type. Only JPEG, PNG, and WebP are allowed',
-      );
+      throw new BadRequestException('Invalid file type. Only JPEG, PNG, and WebP are allowed');
     }
   }
 }

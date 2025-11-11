@@ -8,7 +8,9 @@ import {
   useMapEvents,
   useMap,
 } from 'react-leaflet';
-import { LatLngExpression, LatLng, DivIcon } from 'leaflet';
+import type { LatLngExpression } from 'leaflet';
+import { LatLng } from 'leaflet';
+import { DivIcon } from 'leaflet';
 import {
   Box,
   Button,
@@ -18,10 +20,10 @@ import {
   VStack,
   HStack,
   Badge,
-  IconButton,
-  Tooltip,
+
+
 } from '@chakra-ui/react';
-import { DeleteIcon } from '@chakra-ui/icons';
+
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -138,7 +140,7 @@ function GPSButton({ onLocationFound }: { onLocationFound: (lat: number, lng: nu
         });
         setIsLoading(false);
       },
-      (error) => {
+      () => {
         toast({
           title: 'ไม่สามารถระบุตำแหน่งได้',
           description: 'กรุณาเปิดใช้งาน GPS',

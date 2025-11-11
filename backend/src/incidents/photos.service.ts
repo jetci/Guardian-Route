@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../database/prisma.service';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -19,11 +19,7 @@ export class PhotosService {
     }
   }
 
-  async uploadPhoto(
-    incidentId: string,
-    file: Express.Multer.File,
-    userId: string,
-  ) {
+  async uploadPhoto(incidentId: string, file: Express.Multer.File, userId: string) {
     // Verify incident exists and user has permission
     const incident = await this.prisma.incident.findUnique({
       where: { id: incidentId },
@@ -39,8 +35,10 @@ export class PhotosService {
         where: { id: userId },
       });
 
-      if (!['ADMIN', 'SUPERVISOR', 'EXECUTIVE'].includes(user.role)) {
-        throw new BadRequestException('You do not have permission to upload photos to this incident');
+      if (!user || !['ADMIN', 'SUPERVISOR', 'EXECUTIVE'].includes(user.role)) {
+        throw new BadRequestException(
+          'You do not have permission to upload images to this incident',
+        );
       }
     }
 
@@ -49,15 +47,15 @@ export class PhotosService {
     const filepath = path.join(this.uploadDir, filename);
     await fs.writeFile(filepath, file.buffer);
 
-    // Get current photos array
-    const currentPhotos = (incident.photos as string[]) || [];
+    // Get current images array
+    const currentPhotos = incident.images || [];
     const photoUrl = `/uploads/incidents/${filename}`;
 
     // Update incident with new photo
     await this.prisma.incident.update({
       where: { id: incidentId },
       data: {
-        photos: [...currentPhotos, photoUrl],
+        images: [...currentPhotos, photoUrl],
       },
     });
 
@@ -73,16 +71,16 @@ export class PhotosService {
   async getPhotos(incidentId: string) {
     const incident = await this.prisma.incident.findUnique({
       where: { id: incidentId },
-      select: { photos: true },
+      select: { images: true },
     });
 
     if (!incident) {
       throw new NotFoundException('Incident not found');
     }
 
-    const photos = (incident.photos as string[]) || [];
-    
-    return photos.map((url, index) => ({
+    const images = incident.images || [];
+
+    return images.map((url, index) => ({
       id: path.basename(url),
       url,
       filename: path.basename(url),
@@ -90,11 +88,7 @@ export class PhotosService {
     }));
   }
 
-  async deletePhoto(
-    incidentId: string,
-    photoId: string,
-    userId: string,
-  ) {
+  async deletePhoto(incidentId: string, photoId: string, userId: string) {
     const incident = await this.prisma.incident.findUnique({
       where: { id: incidentId },
     });
@@ -109,14 +103,16 @@ export class PhotosService {
         where: { id: userId },
       });
 
-      if (!['ADMIN', 'SUPERVISOR'].includes(user.role)) {
-        throw new BadRequestException('You do not have permission to delete photos from this incident');
+      if (!user || !['ADMIN', 'SUPERVISOR'].includes(user.role)) {
+        throw new BadRequestException(
+          'You do not have permission to delete images from this incident',
+        );
       }
     }
 
-    const currentPhotos = (incident.photos as string[]) || [];
+    const currentPhotos = incident.images || [];
     const photoUrl = `/uploads/incidents/${photoId}`;
-    
+
     if (!currentPhotos.includes(photoUrl)) {
       throw new NotFoundException('Photo not found');
     }
@@ -134,7 +130,7 @@ export class PhotosService {
     await this.prisma.incident.update({
       where: { id: incidentId },
       data: {
-        photos: currentPhotos.filter(url => url !== photoUrl),
+        images: currentPhotos.filter((url) => url !== photoUrl),
       },
     });
 

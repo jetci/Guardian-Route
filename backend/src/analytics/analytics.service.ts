@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../database/prisma.service';
 import { KpiSummaryDto } from './dto/kpi-summary.dto';
 import { IncidentsByStatusDto } from './dto/incidents-by-status.dto';
 import { IncidentStatus } from '@prisma/client';
@@ -48,10 +48,13 @@ export class AnalyticsService {
     });
 
     // Initialize all statuses with count 0
-    const allStatuses = Object.values(IncidentStatus).reduce((acc, status) => {
-      acc[status] = 0;
-      return acc;
-    }, {} as Record<IncidentStatus, number>);
+    const allStatuses = Object.values(IncidentStatus).reduce(
+      (acc, status) => {
+        acc[status] = 0;
+        return acc;
+      },
+      {} as Record<IncidentStatus, number>,
+    );
 
     // Populate with actual counts
     for (const item of statusCounts) {
@@ -70,7 +73,6 @@ export class AnalyticsService {
 
     return result;
   }
-}
 
   /**
    * Get incident trend data for the last 6 months
@@ -96,7 +98,7 @@ export class AnalyticsService {
 
     for (const incident of incidents) {
       const month = incident.createdAt.toISOString().substring(0, 7); // YYYY-MM
-      
+
       if (!monthlyData.has(month)) {
         monthlyData.set(month, { count: 0, totalResponseTime: 0 });
       }
@@ -105,7 +107,8 @@ export class AnalyticsService {
       data.count++;
 
       if (incident.resolvedAt) {
-        const responseTime = (incident.resolvedAt.getTime() - incident.createdAt.getTime()) / (1000 * 60 * 60);
+        const responseTime =
+          (incident.resolvedAt.getTime() - incident.createdAt.getTime()) / (1000 * 60 * 60);
         data.totalResponseTime += responseTime;
       }
     }
@@ -130,17 +133,23 @@ export class AnalyticsService {
     const incidents = await this.prisma.incident.groupBy({
       by: ['type'],
       _count: {
-        type: true,
+        _all: true,
       },
     });
 
-    const total = incidents.reduce((sum, item) => sum + item._count.type, 0);
+    const total = incidents.reduce((sum, item) => {
+      const count = typeof item._count === 'object' && item._count._all ? item._count._all : 0;
+      return sum + count;
+    }, 0);
 
-    return incidents.map((item) => ({
-      type: item.type,
-      count: item._count.type,
-      percentage: total > 0 ? Math.round((item._count.type / total) * 100) : 0,
-    }));
+    return incidents.map((item) => {
+      const count = typeof item._count === 'object' && item._count._all ? item._count._all : 0;
+      return {
+        type: item.type as any,
+        count: count,
+        percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+      };
+    });
   }
 
   /**
@@ -167,16 +176,23 @@ export class AnalyticsService {
       },
     });
 
-    return incidents.map((incident) => ({
-      id: incident.id,
-      title: incident.title,
-      priority: incident.priority,
-      status: incident.status,
-      location: incident.location?.coordinates
-        ? `${incident.location.coordinates[1]}, ${incident.location.coordinates[0]}`
-        : 'N/A',
-      createdAt: incident.createdAt,
-    }));
+    return incidents.map((incident) => {
+      let locationStr = 'N/A';
+      if (incident.location && typeof incident.location === 'object') {
+        const loc = incident.location as any;
+        if (loc.coordinates && Array.isArray(loc.coordinates) && loc.coordinates.length >= 2) {
+          locationStr = `${loc.coordinates[1]}, ${loc.coordinates[0]}`;
+        }
+      }
+      return {
+        id: incident.id,
+        title: incident.title,
+        priority: incident.priority,
+        status: incident.status,
+        location: locationStr,
+        createdAt: incident.createdAt,
+      };
+    });
   }
 
   /**
@@ -186,7 +202,7 @@ export class AnalyticsService {
     const incidents = await this.prisma.incident.findMany({
       where: {
         location: {
-          not: null,
+          not: null as any,
         },
       },
       select: {
@@ -197,12 +213,15 @@ export class AnalyticsService {
 
     // Group incidents by approximate location (grid-based)
     const gridSize = 0.1; // ~11km
-    const locationMap = new Map<string, { lat: number; lng: number; count: number; totalSeverity: number }>();
+    const locationMap = new Map<
+      string,
+      { lat: number; lng: number; count: number; totalSeverity: number }
+    >();
 
     for (const incident of incidents) {
-      if (!incident.location?.coordinates) continue;
+      if (!(incident.location as any)?.coordinates) continue;
 
-      const [lng, lat] = incident.location.coordinates;
+      const [lng, lat] = (incident.location as any).coordinates;
       const gridLat = Math.floor(lat / gridSize) * gridSize;
       const gridLng = Math.floor(lng / gridSize) * gridSize;
       const key = `${gridLat},${gridLng}`;
@@ -220,12 +239,13 @@ export class AnalyticsService {
       data.count++;
 
       // Calculate severity score
-      const severityScore = {
-        CRITICAL: 4,
-        HIGH: 3,
-        MEDIUM: 2,
-        LOW: 1,
-      }[incident.priority] || 1;
+      const severityScore =
+        {
+          CRITICAL: 4,
+          HIGH: 3,
+          MEDIUM: 2,
+          LOW: 1,
+        }[incident.priority] || 1;
 
       data.totalSeverity += severityScore;
     }

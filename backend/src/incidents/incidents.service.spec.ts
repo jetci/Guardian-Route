@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { IncidentsService } from './incidents.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../database/prisma.service';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('IncidentsService', () => {
@@ -104,9 +104,7 @@ describe('IncidentsService', () => {
     it('should throw NotFoundException when incident not found', async () => {
       mockPrismaService.incident.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOne('nonexistent')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -136,9 +134,9 @@ describe('IncidentsService', () => {
 
       mockPrismaService.incident.findUnique.mockResolvedValue(mockIncident);
 
-      await expect(
-        service.update('1', updateDto, 'other-user', 'FIELD_OFFICER'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.update('1', updateDto, 'other-user', 'FIELD_OFFICER')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -160,9 +158,9 @@ describe('IncidentsService', () => {
     });
 
     it('should throw ForbiddenException when user is not Supervisor', async () => {
-      await expect(
-        service.assign('1', 'user-2', 'FIELD_OFFICER'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.assign('1', 'user-2', 'FIELD_OFFICER')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });

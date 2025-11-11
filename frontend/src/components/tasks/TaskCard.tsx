@@ -9,7 +9,7 @@ import {
   VStack,
   Button,
   Divider,
-  Box,
+
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 

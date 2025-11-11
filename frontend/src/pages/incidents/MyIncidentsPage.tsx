@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
   Container,
   Heading,
   VStack,
@@ -13,8 +12,7 @@ import {
   Card,
   CardBody,
   SimpleGrid,
-  Icon,
-} from '@chakra-ui/react';
+} from '@chakra-ui/react'; // Removed unused Box, Icon
 import { useNavigate } from 'react-router-dom';
 import { AddIcon } from '@chakra-ui/icons';
 import { incidentsApi } from '../../api/incidents';
@@ -175,7 +173,7 @@ export const MyIncidentsPage: React.FC = () => {
 
                       <HStack>
                         <Text>📍</Text>
-                        <Text>{incident.village.name}</Text>
+                        <Text>{incident.village?.name}</Text>
                       </HStack>
 
                       <HStack>

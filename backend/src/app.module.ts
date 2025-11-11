@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
@@ -14,26 +15,38 @@ import { SurveyModule } from './survey/survey.module';
 import { UploadModule } from './upload/upload.module';
 import { ReportModule } from './report/report.module';
 import { CommonModule } from './common/common.module';
+import { LoggerModule } from './common/logger/logger.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalysisModule } from './analysis/analysis.module';
 import { AdminModule } from './admin/admin.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { EventsModule } from './events/events.module';
+import { ResourceModule } from './resource/resource.module';
+import { ResourcesModule } from './resources/resources.module';
+import { KpiModule } from './kpi/kpi.module';
+import { ExportModule } from './export/export.module';
+import { OverlayModule } from './overlay/overlay.module';
+import { ExportHistoryModule } from './export-history/export-history.module';
+import { ExportStatsModule } from './export-stats/export-stats.module';
+import { MonitoringModule } from './monitoring/monitoring.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60000, // 1 minute
-        limit: 100, // 100 requests per minute (global default)
-      },
-    ]),
+    CacheModule.register({
+      ttl: 60 * 1000, // 60 seconds
+      isGlobal: true,
+    }),
+    ThrottlerModule.forRoot([{
+      ttl: 60000, // 1 minute
+      limit: 100, // 100 requests per minute (global default)
+    }]),
     DatabaseModule,
     CommonModule,
+    LoggerModule,
     AuthModule,
     UsersModule,
     VillagesModule,
@@ -48,6 +61,14 @@ import { EventsModule } from './events/events.module';
     AdminModule,
     AuditLogModule,
     EventsModule,
+    ResourceModule,
+    ResourcesModule,
+    KpiModule,
+    ExportModule,
+    OverlayModule,
+    MonitoringModule,
+    ExportHistoryModule,
+    ExportStatsModule,
   ],
   controllers: [AppController],
   providers: [

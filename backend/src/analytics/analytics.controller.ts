@@ -28,11 +28,14 @@ export class AnalyticsController {
   @HttpCode(HttpStatus.OK)
   @Roles(Role.ADMIN, Role.SUPERVISOR, Role.EXECUTIVE)
   @ApiOperation({ summary: 'Get incidents count by status' })
-  @ApiResponse({ status: 200, description: 'Incidents by status retrieved', type: [IncidentsByStatusDto] })
+  @ApiResponse({
+    status: 200,
+    description: 'Incidents by status retrieved',
+    type: [IncidentsByStatusDto],
+  })
   async getIncidentsByStatus(): Promise<IncidentsByStatusDto[]> {
     return this.analyticsService.getIncidentsByStatus();
   }
-}
 
   @Get('trend')
   @HttpCode(HttpStatus.OK)
@@ -69,3 +72,4 @@ export class AnalyticsController {
   async getRiskAreas() {
     return this.analyticsService.getRiskAreas();
   }
+}

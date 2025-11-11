@@ -1,0 +1,40 @@
+.resource-map-container {
+  height: 100vh;
+  width: 100%;
+}
+
+.resource-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: white;
+  border: 2px solid white;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.resource-icon.available {
+  background-color: #4CAF50; /* Green */
+}
+
+.resource-icon.in-use {
+  background-color: #FF9800; /* Orange */
+}
+
+.resource-icon.maintenance {
+  background-color: #F44336; /* Red */
+}
+
+/* Leaflet Popup Styling */
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+}
+
+.leaflet-popup-content {
+  padding: 10px;
+  font-size: 14px;
+}

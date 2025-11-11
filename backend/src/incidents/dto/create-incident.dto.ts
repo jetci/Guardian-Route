@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsObject, IsUUID, IsArray } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEnum,
+  IsOptional,
+  IsObject,
+  IsUUID,
+  IsArray,
+} from 'class-validator';
 import { DisasterType, Priority } from '@prisma/client';
 
 export class CreateIncidentDto {
@@ -13,17 +21,17 @@ export class CreateIncidentDto {
   @IsOptional()
   description?: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     enum: DisasterType,
-    example: DisasterType.FLOOD 
+    example: DisasterType.FLOOD,
   })
   @IsEnum(DisasterType)
   disasterType: DisasterType;
 
-  @ApiProperty({ 
+  @ApiProperty({
     enum: Priority,
     example: Priority.HIGH,
-    default: Priority.MEDIUM
+    default: Priority.MEDIUM,
   })
   @IsEnum(Priority)
   @IsOptional()
@@ -32,9 +40,9 @@ export class CreateIncidentDto {
   @ApiProperty({
     example: {
       type: 'Point',
-      coordinates: [99.8832, 19.9263]
+      coordinates: [99.8832, 19.9263],
     },
-    description: 'GeoJSON Point [longitude, latitude]'
+    description: 'GeoJSON Point [longitude, latitude]',
   })
   @IsObject()
   location: {
@@ -52,10 +60,10 @@ export class CreateIncidentDto {
   @IsOptional()
   villageId?: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: ['/uploads/image1.webp', '/uploads/image2.webp'],
     description: 'Array of image URLs',
-    required: false 
+    required: false,
   })
   @IsArray()
   @IsString({ each: true })

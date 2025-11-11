@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { 
+import { 
   Incident, 
   CreateIncidentDto, 
   UpdateIncidentDto,

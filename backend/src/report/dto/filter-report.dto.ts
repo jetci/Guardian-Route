@@ -1,13 +1,5 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsOptional,
-  IsEnum,
-  IsUUID,
-  IsDateString,
-  IsInt,
-  Min,
-  Max,
-} from 'class-validator';
+import { IsOptional, IsEnum, IsUUID, IsDateString, IsInt, Min, Max } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ReportType, ReportStatus } from '@prisma/client';
 

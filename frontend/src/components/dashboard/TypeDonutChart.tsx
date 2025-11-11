@@ -15,7 +15,12 @@ export const TypeDonutChart = () => {
       try {
         setLoading(true);
         const result = await analyticsApi.getIncidentsByType();
-        setData(result);
+        // Map data to include 'name' property for recharts
+        const mappedData = result.map(item => ({
+          ...item,
+          name: item.type, // Assuming 'type' is the name property
+        }));
+        setData(mappedData);
       } catch (err) {
         setError('ไม่สามารถโหลดข้อมูลประเภทภัยได้');
         console.error(err);
@@ -55,7 +60,7 @@ export const TypeDonutChart = () => {
             cx="50%"
             cy="50%"
             labelLine={false}
-            label={({ type, percentage }) => `${type}: ${percentage}%`}
+            label={({ payload, percent }) => `${payload.name}: ${percent ? (percent * 100).toFixed(0) : 0}%`}
             outerRadius={80}
             innerRadius={40}
             fill="#8884d8"

@@ -5,19 +5,19 @@ import { IncidentStatus } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateIncidentDto extends PartialType(CreateIncidentDto) {
-  @ApiProperty({ 
+  @ApiProperty({
     enum: IncidentStatus,
     example: IncidentStatus.IN_PROGRESS,
-    required: false
+    required: false,
   })
   @IsEnum(IncidentStatus)
   @IsOptional()
   status?: IncidentStatus;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: '2025-11-03T10:30:00Z',
     required: false,
-    description: 'ISO 8601 datetime when incident was resolved'
+    description: 'ISO 8601 datetime when incident was resolved',
   })
   @IsDateString()
   @IsOptional()

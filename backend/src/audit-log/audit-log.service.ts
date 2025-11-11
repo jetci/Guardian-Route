@@ -3,7 +3,7 @@ import { PrismaService } from '../database/prisma.service';
 
 export interface CreateAuditLogDto {
   userId: string;
-  username: string;
+  username?: string;
   action: string;
   targetType?: string;
   targetId?: string;
@@ -33,7 +33,7 @@ export class AuditLogService {
     return this.prisma.auditLog.create({
       data: {
         userId: data.userId,
-        username: data.username,
+
         action: data.action,
         targetType: data.targetType,
         targetId: data.targetId,
@@ -48,15 +48,7 @@ export class AuditLogService {
    * ดึง Audit Logs พร้อม Filter
    */
   async findAll(filter: AuditLogFilterDto = {}) {
-    const {
-      userId,
-      action,
-      targetType,
-      startDate,
-      endDate,
-      page = 1,
-      limit = 50,
-    } = filter;
+    const { userId, action, targetType, startDate, endDate, page = 1, limit = 50 } = filter;
 
     const where: any = {};
 
@@ -116,7 +108,7 @@ export class AuditLogService {
     const headers = [
       'ID',
       'User ID',
-      'Username',
+
       'Action',
       'Target Type',
       'Target ID',
@@ -127,7 +119,7 @@ export class AuditLogService {
     const rows = data.map((log) => [
       log.id,
       log.userId,
-      log.username,
+
       log.action,
       log.targetType || '',
       log.targetId || '',
@@ -135,10 +127,7 @@ export class AuditLogService {
       log.createdAt.toISOString(),
     ]);
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map((row) => row.join(',')),
-    ].join('\n');
+    const csvContent = [headers.join(','), ...rows.map((row) => row.join(','))].join('\n');
 
     return csvContent;
   }

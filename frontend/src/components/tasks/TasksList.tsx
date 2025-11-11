@@ -12,6 +12,7 @@ const getStatusLabel = (status: TaskStatus) => {
     IN_PROGRESS: 'กำลังดำเนินการ',
     COMPLETED: 'เสร็จสิ้น',
     CANCELLED: 'ยกเลิก',
+    SURVEYED: 'สำรวจแล้ว',
   };
   return labels[status];
 };
@@ -22,6 +23,7 @@ const getStatusColor = (status: TaskStatus) => {
     IN_PROGRESS: 'bg-blue-100 text-blue-800',
     COMPLETED: 'bg-green-100 text-green-800',
     CANCELLED: 'bg-gray-100 text-gray-800',
+    SURVEYED: 'bg-purple-100 text-purple-800',
   };
   return colors[status];
 };
@@ -109,6 +111,7 @@ export const TasksList = ({ refreshKey = 0 }: TasksListProps) => {
               <option value="IN_PROGRESS">กำลังดำเนินการ</option>
               <option value="COMPLETED">เสร็จสิ้น</option>
               <option value="CANCELLED">ยกเลิก</option>
+              <option value="SURVEYED">สำรวจแล้ว</option>
             </select>
           </div>
 

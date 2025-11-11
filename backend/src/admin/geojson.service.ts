@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { UploadGeoJsonDto, UploadMode } from './dto/upload-geojson.dto';
 import { AuditLogService } from '../audit-log/audit-log.service';
@@ -117,12 +113,7 @@ export class GeoJsonService {
   /**
    * Get all GeoJSON boundaries
    */
-  async findAll(filters?: {
-    type?: string;
-    villageId?: string;
-    page?: number;
-    limit?: number;
-  }) {
+  async findAll(filters?: { type?: string; villageId?: string; page?: number; limit?: number }) {
     const { type, villageId, page = 1, limit = 20 } = filters || {};
 
     const where: any = {};

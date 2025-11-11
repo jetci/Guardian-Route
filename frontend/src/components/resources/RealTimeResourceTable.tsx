@@ -1,5 +1,5 @@
 import React from 'react';
-import { Resource, ResourceStatus } from '../../types/resource';
+import type { Resource } from '../../types/resource';
 
 interface RealTimeResourceTableProps {
   resources: Resource[];
@@ -10,17 +10,17 @@ export const RealTimeResourceTable: React.FC<RealTimeResourceTableProps> = ({
   resources,
   loading = false,
 }) => {
-  const getStatusBadge = (status: ResourceStatus) => {
-    const badges = {
-      [ResourceStatus.AVAILABLE]: {
+  const getStatusBadge = (status: Resource['status']) => {
+    const badges: Record<Resource['status'], { text: string; className: string }> = {
+      AVAILABLE: {
         text: 'พร้อมใช้งาน',
         className: 'bg-green-100 text-green-800',
       },
-      [ResourceStatus.IN_USE]: {
+      IN_USE: {
         text: 'กำลังใช้งาน',
         className: 'bg-orange-100 text-orange-800',
       },
-      [ResourceStatus.MAINTENANCE]: {
+      MAINTENANCE: {
         text: 'ซ่อมบำรุง',
         className: 'bg-red-100 text-red-800',
       },
@@ -123,7 +123,7 @@ export const RealTimeResourceTable: React.FC<RealTimeResourceTableProps> = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-500">
-                    {resource.type?.name || '-'}
+                    {resource.name || '-'}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -131,7 +131,7 @@ export const RealTimeResourceTable: React.FC<RealTimeResourceTableProps> = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-500">
-                    {resource.location || '-'}
+                    {resource.location ? `Lat: ${resource.location.coordinates[1].toFixed(4)}, Lng: ${resource.location.coordinates[0].toFixed(4)}` : '-'}
                   </div>
                 </td>
               </tr>

@@ -21,11 +21,13 @@ import {
   FormLabel,
   useToast,
 } from '@chakra-ui/react';
-import { type Incident, IncidentStatus, Role } from '../../types';
+import type { Incident } from '../../types';
+import { IncidentStatus } from '../../types';
+import { Role } from '../../types';
 import { apiClient } from '../../api/client';
 import { useAuthStore } from '../../stores/authStore';
 import { ImageGallery } from '../upload/ImageGallery';
-import { type Survey, type SurveyTemplate } from '../../types/Survey';
+import type { Survey, SurveyTemplate } from '../../types/Survey';
 import { useNavigate } from 'react-router-dom';
 
 interface IncidentDetailsModalProps {

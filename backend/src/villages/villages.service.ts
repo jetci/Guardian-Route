@@ -67,18 +67,9 @@ export class VillagesService {
       },
     });
 
-    const totalHouseholds = villages.reduce(
-      (sum, v) => sum + (v.households || 0),
-      0,
-    );
-    const totalPopulation = villages.reduce(
-      (sum, v) => sum + (v.population || 0),
-      0,
-    );
-    const totalArea = villages.reduce(
-      (sum, v) => sum + Number(v.area || 0),
-      0,
-    );
+    const totalHouseholds = villages.reduce((sum, v) => sum + (v.households || 0), 0);
+    const totalPopulation = villages.reduce((sum, v) => sum + (v.population || 0), 0);
+    const totalArea = villages.reduce((sum, v) => sum + Number(v.area || 0), 0);
 
     return {
       totalVillages: villages.length,

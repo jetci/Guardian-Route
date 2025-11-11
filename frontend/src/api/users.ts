@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { User, Role } from '../types';
+import { User, Role } from '../types';
 
 export const usersApi = {
   async getAll(filters?: { role?: Role }): Promise<User[]> {

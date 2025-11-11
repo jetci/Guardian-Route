@@ -59,11 +59,7 @@ export class TasksController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a task' })
-  update(
-    @Param('id') id: string,
-    @Body() updateTaskDto: UpdateTaskDto,
-    @CurrentUser() user: any,
-  ) {
+  update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @CurrentUser() user: any) {
     return this.tasksService.update(id, updateTaskDto, user.sub, user.role);
   }
 

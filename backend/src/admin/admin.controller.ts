@@ -85,11 +85,7 @@ export class AdminController {
    * อัพเดทข้อมูลผู้ใช้
    */
   @Patch('users/:id')
-  async updateUser(
-    @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDto,
-    @Request() req,
-  ) {
+  async updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Request() req) {
     return this.adminService.updateUser(id, updateUserDto, req.user);
   }
 
@@ -98,11 +94,7 @@ export class AdminController {
    * เปลี่ยน Role ของผู้ใช้
    */
   @Patch('users/:id/role')
-  async changeUserRole(
-    @Param('id') id: string,
-    @Body('role') role: Role,
-    @Request() req,
-  ) {
+  async changeUserRole(@Param('id') id: string, @Body('role') role: Role, @Request() req) {
     return this.adminService.changeUserRole(id, role, req.user);
   }
 
@@ -179,11 +171,7 @@ export class AdminController {
    * อัพเดท GeoJSON
    */
   @Patch('geojson/:id')
-  async updateGeoJson(
-    @Param('id') id: string,
-    @Body('geojson') geojson: any,
-    @Request() req,
-  ) {
+  async updateGeoJson(@Param('id') id: string, @Body('geojson') geojson: any, @Request() req) {
     return this.geoJsonService.update(id, geojson, req.user);
   }
 
@@ -223,10 +211,7 @@ export class AdminController {
    * อัพเดทการตั้งค่าระบบ
    */
   @Patch('settings')
-  async updateSettings(
-    @Body() dto: UpdateSystemSettingsDto,
-    @Request() req,
-  ) {
+  async updateSettings(@Body() dto: UpdateSystemSettingsDto, @Request() req) {
     return this.systemSettingsService.updateSettings(dto, req.user);
   }
 

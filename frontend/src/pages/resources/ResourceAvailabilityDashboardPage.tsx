@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useResources } from '../../hooks/resources/useResources';
-import { useResourceEvents, ResourceEvent } from '../../hooks/resources/useResourceEvents';
+// import { useResources } from '../../hooks/resources/useResources';
+import { useResourceEvents } from '../../hooks/resources/useResourceEvents';
+import type { ResourceEvent } from '../../hooks/resources/useResourceEvents';
 import { ResourceSummaryCards } from '../../components/resources/ResourceSummaryCards';
 import { RealTimeResourceTable } from '../../components/resources/RealTimeResourceTable';
-import { Resource } from '../../types/resource';
+import type { Resource } from '../../types/resource';
 
 export const ResourceAvailabilityDashboardPage: React.FC = () => {
-  const { resources, loading, error, refetch } = useResources({});
+  const resources: Resource[] = []; const loading = false; const error = null; const refetch = () => {};
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 

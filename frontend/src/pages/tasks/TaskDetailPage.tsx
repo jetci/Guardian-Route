@@ -20,28 +20,22 @@ import {
   AlertDescription,
 } from '@chakra-ui/react';
 import { ArrowBackIcon } from '@chakra-ui/icons';
-import { FieldSurveyForm, FieldSurveyData } from '../../components/tasks/FieldSurveyForm';
+import { FieldSurveyForm } from '../../components/tasks/FieldSurveyForm';
+import type { FieldSurveyData } from '../../components/tasks/FieldSurveyForm';
+import type { Task } from '../../types';
 import { tasksApi } from '../../api/tasks';
 
-interface TaskDetail {
-  id: string;
-  title: string;
-  description?: string;
-  status: 'PENDING' | 'IN_PROGRESS' | 'SURVEYED' | 'COMPLETED' | 'CANCELLED';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  dueDate?: string;
-  incident: {
-    id: string;
-    title: string;
-    description?: string;
-    disasterType: string;
-    priority: string;
-    address?: string;
-  };
-  createdAt: string;
+// The Task type is imported from '../../types' and should be used instead of a local interface.
+// We will use the imported Task type and extend it for the survey-specific fields if necessary.
+// For now, we will assume the API returns the Task type and the component uses the fields correctly.
+// The error suggests the API response is of type Task, but the component expects TaskDetail.
+// The Task type in src/types/index.ts has an optional incident field, which is the source of the error.
+// We will create a new type that ensures the incident field is present.
+type TaskDetail = Task & {
+  incident: NonNullable<Task['incident']>;
   surveyedAt?: string;
   surveyNotes?: string;
-}
+};
 
 const statusConfig = {
   PENDING: { label: 'รอดำเนินการ', colorScheme: 'yellow' },

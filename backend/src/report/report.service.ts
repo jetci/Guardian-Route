@@ -26,25 +26,17 @@ export class ReportService {
         where: { id: createReportDto.incidentId },
       });
       if (!incident) {
-        throw new NotFoundException(
-          `Incident with ID ${createReportDto.incidentId} not found`,
-        );
+        throw new NotFoundException(`Incident with ID ${createReportDto.incidentId} not found`);
       }
     }
 
     // Validate required fields based on report type
-    if (
-      createReportDto.type === ReportType.INCIDENT &&
-      !createReportDto.incidentId
-    ) {
-      throw new BadRequestException(
-        'incidentId is required for INCIDENT reports',
-      );
+    if (createReportDto.type === ReportType.INCIDENT && !createReportDto.incidentId) {
+      throw new BadRequestException('incidentId is required for INCIDENT reports');
     }
 
     if (
-      (createReportDto.type === ReportType.MONTHLY ||
-        createReportDto.type === ReportType.CUSTOM) &&
+      (createReportDto.type === ReportType.MONTHLY || createReportDto.type === ReportType.CUSTOM) &&
       (!createReportDto.periodStart || !createReportDto.periodEnd)
     ) {
       throw new BadRequestException(
@@ -220,12 +212,7 @@ export class ReportService {
   /**
    * Update a report
    */
-  async update(
-    id: string,
-    updateReportDto: UpdateReportDto,
-    userId: string,
-    userRole: Role,
-  ) {
+  async update(id: string, updateReportDto: UpdateReportDto, userId: string, userRole: Role) {
     const report = await this.findOne(id);
 
     // Only author or ADMIN can update
@@ -239,9 +226,7 @@ export class ReportService {
       report.status !== ReportStatus.REVISION_REQUIRED &&
       userRole !== Role.ADMIN
     ) {
-      throw new BadRequestException(
-        'Cannot update report that has been submitted',
-      );
+      throw new BadRequestException('Cannot update report that has been submitted');
     }
 
     return this.prisma.report.update({
@@ -302,13 +287,8 @@ export class ReportService {
     }
 
     // Can only submit DRAFT or REVISION_REQUIRED reports
-    if (
-      report.status !== ReportStatus.DRAFT &&
-      report.status !== ReportStatus.REVISION_REQUIRED
-    ) {
-      throw new BadRequestException(
-        `Cannot submit report with status ${report.status}`,
-      );
+    if (report.status !== ReportStatus.DRAFT && report.status !== ReportStatus.REVISION_REQUIRED) {
+      throw new BadRequestException(`Cannot submit report with status ${report.status}`);
     }
 
     return this.prisma.report.update({
@@ -334,12 +314,7 @@ export class ReportService {
   /**
    * Review a report (SUPERVISOR, EXECUTIVE, ADMIN only)
    */
-  async review(
-    id: string,
-    reviewDto: ReviewReportDto,
-    reviewerId: string,
-    reviewerRole: Role,
-  ) {
+  async review(id: string, reviewDto: ReviewReportDto, reviewerId: string, reviewerRole: Role) {
     // Only SUPERVISOR, EXECUTIVE, or ADMIN can review
     if (
       reviewerRole !== Role.SUPERVISOR &&
@@ -352,13 +327,8 @@ export class ReportService {
     const report = await this.findOne(id);
 
     // Can only review SUBMITTED or UNDER_REVIEW reports
-    if (
-      report.status !== ReportStatus.SUBMITTED &&
-      report.status !== ReportStatus.UNDER_REVIEW
-    ) {
-      throw new BadRequestException(
-        `Cannot review report with status ${report.status}`,
-      );
+    if (report.status !== ReportStatus.SUBMITTED && report.status !== ReportStatus.UNDER_REVIEW) {
+      throw new BadRequestException(`Cannot review report with status ${report.status}`);
     }
 
     const updateData: any = {
@@ -405,10 +375,7 @@ export class ReportService {
     const report = await this.findOne(id);
 
     // Check if PDF already exists and forceRegenerate is false
-    if (
-      report.pdfUrl &&
-      !generatePdfDto.forceRegenerate
-    ) {
+    if (report.pdfUrl && !generatePdfDto.forceRegenerate) {
       return {
         message: 'PDF already exists',
         pdfUrl: report.pdfUrl,
@@ -438,11 +405,7 @@ export class ReportService {
   /**
    * Get report statistics
    */
-  async getStatistics(filters?: {
-    periodStart?: string;
-    periodEnd?: string;
-    type?: ReportType;
-  }) {
+  async getStatistics(filters?: { periodStart?: string; periodEnd?: string; type?: ReportType }) {
     const where: any = {};
 
     if (filters?.type) {
@@ -515,8 +478,7 @@ export class ReportService {
         {} as Record<string, number>,
       ),
       avgDamageEstimate: avgDamageEstimate._avg.totalDamageEstimate || 0,
-      totalAffectedHouseholds:
-        totalAffectedHouseholds._sum.affectedHouseholds || 0,
+      totalAffectedHouseholds: totalAffectedHouseholds._sum.affectedHouseholds || 0,
       totalAffectedPersons: totalAffectedPersons._sum.affectedPersons || 0,
     };
   }

@@ -139,7 +139,11 @@ export class SurveyService {
 
   // --- Survey Response CRUD ---
 
-  async createResponse(surveyId: string, userId: string, data: CreateSurveyResponseDto): Promise<SurveyResponse> {
+  async createResponse(
+    surveyId: string,
+    userId: string,
+    data: CreateSurveyResponseDto,
+  ): Promise<SurveyResponse> {
     // 1. Validate surveyId
     const survey = await this.findOneSurvey(surveyId);
 

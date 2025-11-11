@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { ActivityLogService } from '../common/services/activity-log.service';
 import { CreateIncidentDto } from './dto/create-incident.dto';
@@ -139,10 +144,7 @@ export class IncidentsService {
 
     // Authorization: Only creator or SUPERVISOR/EXECUTIVE/ADMIN can update
     const allowedRoles = [Role.SUPERVISOR, Role.EXECUTIVE, Role.ADMIN];
-    if (
-      incident.createdById !== userId &&
-      !allowedRoles.includes(userRole as any)
-    ) {
+    if (incident.createdById !== userId && !allowedRoles.includes(userRole as any)) {
       throw new ForbiddenException('You do not have permission to update this incident');
     }
 
@@ -203,18 +205,28 @@ export class IncidentsService {
 
     return {
       total,
-      byStatus: byStatus.reduce((acc, item) => {
-        acc[item.status] = item._count;
-        return acc;
-      }, {} as Record<IncidentStatus, number>),
-      byPriority: byPriority.reduce((acc, item) => {
-        acc[item.priority] = item._count;
-        return acc;
-      }, {} as Record<Priority, number>),
-      byDisasterType: byDisasterType.reduce((acc, item) => {
-        acc[item.disasterType] = item._count;
-        return acc;
-      }, {} as Record<DisasterType, number>),    });
+      byStatus: byStatus.reduce(
+        (acc, item) => {
+          acc[item.status] = item._count;
+          return acc;
+        },
+        {} as Record<IncidentStatus, number>,
+      ),
+      byPriority: byPriority.reduce(
+        (acc, item) => {
+          acc[item.priority] = item._count;
+          return acc;
+        },
+        {} as Record<Priority, number>,
+      ),
+      byDisasterType: byDisasterType.reduce(
+        (acc, item) => {
+          acc[item.disasterType] = item._count;
+          return acc;
+        },
+        {} as Record<DisasterType, number>,
+      ),
+    };
   }
 
   async findMyIncidents(userId: string) {
@@ -244,7 +256,7 @@ export class IncidentsService {
       where: {
         assignedToId: null,
         status: {
-          in: ['PENDING', 'REPORTED'],
+          in: ['PENDING', 'IN_PROGRESS'],
         },
       },
       include: {
@@ -283,7 +295,7 @@ export class IncidentsService {
       data: {
         assignedToId: fieldOfficerId,
         assignedAt: new Date(),
-        status: 'INVESTIGATING',
+        status: IncidentStatus.IN_PROGRESS,
       },
       include: {
         createdBy: true,

@@ -1,6 +1,6 @@
 import { Button, Menu, MenuButton, MenuList, MenuItem, useToast } from '@chakra-ui/react';
 import { FiDownload, FiChevronDown } from 'react-icons/fi';
-import { analyticsApi } from '../../api/analytics';
+import axios from 'axios';
 
 export const ExportButton = () => {
   const toast = useToast();
@@ -14,48 +14,22 @@ export const ExportButton = () => {
         duration: 2000,
       });
 
-      // Fetch all data
-      const [kpi, trend, byType, critical, riskAreas] = await Promise.all([
-        analyticsApi.getKpiSummary(),
-        analyticsApi.getTrendData(),
-        analyticsApi.getIncidentsByType(),
-        analyticsApi.getCriticalIncidents(),
-        analyticsApi.getRiskAreas(),
-      ]);
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/export/pdf`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          responseType: 'text',
+        }
+      );
 
-      // Create PDF content
-      const content = `
-Guardian Route - Executive Dashboard Report
-Generated: ${new Date().toLocaleString('th-TH')}
-
-=== KPI Summary ===
-Total Incidents: ${kpi.total}
-Pending: ${kpi.pending}
-Investigating: ${kpi.investigating}
-Resolved: ${kpi.resolved}
-Avg Resolution Time: ${kpi.avgResolutionTime}
-
-=== Trend Data (Last 6 Months) ===
-${trend.map((t) => `${t.month}: ${t.count} incidents, ${t.avgResponseTime}h avg response`).join('\n')}
-
-=== Incidents by Type ===
-${byType.map((t) => `${t.type}: ${t.count} (${t.percentage}%)`).join('\n')}
-
-=== Critical Incidents ===
-${critical.map((i) => `${i.title} - ${i.priority} - ${i.status}`).join('\n')}
-
-=== Risk Areas ===
-${riskAreas.map((r) => `Lat: ${r.lat}, Lng: ${r.lng}, Count: ${r.count}, Severity: ${r.severity}/5`).join('\n')}
-      `;
-
-      // Create blob and download
-      const blob = new Blob([content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `executive-dashboard-${Date.now()}.txt`;
-      link.click();
-      URL.revokeObjectURL(url);
+      // Open PDF in new tab (HTML format from backend)
+      const newWindow = window.open();
+      if (newWindow) {
+        newWindow.document.write(response.data);
+        newWindow.document.close();
+      }
 
       toast({
         title: 'ส่งออกสำเร็จ',
@@ -83,54 +57,24 @@ ${riskAreas.map((r) => `Lat: ${r.lat}, Lng: ${r.lng}, Count: ${r.count}, Severit
         duration: 2000,
       });
 
-      // Fetch all data
-      const [kpi, trend, byType, critical] = await Promise.all([
-        analyticsApi.getKpiSummary(),
-        analyticsApi.getTrendData(),
-        analyticsApi.getIncidentsByType(),
-        analyticsApi.getCriticalIncidents(),
-      ]);
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/export/excel`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+          responseType: 'blob',
+        }
+      );
 
-      // Create CSV content
-      let csv = 'Guardian Route - Executive Dashboard Report\n';
-      csv += `Generated: ${new Date().toLocaleString('th-TH')}\n\n`;
-
-      csv += 'KPI Summary\n';
-      csv += 'Metric,Value\n';
-      csv += `Total Incidents,${kpi.total}\n`;
-      csv += `Pending,${kpi.pending}\n`;
-      csv += `Investigating,${kpi.investigating}\n`;
-      csv += `Resolved,${kpi.resolved}\n`;
-      csv += `Avg Resolution Time,${kpi.avgResolutionTime}\n\n`;
-
-      csv += 'Trend Data\n';
-      csv += 'Month,Count,Avg Response Time (h)\n';
-      trend.forEach((t) => {
-        csv += `${t.month},${t.count},${t.avgResponseTime}\n`;
-      });
-      csv += '\n';
-
-      csv += 'Incidents by Type\n';
-      csv += 'Type,Count,Percentage\n';
-      byType.forEach((t) => {
-        csv += `${t.type},${t.count},${t.percentage}%\n`;
-      });
-      csv += '\n';
-
-      csv += 'Critical Incidents\n';
-      csv += 'Title,Priority,Status,Location,Date\n';
-      critical.forEach((i) => {
-        csv += `"${i.title}",${i.priority},${i.status},"${i.location}",${new Date(i.createdAt).toLocaleDateString('th-TH')}\n`;
-      });
-
-      // Create blob and download
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
+      // Download Excel file
+      const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.download = `executive-dashboard-${Date.now()}.csv`;
+      link.setAttribute('download', `executive-dashboard-${Date.now()}.xlsx`);
+      document.body.appendChild(link);
       link.click();
-      URL.revokeObjectURL(url);
+      link.remove();
 
       toast({
         title: 'ส่งออกสำเร็จ',

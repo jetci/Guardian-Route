@@ -1,14 +1,7 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Param,
-  UseGuards,
-  Res,
-  HttpStatus,
-} from '@nestjs/common';
-import { Response } from 'express';
-import { AuditLogService, AuditLogFilterDto } from './audit-log.service';
+import { Controller, Get, Query, Param, UseGuards, Res, HttpStatus } from '@nestjs/common';
+import type { Response } from 'express';
+import { AuditLogService } from './audit-log.service';
+import type { AuditLogFilterDto } from './audit-log.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -26,8 +19,7 @@ export class AuditLogController {
    */
   @Get()
   async findAll(@Query() filter: AuditLogFilterDto) {
-    const { userId, action, targetType, startDate, endDate, page, limit } =
-      filter;
+    const { userId, action, targetType, startDate, endDate, page, limit } = filter;
 
     return this.auditLogService.findAll({
       userId,

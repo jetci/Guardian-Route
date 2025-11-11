@@ -1,53 +1,87 @@
 import { Injectable } from '@nestjs/common';
-import { Response } from 'express';
+import { Subject, Observable, merge } from 'rxjs';
+import { map, filter, auditTime } from 'rxjs/operators';
 
-interface Client {
-  id: string;
-  response: Response;
+// Define the structure for the SSE event data
+interface SseEvent {
+  data: any;
+  type: string; // Corresponds to the event name in the client (e.g., 'notification.broadcast')
 }
 
 @Injectable()
 export class EventsService {
-  private clients: Map<string, Client> = new Map();
+  // Subject to broadcast all events to all connected clients
+  private readonly eventsSubject = new Subject<SseEvent>();
 
-  subscribe(clientId: string, response: Response): void {
-    this.clients.set(clientId, { id: clientId, response });
+  /**
+   * Returns an Observable that the NestJS @Sse() controller method will subscribe to.
+   * This is the standard way to implement SSE in NestJS.
+   * @returns {Observable<MessageEvent>}
+   */
+  subscribeToEvents(): Observable<MessageEvent> {
+    // 1. Stream for resource.updated events (needs debouncing)
+    const resourceUpdateStream = this.eventsSubject.asObservable().pipe(
+      filter((event) => event.type === 'resource.updated'),
+      auditTime(500), // Debounce resource updates to max 2 per second
+      map((event) => ({
+        data: JSON.stringify(event.data),
+        type: event.type,
+      })),
+    );
 
-    // Send initial connection message
-    this.sendToClient(clientId, 'connected', { message: 'Connected to resource events' });
+    // 2. Stream for all other events (no debouncing)
+    const otherEventsStream = this.eventsSubject.asObservable().pipe(
+      filter((event) => event.type !== 'resource.updated'),
+      map((event) => ({
+        data: JSON.stringify(event.data),
+        type: event.type,
+      })),
+    );
 
-    // Remove client on connection close
-    response.on('close', () => {
-      this.clients.delete(clientId);
+    // Merge both streams
+    return merge(resourceUpdateStream, otherEventsStream) as Observable<MessageEvent>;
+  }
+
+  /**
+   * Broadcasts an event to all connected SSE clients.
+   * @param type The event type (e.g., 'notification.broadcast', 'resource.updated').
+   * @param data The payload to send.
+   */
+  broadcastEvent(type: string, data: any): void {
+    this.eventsSubject.next({ type, data });
+    console.log(`[SSE] Broadcasted event: ${type}`);
+  }
+
+  /**
+   * Subscribe a user to notifications via SSE.
+   * This method is used by the notification-events controller.
+   * @param userId The user ID to subscribe
+   * @param res The Express Response object for SSE
+   */
+  subscribeToNotifications(userId: string, res: any): void {
+    // Subscribe to the events stream
+    const subscription = this.subscribeToEvents().subscribe({
+      next: (event) => {
+        // Send SSE event to client
+        res.write(`event: ${event.type}\n`);
+        res.write(`data: ${event.data}\n\n`);
+      },
+      error: (err) => {
+        console.error(`[SSE] Error for user ${userId}:`, err);
+        res.end();
+      },
     });
-  }
 
-  sendEvent(event: string, data: any): void {
-    const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
-
-    this.clients.forEach((client) => {
-      try {
-        client.response.write(message);
-      } catch (error) {
-        // Remove client if write fails
-        this.clients.delete(client.id);
-      }
+    // Clean up subscription when connection closes
+    res.on('close', () => {
+      console.log(`[SSE] Client disconnected: ${userId}`);
+      subscription.unsubscribe();
     });
+
+    console.log(`[SSE] Client connected: ${userId}`);
   }
 
-  private sendToClient(clientId: string, event: string, data: any): void {
-    const client = this.clients.get(clientId);
-    if (client) {
-      const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
-      try {
-        client.response.write(message);
-      } catch (error) {
-        this.clients.delete(clientId);
-      }
-    }
-  }
-
-  getClientCount(): number {
-    return this.clients.size;
-  }
+  // NOTE: For user-specific notifications, a more complex Subject-per-user
+  // or filtering logic would be required, but for now, we'll use a simple broadcast.
+  // The frontend handles filtering based on the JWT token.
 }

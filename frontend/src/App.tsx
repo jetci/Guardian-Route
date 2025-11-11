@@ -1,5 +1,16 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { RoleProvider } from './context/RoleContext';
+import { DevDebugInfo } from './components/dev/DevDebugInfo';
+import { DeveloperHandbook } from './components/dev/DeveloperHandbook';
+import { useEffect } from 'react';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { DevHandbookProvider } from './context/DevHandbookContext';
+import { ApiLogProvider } from './context/ApiLogContext';
+import { setupApiLoggingInterceptor, useApiLogInterceptor } from './utils/setupApiLoggingInterceptor';
+import { api } from './api/client';
+import DevDebugPanel from './components/DevDebugPanel';
+import DevHandbookPanel from './components/DevHandbookPanel';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { SupervisorDashboard } from './pages/supervisor/SupervisorDashboard';
@@ -13,151 +24,203 @@ import CreateReportPage from './pages/CreateReportPage';
 import ReportDetailsPage from './pages/ReportDetailsPage';
 import EditReportPage from './pages/EditReportPage';
 import AuditLogsPage from './pages/admin/AuditLogsPage';
-import { ExecutiveDashboardPage } from './pages/ExecutiveDashboardPage';
+import ExecutiveDashboard from './pages/ExecutiveDashboard';
 import { CreateFullReportPage } from './pages/reports/CreateFullReportPage';
 import { OverlayMapPage } from './pages/analysis/OverlayMapPage';
+import OverlayAnalysisPage from './pages/OverlayAnalysisPage';
+import { DeveloperPage } from './pages/DeveloperPage';
+import MonitoringPage from './pages/MonitoringPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { DevGuard } from './components/dev/DevGuard';
 
 function App() {
+  // Hook to set the context functions for the interceptor
+  useApiLogInterceptor();
+
+  // Initialize API interceptor for development
+  useEffect(() => {
+    // The interceptor setup must happen only once
+    setupApiLoggingInterceptor(api);
+    // No cleanup needed for Axios interceptors unless we explicitly remove them
+  }, []);
+
   return (
-    <>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/executive-dashboard"
-            element={
-              <ProtectedRoute>
-                <ExecutiveDashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports/create-full/:taskId"
-            element={
-              <ProtectedRoute>
-                <CreateFullReportPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/supervisor"
-            element={
-              <ProtectedRoute>
-                <SupervisorDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/map"
-            element={
-              <ProtectedRoute>
-                <MapView />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tasks"
-            element={
-              <ProtectedRoute>
-                <TasksPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/supervisor/survey-templates"
-            element={
-              <ProtectedRoute>
-                <SurveyTemplateList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/supervisor/survey-templates/new"
-            element={
-              <ProtectedRoute>
-                <SurveyFormBuilder />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/supervisor/survey-templates/edit/:id"
-            element={
-              <ProtectedRoute>
-                <SurveyFormBuilder />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/survey/:surveyId/respond"
-            element={
-              <ProtectedRoute>
-                <SurveyResponseForm />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute>
-                <ReportsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports/new"
-            element={
-              <ProtectedRoute>
-                <CreateReportPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports/:id"
-            element={
-              <ProtectedRoute>
-                <ReportDetailsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports/:id/edit"
-            element={
-              <ProtectedRoute>
-                <EditReportPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/audit-logs"
-            element={
-              <ProtectedRoute>
-                <AuditLogsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/analysis/overlay"
-            element={
-              <ProtectedRoute>
-                <OverlayMapPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/" element={<Navigate to="/supervisor" replace />} />
-        </Routes>
-      </BrowserRouter>
-      <Toaster position="top-right" />
-    </>
+    <ErrorBoundary>
+    <RoleProvider>
+      <ApiLogProvider>
+        <DevHandbookProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/executive-dashboard"
+                element={
+                  <ProtectedRoute>
+                    <ExecutiveDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/create-full/:taskId"
+                element={
+                  <ProtectedRoute>
+                    <CreateFullReportPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/supervisor"
+                element={
+                  <ProtectedRoute>
+                    <SupervisorDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/map"
+                element={
+                  <ProtectedRoute>
+                    <MapView />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/tasks"
+                element={
+                  <ProtectedRoute>
+                    <TasksPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/supervisor/survey-templates"
+                element={
+                  <ProtectedRoute>
+                    <SurveyTemplateList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/supervisor/survey-templates/new"
+                element={
+                  <ProtectedRoute>
+                    <SurveyFormBuilder />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/supervisor/survey-templates/edit/:id"
+                element={
+                  <ProtectedRoute>
+                    <SurveyFormBuilder />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/survey/:surveyId/respond"
+                element={
+                  <ProtectedRoute>
+                    <SurveyResponseForm />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports"
+                element={
+                  <ProtectedRoute>
+                    <ReportsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/new"
+                element={
+                  <ProtectedRoute>
+                    <CreateReportPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/:id"
+                element={
+                  <ProtectedRoute>
+                    <ReportDetailsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/reports/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <EditReportPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/audit-logs"
+                element={
+                  <ProtectedRoute>
+                    <AuditLogsPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/analysis/overlay"
+                element={
+                  <ProtectedRoute>
+                    <OverlayMapPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/overlay-analysis"
+                element={
+                  <ProtectedRoute>
+                    <OverlayAnalysisPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/developer"
+                element={
+                  <ProtectedRoute>
+                    <DevGuard redirectTo="/supervisor" feature="developer-page">
+                      <DeveloperPage />
+                    </DevGuard>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/monitoring"
+                element={
+                  <ProtectedRoute>
+                    <MonitoringPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/" element={<Navigate to="/supervisor" replace />} />     </Routes>
+          </BrowserRouter>
+          <Toaster position="top-right" />
+          
+          {/* Developer Mode Components */}
+          <DevDebugPanel />
+          <DevHandbookPanel />
+          <DevDebugInfo />
+          <DeveloperHandbook />
+        </DevHandbookProvider>
+      </ApiLogProvider>
+    </RoleProvider>
+    </ErrorBoundary>
   );
 }
+
+
 
 export default App;

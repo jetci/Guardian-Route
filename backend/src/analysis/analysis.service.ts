@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../database/prisma.service';
 import { OverlayAnalysisDto, OverlayResultDto, OverlappingArea } from './dto/overlay-analysis.dto';
 
 @Injectable()
@@ -138,7 +138,10 @@ export class AnalysisService {
     return area * kmPerDegree * kmPerDegree;
   }
 
-  private determineRiskLevel(incidentCount: number, area: number): 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' {
+  private determineRiskLevel(
+    incidentCount: number,
+    area: number,
+  ): 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL' {
     const density = incidentCount / area;
 
     if (density > 10) return 'CRITICAL';
@@ -151,10 +154,11 @@ export class AnalysisService {
     if (areas.length === 0) return 0;
 
     const totalIncidents = areas.reduce((sum, area) => sum + area.incidentCount, 0);
-    const avgDensity = areas.reduce((sum, area) => sum + area.incidentCount / area.area, 0) / areas.length;
+    const avgDensity =
+      areas.reduce((sum, area) => sum + area.incidentCount / area.area, 0) / areas.length;
 
     // Score from 0-100
-    const score = Math.min(100, (totalIncidents * 5 + avgDensity * 10));
+    const score = Math.min(100, totalIncidents * 5 + avgDensity * 10);
     return Math.round(score);
   }
 

@@ -5,7 +5,8 @@ import { ConfigService } from '@nestjs/config';
 export class GeminiService {
   private readonly logger = new Logger(GeminiService.name);
   private readonly apiKey: string;
-  private readonly apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+  private readonly apiUrl =
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
   constructor(private configService: ConfigService) {
     this.apiKey = this.configService.get<string>('GEMINI_API_KEY') || '';

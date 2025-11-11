@@ -25,10 +25,7 @@ export class AdminService {
     // ตรวจสอบว่า username หรือ email ซ้ำหรือไม่
     const existingUser = await this.prisma.user.findFirst({
       where: {
-        OR: [
-          { username: createUserDto.username },
-          { email: createUserDto.email },
-        ],
+        OR: [{ username: createUserDto.username }, { email: createUserDto.email }],
       },
     });
 
@@ -81,13 +78,7 @@ export class AdminService {
     page?: number;
     limit?: number;
   }) {
-    const {
-      role,
-      isActive,
-      search,
-      page = 1,
-      limit = 20,
-    } = filters || {};
+    const { role, isActive, search, page = 1, limit = 20 } = filters || {};
 
     const where: any = {};
 
@@ -168,11 +159,7 @@ export class AdminService {
   /**
    * อัพเดทข้อมูลผู้ใช้
    */
-  async updateUser(
-    id: string,
-    updateUserDto: UpdateUserDto,
-    adminUser: any,
-  ) {
+  async updateUser(id: string, updateUserDto: UpdateUserDto, adminUser: any) {
     const user = await this.prisma.user.findUnique({ where: { id } });
 
     if (!user) {
@@ -189,7 +176,7 @@ export class AdminService {
               OR: [
                 updateUserDto.username ? { username: updateUserDto.username } : {},
                 updateUserDto.email ? { email: updateUserDto.email } : {},
-              ].filter(obj => Object.keys(obj).length > 0),
+              ].filter((obj) => Object.keys(obj).length > 0),
             },
           ],
         },

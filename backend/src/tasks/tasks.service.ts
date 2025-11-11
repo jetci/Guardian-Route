@@ -92,7 +92,7 @@ export class TasksService {
         ]);
 
         return { ...task, incident, assignedTo, createdBy };
-      })
+      }),
     );
 
     return tasksWithRelations;
@@ -138,7 +138,7 @@ export class TasksService {
 
   async update(id: string, updateTaskDto: UpdateTaskDto, userId: string, userRole: string) {
     const taskData = await this.prisma.task.findUnique({ where: { id } });
-    
+
     if (!taskData) {
       throw new NotFoundException('Task not found');
     }

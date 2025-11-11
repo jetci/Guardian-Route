@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   ReportStatus,
 } from '../../types/Report';
-import type {
+import {
   Report,
   ReviewReportDto,
 } from '../../types/Report';

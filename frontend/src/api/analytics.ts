@@ -20,9 +20,11 @@ export interface TrendData {
 }
 
 export interface IncidentsByType {
+  [key: string]: any;
   type: string;
   count: number;
   percentage: number;
+  name: string; // Added for recharts compatibility
 }
 
 export interface CriticalIncident {

@@ -12,13 +12,7 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { IncidentsService } from './incidents.service';
 import { PhotosService } from './photos.service';
 import { CreateIncidentDto } from './dto/create-incident.dto';
@@ -48,10 +42,7 @@ export class IncidentsController {
   @ApiResponse({ status: 201, description: 'Incident created successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  create(
-    @Body() createIncidentDto: CreateIncidentDto,
-    @CurrentUser() user: any,
-  ) {
+  create(@Body() createIncidentDto: CreateIncidentDto, @CurrentUser() user: any) {
     return this.incidentsService.create(createIncidentDto, user.userId);
   }
 
@@ -98,11 +89,7 @@ export class IncidentsController {
   @ApiResponse({ status: 200, description: 'Incident assigned successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Incident or field officer not found' })
-  assign(
-    @Param('id') id: string,
-    @Body() assignDto: AssignIncidentDto,
-    @CurrentUser() user: any,
-  ) {
+  assign(@Param('id') id: string, @Body() assignDto: AssignIncidentDto, @CurrentUser() user: any) {
     return this.incidentsService.assign(id, assignDto.fieldOfficerId, user.userId, assignDto.notes);
   }
 
@@ -112,11 +99,7 @@ export class IncidentsController {
   @ApiResponse({ status: 200, description: 'Incident reviewed successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   @ApiResponse({ status: 404, description: 'Incident not found' })
-  review(
-    @Param('id') id: string,
-    @Body() reviewDto: ReviewIncidentDto,
-    @CurrentUser() user: any,
-  ) {
+  review(@Param('id') id: string, @Body() reviewDto: ReviewIncidentDto, @CurrentUser() user: any) {
     return this.incidentsService.review(id, reviewDto, user.userId);
   }
 
@@ -145,24 +128,21 @@ export class IncidentsController {
     @Body() updateIncidentDto: UpdateIncidentDto,
     @CurrentUser() user: any,
   ) {
-    return this.incidentsService.update(
-      id,
-      updateIncidentDto,
-      user.userId,
-      user.role,
-    );
+    return this.incidentsService.update(id, updateIncidentDto, user.userId, user.role);
   }
 
   @Post(':id/photos')
-  @UseInterceptors(FileInterceptor('file', {
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-    fileFilter: (req, file, cb) => {
-      if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
-        return cb(new Error('Only image files are allowed'), false);
-      }
-      cb(null, true);
-    },
-  }))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
+          return cb(new Error('Only image files are allowed'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
   @ApiOperation({ summary: 'Upload photo to incident' })
   @ApiResponse({ status: 201, description: 'Photo uploaded successfully' })
   @ApiResponse({ status: 400, description: 'Bad request' })

@@ -13,12 +13,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiBearerAuth,
-  ApiResponse,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto, RefreshTokenDto } from './dto/login.dto';
 import { Role } from '@prisma/client';
@@ -53,10 +48,7 @@ export class AuthController {
     status: 201,
     description: 'User registered successfully',
   })
-  async registerByAdmin(
-    @Body() registerDto: RegisterDto,
-    @CurrentUser() user: any,
-  ) {
+  async registerByAdmin(@Body() registerDto: RegisterDto, @CurrentUser() user: any) {
     return this.authService.register(registerDto, user);
   }
 
@@ -85,10 +77,7 @@ export class AuthController {
     description: 'Invalid credentials',
   })
   async login(@Body() loginDto: LoginDto) {
-    const user = await this.authService.validateUser(
-      loginDto.email,
-      loginDto.password,
-    );
+    const user = await this.authService.validateUser(loginDto.email, loginDto.password);
     return this.authService.login(user);
   }
 

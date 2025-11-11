@@ -127,6 +127,13 @@ export interface CreateIncidentDto {
   address?: string;
   images?: string[];
   villageId?: string;
+  // Added to fix ReportIncidentPage errors
+  affectedArea?: {
+    type: 'Polygon';
+    coordinates: number[][][];
+  };
+  estimatedAffectedHouseholds?: number;
+  estimatedAffectedPopulation?: number;
 }
 
 export interface UpdateIncidentDto extends Partial<CreateIncidentDto> {
@@ -137,6 +144,7 @@ export interface UpdateIncidentDto extends Partial<CreateIncidentDto> {
 export enum TaskStatus {
   PENDING = 'PENDING',
   IN_PROGRESS = 'IN_PROGRESS',
+  SURVEYED = 'SURVEYED', // Added to resolve TaskDetailPage error
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
 }
@@ -162,11 +170,14 @@ export interface Task {
   assignedToId?: string;
   createdById: string;
   villageId?: string;
-  incident?: {
+   incident: {
     id: string;
     title: string;
     status: string;
     disasterType: string;
+    description?: string; // Added to fix error
+    priority: string; // Added to fix error
+    address?: string; // Added to fix error
   };
   assignedTo?: User;
   createdBy?: User;

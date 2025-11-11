@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { TaskStatus } from './dto/create-task.dto';
 import { UpdateSurveyDataDto } from './dto/update-survey-data.dto';
@@ -99,10 +104,7 @@ export class TasksServiceExtension {
       // Convert GeoJSON Polygon to PostGIS format
       const { coordinates } = surveyData.surveyArea;
       const wkt = this.polygonToWKT(coordinates);
-      updateData.surveyArea = this.prisma.$queryRawUnsafe(
-        `ST_GeomFromText($1, 4326)`,
-        wkt,
-      );
+      updateData.surveyArea = this.prisma.$queryRawUnsafe(`ST_GeomFromText($1, 4326)`, wkt);
     }
 
     // Update task
@@ -134,9 +136,7 @@ export class TasksServiceExtension {
       ],
     });
 
-    return Promise.all(
-      tasks.map((task) => this.getTaskWithRelations(task.id)),
-    );
+    return Promise.all(tasks.map((task) => this.getTaskWithRelations(task.id)));
   }
 
   /**

@@ -21,7 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { DrawingMap } from '../../components/maps/DrawingMap';
 import { PhotoUpload } from '../../components/incidents/PhotoUpload';
 import { incidentsApi } from '../../api/incidents';
-import type { CreateIncidentDto } from '../../types';
+import type { CreateIncidentDto, DisasterType, Priority } from '../../types';
 
 interface Village {
   id: string;
@@ -49,6 +49,18 @@ export const ReportIncidentPage: React.FC = () => {
   // Map state
   const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(null);
   const [polygonCoordinates, setPolygonCoordinates] = useState<[number, number][]>([]);
+
+  // Wrapper functions to match DrawingMap's expected props
+  const handleMarkerSet = (lat: number, lng: number) => {
+    setMarkerPosition([lat, lng]);
+  };
+
+  const handlePolygonComplete = (coordinates: number[][][]) => {
+    // DrawingMap returns coordinates as [layer][ring][point], we only care about the first ring
+    // The coordinates are [lng, lat], but our state is [lat, lng], so we reverse them.
+    const flatCoordinates = coordinates[0][0].map((coord: any) => [coord[1], coord[0]] as [number, number]);
+    setPolygonCoordinates(flatCoordinates);
+  };
 
   // Photos state
   const [photos, setPhotos] = useState<any[]>([]);
@@ -121,14 +133,14 @@ export const ReportIncidentPage: React.FC = () => {
 
     try {
       const data: CreateIncidentDto = {
-        disasterType: formData.disasterType,
+        disasterType: formData.disasterType as DisasterType, // Cast to correct enum
         title: formData.title,
         description: formData.description,
-        priority: formData.priority,
+        priority: formData.priority as Priority, // Cast to correct enum
         villageId: formData.villageId,
         location: {
-          lat: markerPosition![0],
-          lng: markerPosition![1],
+          type: 'Point',
+          coordinates: [markerPosition![1], markerPosition![0]], // [lng, lat]
         },
       };
 
@@ -305,8 +317,8 @@ export const ReportIncidentPage: React.FC = () => {
                   <DrawingMap
                     center={[19.9167, 99.2333]}
                     zoom={13}
-                    onMarkerSet={setMarkerPosition}
-                    onPolygonComplete={setPolygonCoordinates}
+                    onMarkerSet={handleMarkerSet}
+                    onPolygonComplete={handlePolygonComplete}
                   />
                 </VStack>
               </CardBody>

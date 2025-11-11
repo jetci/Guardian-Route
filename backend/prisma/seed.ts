@@ -44,8 +44,10 @@ async function main() {
     where: { email: 'admin@obtwiang.go.th' },
     update: {},
     create: {
+      username: 'admin',
       email: 'admin@obtwiang.go.th',
       password: hashedPassword,
+      fullName: 'Admin System',
       firstName: 'Admin',
       lastName: 'System',
       phone: '081-234-5678',
@@ -60,8 +62,10 @@ async function main() {
     where: { email: 'executive@obtwiang.go.th' },
     update: {},
     create: {
+      username: 'executive',
       email: 'executive@obtwiang.go.th',
       password: hashedPassword,
+      fullName: 'Somkid Executive',
       firstName: 'Somkid',
       lastName: 'Executive',
       phone: '081-234-5681',
@@ -76,8 +80,10 @@ async function main() {
     where: { email: 'supervisor@obtwiang.go.th' },
     update: {},
     create: {
+      username: 'supervisor',
       email: 'supervisor@obtwiang.go.th',
       password: hashedPassword,
+      fullName: 'Somchai Supervisor',
       firstName: 'Somchai',
       lastName: 'Supervisor',
       phone: '081-234-5679',
@@ -92,8 +98,10 @@ async function main() {
     where: { email: 'field@obtwiang.go.th' },
     update: {},
     create: {
+      username: 'field',
       email: 'field@obtwiang.go.th',
       password: hashedPassword,
+      fullName: 'Somsri Field',
       firstName: 'Somsri',
       lastName: 'Field',
       phone: '081-234-5680',

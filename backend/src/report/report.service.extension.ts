@@ -48,7 +48,7 @@ export class ReportServiceExtension {
         type: ReportType.INCIDENT,
         status: ReportStatus.DRAFT,
         title: dto.title,
-        content: JSON.stringify({
+        details: JSON.stringify({
           summary: dto.summary,
           incidentDescription: dto.incidentDescription,
           severity: dto.severity,

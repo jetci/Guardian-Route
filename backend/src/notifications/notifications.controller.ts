@@ -12,9 +12,9 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { CreateBroadcastDto } from './dto/create-broadcast.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 
 @ApiTags('notifications')
@@ -35,10 +35,7 @@ export class NotificationsController {
   @ApiOperation({ summary: 'Get my notifications' })
   async getMyNotifications(@Request() req, @Query('limit') limit?: string) {
     const limitNum = limit ? parseInt(limit, 10) : 20;
-    return this.notificationsService.getUserNotifications(
-      req.user.userId,
-      limitNum,
-    );
+    return this.notificationsService.getUserNotifications(req.user.userId, limitNum);
   }
 
   @Get('unread-count')

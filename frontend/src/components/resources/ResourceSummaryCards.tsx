@@ -1,5 +1,6 @@
 import React from 'react';
-import { Resource, ResourceStatus } from '../../types/resource';
+import type { Resource } from '../../types/resource';
+
 
 interface ResourceSummaryCardsProps {
   resources: Resource[];
@@ -10,7 +11,7 @@ export const ResourceSummaryCards: React.FC<ResourceSummaryCardsProps> = ({
   resources,
   loading = false,
 }) => {
-  const getCountByStatus = (status: ResourceStatus): number => {
+  const getCountByStatus = (status: 'IN_USE' | 'AVAILABLE' | 'MAINTENANCE'): number => {
     return resources.filter((r) => r.status === status).length;
   };
 
@@ -19,9 +20,9 @@ export const ResourceSummaryCards: React.FC<ResourceSummaryCardsProps> = ({
     return ((count / resources.length) * 100).toFixed(1);
   };
 
-  const availableCount = getCountByStatus(ResourceStatus.AVAILABLE);
-  const inUseCount = getCountByStatus(ResourceStatus.IN_USE);
-  const maintenanceCount = getCountByStatus(ResourceStatus.MAINTENANCE);
+  const availableCount = getCountByStatus('AVAILABLE');
+  const inUseCount = getCountByStatus('IN_USE');
+  const maintenanceCount = getCountByStatus('MAINTENANCE');
 
   const cards = [
     {

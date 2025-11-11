@@ -28,7 +28,7 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
     // Determine role - only ADMIN can set role, others default to FIELD_OFFICER
-    let role = Role.FIELD_OFFICER;
+    let role: Role = Role.FIELD_OFFICER;
     if (requestingUser?.role === Role.ADMIN && registerDto.role) {
       role = registerDto.role;
     }
@@ -38,6 +38,8 @@ export class AuthService {
       data: {
         email: registerDto.email,
         password: hashedPassword,
+        username: registerDto.email, // Use email as username for now
+        fullName: `${registerDto.firstName} ${registerDto.lastName}`,
         firstName: registerDto.firstName,
         lastName: registerDto.lastName,
         phone: registerDto.phone,
@@ -105,8 +107,7 @@ export class AuthService {
 
     const refreshToken = this.jwtService.sign(payload, {
       secret:
-        this.configService.get('REFRESH_TOKEN_SECRET') ||
-        this.configService.get('JWT_SECRET'),
+        this.configService.get('REFRESH_TOKEN_SECRET') || this.configService.get('JWT_SECRET'),
       expiresIn: this.configService.get('REFRESH_TOKEN_EXPIRATION') || '7d',
     });
 
@@ -137,8 +138,7 @@ export class AuthService {
     try {
       const payload = this.jwtService.verify(refreshToken, {
         secret:
-          this.configService.get('REFRESH_TOKEN_SECRET') ||
-          this.configService.get('JWT_SECRET'),
+          this.configService.get('REFRESH_TOKEN_SECRET') || this.configService.get('JWT_SECRET'),
       });
 
       const user = await this.prisma.user.findUnique({
@@ -169,10 +169,8 @@ export class AuthService {
 
       const newRefreshToken = this.jwtService.sign(newPayload, {
         secret:
-          this.configService.get('REFRESH_TOKEN_SECRET') ||
-          this.configService.get('JWT_SECRET'),
-        expiresIn:
-          this.configService.get('REFRESH_TOKEN_EXPIRATION') || '7d',
+          this.configService.get('REFRESH_TOKEN_SECRET') || this.configService.get('JWT_SECRET'),
+        expiresIn: this.configService.get('REFRESH_TOKEN_EXPIRATION') || '7d',
       });
 
       return {
