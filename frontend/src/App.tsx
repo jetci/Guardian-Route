@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -16,7 +16,10 @@ import AuditLogsPage from './pages/admin/AuditLogsPage';
 import { ExecutiveDashboardPage } from './pages/ExecutiveDashboardPage';
 import { CreateFullReportPage } from './pages/reports/CreateFullReportPage';
 import { OverlayMapPage } from './pages/analysis/OverlayMapPage';
+import { MyTasksPage } from './pages/tasks/MyTasksPage';
+import { TaskDetailPage } from './pages/tasks/TaskDetailPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { RoleBasedRedirect } from './components/RoleBasedRedirect';
 
 function App() {
   return (
@@ -27,8 +30,25 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['SUPERVISOR', 'EXECUTIVE', 'ADMIN']}>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* FIELD_OFFICER Routes */}
+          <Route
+            path="/tasks/my-tasks"
+            element={
+              <ProtectedRoute allowedRoles={['FIELD_OFFICER', 'SUPERVISOR', 'ADMIN']}>
+                <MyTasksPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tasks/:id"
+            element={
+              <ProtectedRoute allowedRoles={['FIELD_OFFICER', 'SUPERVISOR', 'ADMIN']}>
+                <TaskDetailPage />
               </ProtectedRoute>
             }
           />
@@ -152,7 +172,8 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/" element={<Navigate to="/supervisor" replace />} />
+          {/* Role-based redirect */}
+          <Route path="/" element={<RoleBasedRedirect />} />
         </Routes>
       </BrowserRouter>
       <Toaster position="top-right" />
