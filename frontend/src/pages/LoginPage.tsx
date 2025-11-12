@@ -17,7 +17,7 @@ export function LoginPage() {
 
     try {
       const response = await authApi.login(email, password);
-      setAuth(response.user, response.accessToken);
+      setAuth(response.user, response.accessToken, response.refreshToken);
       toast.success(`ยินดีต้อนรับ ${response.user.firstName} ${response.user.lastName}!`);
       navigate('/dashboard');
     } catch (error: any) {

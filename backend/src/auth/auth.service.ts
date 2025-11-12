@@ -28,9 +28,9 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
     // Determine role - only ADMIN can set role, others default to FIELD_OFFICER
-    let role = Role.FIELD_OFFICER;
+    let role: Role = Role.FIELD_OFFICER;
     if (requestingUser?.role === Role.ADMIN && registerDto.role) {
-      role = registerDto.role;
+      role = registerDto.role as Role;
     }
 
     // Generate username and fullName

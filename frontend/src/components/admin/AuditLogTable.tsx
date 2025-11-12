@@ -19,7 +19,7 @@ import {
   IconButton,
   Tooltip,
 } from '@chakra-ui/react';
-import { FiDownload, FiEye, FiFilter } from 'react-icons/fi';
+import { FiDownload, FiEye } from 'react-icons/fi';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 

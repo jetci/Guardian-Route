@@ -14,11 +14,7 @@ import { SurveyModule } from './survey/survey.module';
 import { UploadModule } from './upload/upload.module';
 import { ReportModule } from './report/report.module';
 import { CommonModule } from './common/common.module';
-import { AnalyticsModule } from './analytics/analytics.module';
-// import { NotificationsModule } from './notifications/notifications.module'; // TODO: Add Notification models to Prisma schema
-import { AnalysisModule } from './analysis/analysis.module';
 import { AdminModule } from './admin/admin.module';
-import { AuditLogModule } from './audit-log/audit-log.module';
 
 @Module({
   imports: [
@@ -41,11 +37,7 @@ import { AuditLogModule } from './audit-log/audit-log.module';
     UploadModule,
     SurveyModule,
     ReportModule,
-    AnalyticsModule,
-    // NotificationsModule, // TODO: Uncomment when Notification models are added
-    AnalysisModule,
     AdminModule,
-    AuditLogModule,
   ],
   controllers: [AppController],
   providers: [

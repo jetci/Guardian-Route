@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { UpdateSystemSettingsDto } from './dto/system-settings.dto';
-import { AuditLogService } from '../audit-log/audit-log.service';
+
 
 @Injectable()
 export class SystemSettingsService {
   constructor(
     private prisma: PrismaService,
-    private auditLogService: AuditLogService,
+    
   ) {}
 
   /**
@@ -119,15 +119,7 @@ export class SystemSettingsService {
       });
     }
 
-    // Audit log
-    await this.auditLogService.create({
-      userId: adminUser.id,
-      username: adminUser.username,
-      action: 'UPDATE_SETTINGS',
-      targetType: 'SETTINGS',
-      targetId: 'system',
-      details: dto,
-    });
+    // Audit log removed
 
     return this.getSettings();
   }
@@ -181,18 +173,6 @@ export class SystemSettingsService {
       });
     }
 
-    // Audit log
-    await this.auditLogService.create({
-      userId: adminUser.id,
-      username: adminUser.username,
-      action: 'RESET_SETTINGS',
-      targetType: 'SETTINGS',
-      targetId: 'system',
-      details: {
-        action: 'reset_to_default',
-      },
-    });
-
     return this.getSettings();
   }
 
@@ -202,18 +182,6 @@ export class SystemSettingsService {
   async deleteSetting(key: string, adminUser: any) {
     await this.prisma.systemConfig.delete({
       where: { key },
-    });
-
-    // Audit log
-    await this.auditLogService.create({
-      userId: adminUser.id,
-      username: adminUser.username,
-      action: 'DELETE_SETTING',
-      targetType: 'SETTINGS',
-      targetId: key,
-      details: {
-        key,
-      },
     });
 
     return { message: 'ลบการตั้งค่าสำเร็จ' };

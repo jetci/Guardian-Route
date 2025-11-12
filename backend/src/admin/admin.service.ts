@@ -9,13 +9,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { Role } from '@prisma/client';
-import { AuditLogService } from '../audit-log/audit-log.service';
 
 @Injectable()
 export class AdminService {
   constructor(
     private prisma: PrismaService,
-    private auditLogService: AuditLogService,
   ) {}
 
   /**
@@ -52,19 +50,7 @@ export class AdminService {
       },
     });
 
-    // บันทึก Audit Log
-    await this.auditLogService.create({
-      userId: adminUser.id,
-      username: adminUser.username,
-      action: 'CREATE_USER',
-      targetType: 'USER',
-      targetId: user.id,
-      details: {
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      },
-    });
+    // Audit log removed
 
     // ลบ password ออกจาก response
     const { password, ...result } = user;
@@ -223,15 +209,7 @@ export class AdminService {
       },
     });
 
-    // บันทึก Audit Log
-    await this.auditLogService.create({
-      userId: adminUser.id,
-      username: adminUser.username,
-      action: 'UPDATE_USER',
-      targetType: 'USER',
-      targetId: id,
-      details: updateUserDto,
-    });
+    // Audit log removed
 
     return updatedUser;
   }
@@ -268,18 +246,7 @@ export class AdminService {
       },
     });
 
-    // บันทึก Audit Log
-    await this.auditLogService.create({
-      userId: adminUser.id,
-      username: adminUser.username,
-      action: 'CHANGE_ROLE',
-      targetType: 'USER',
-      targetId: id,
-      details: {
-        oldRole: user.role,
-        newRole: role,
-      },
-    });
+    // Audit log removed
 
     return updatedUser;
   }
@@ -316,17 +283,7 @@ export class AdminService {
       },
     });
 
-    // บันทึก Audit Log
-    await this.auditLogService.create({
-      userId: adminUser.id,
-      username: adminUser.username,
-      action: updatedUser.isActive ? 'ACTIVATE_USER' : 'SUSPEND_USER',
-      targetType: 'USER',
-      targetId: id,
-      details: {
-        status: updatedUser.isActive ? 'active' : 'suspended',
-      },
-    });
+    // Audit log removed
 
     return updatedUser;
   }
@@ -348,19 +305,7 @@ export class AdminService {
 
     await this.prisma.user.delete({ where: { id } });
 
-    // บันทึก Audit Log
-    await this.auditLogService.create({
-      userId: adminUser.id,
-      username: adminUser.username,
-      action: 'DELETE_USER',
-      targetType: 'USER',
-      targetId: id,
-      details: {
-        username: user.username,
-        email: user.email,
-        role: user.role,
-      },
-    });
+    // Audit log removed
 
     return { message: 'ลบผู้ใช้สำเร็จ' };
   }

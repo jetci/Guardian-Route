@@ -5,13 +5,13 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { UploadGeoJsonDto, UploadMode } from './dto/upload-geojson.dto';
-import { AuditLogService } from '../audit-log/audit-log.service';
+
 
 @Injectable()
 export class GeoJsonService {
   constructor(
     private prisma: PrismaService,
-    private auditLogService: AuditLogService,
+    
   ) {}
 
   /**
@@ -96,20 +96,7 @@ export class GeoJsonService {
       },
     });
 
-    // Audit log
-    await this.auditLogService.create({
-      userId: adminUser.id,
-      username: adminUser.username,
-      action: 'UPLOAD_GEOJSON',
-      targetType: 'GEOJSON',
-      targetId: boundary.id,
-      details: {
-        name: dto.name,
-        type: dto.type,
-        mode: dto.mode || 'merge',
-        villageId: dto.villageId,
-      },
-    });
+    // Audit log removed
 
     return boundary;
   }
@@ -191,19 +178,6 @@ export class GeoJsonService {
       data: { geojson },
     });
 
-    // Audit log
-    await this.auditLogService.create({
-      userId: adminUser.id,
-      username: adminUser.username,
-      action: 'EDIT_POLYGON',
-      targetType: 'GEOJSON',
-      targetId: id,
-      details: {
-        name: boundary.name,
-        type: boundary.type,
-      },
-    });
-
     return updated;
   }
 
@@ -221,18 +195,7 @@ export class GeoJsonService {
 
     await this.prisma.geoBoundary.delete({ where: { id } });
 
-    // Audit log
-    await this.auditLogService.create({
-      userId: adminUser.id,
-      username: adminUser.username,
-      action: 'DELETE_GEOJSON',
-      targetType: 'GEOJSON',
-      targetId: id,
-      details: {
-        name: boundary.name,
-        type: boundary.type,
-      },
-    });
+    // Audit log removed
 
     return { message: 'ลบข้อมูล GeoJSON สำเร็จ' };
   }

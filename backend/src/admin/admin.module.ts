@@ -4,10 +4,8 @@ import { GeoJsonService } from './geojson.service';
 import { SystemSettingsService } from './system-settings.service';
 import { AdminController } from './admin.controller';
 import { PrismaService } from '../database/prisma.service';
-import { AuditLogModule } from '../audit-log/audit-log.module';
 
 @Module({
-  imports: [AuditLogModule],
   controllers: [AdminController],
   providers: [
     AdminService,
