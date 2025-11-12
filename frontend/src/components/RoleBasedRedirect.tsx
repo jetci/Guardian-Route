@@ -14,7 +14,7 @@ import { useAuthStore } from '../stores/authStore';
  * If no user or invalid role → /login
  */
 export const RoleBasedRedirect = () => {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   // If no user, redirect to login
   if (!user) {
@@ -23,10 +23,10 @@ export const RoleBasedRedirect = () => {
 
   // Role-based redirect mapping
   const redirectMap: Record<string, string> = {
-    FIELD_OFFICER: '/tasks/my-tasks',
-    SUPERVISOR: '/supervisor',
-    EXECUTIVE: '/executive-dashboard',
-    ADMIN: '/admin/dashboard',
+    FIELD_OFFICER: '/dashboard/officer',
+    SUPERVISOR: '/dashboard/supervisor',
+    EXECUTIVE: '/dashboard/executive',
+    ADMIN: '/dashboard/admin',
   };
 
   // Get redirect path for user's role

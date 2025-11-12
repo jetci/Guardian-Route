@@ -1,7 +1,23 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { LoginPage } from './pages/LoginPage';
-import { DashboardPage } from './pages/DashboardPage';
+import { SimpleDashboard } from './pages/SimpleDashboard';
+import { AdminDashboard } from './pages/dashboards/AdminDashboard';
+import { SupervisorDashboard as SupervisorDashboardNew } from './pages/dashboards/SupervisorDashboard';
+import { FieldOfficerDashboard } from './pages/dashboards/FieldOfficerDashboard';
+import { ExecutiveDashboard } from './pages/dashboards/ExecutiveDashboard';
+import { UsersPage } from './pages/UsersPage';
+import { SettingsPage } from './pages/SettingsPage';
+import { TeamsPage } from './pages/TeamsPage';
+import { AnalyticsPage } from './pages/AnalyticsPage';
+import { SubmitReportPage } from './pages/SubmitReportPage';
+import { InitialSurveyPage } from './pages/field-officer/InitialSurveyPage';
+import { DetailedAssessmentPage } from './pages/field-officer/DetailedAssessmentPage';
+import { ReportHistoryPage } from './pages/field-officer/ReportHistoryPage';
+import { MapIncidentPage } from './pages/field-officer/MapIncidentPage';
+import { WorkflowGuidePage } from './pages/field-officer/WorkflowGuidePage';
+import { CreateIncidentReportPage } from './pages/field-officer/CreateIncidentReportPage';
+// import { DashboardPage } from './pages/DashboardPage';
 import { SupervisorDashboard } from './pages/supervisor/SupervisorDashboard';
 import { MapView } from './pages/supervisor/MapView';
 import { TasksPage } from './pages/supervisor/TasksPage';
@@ -30,12 +46,136 @@ function App() {
           <Route
             path="/dashboard"
             element={
-              <ProtectedRoute allowedRoles={['SUPERVISOR', 'EXECUTIVE', 'ADMIN']}>
-                <DashboardPage />
+              <ProtectedRoute>
+                <RoleBasedRedirect />
               </ProtectedRoute>
             }
           />
-          {/* FIELD_OFFICER Routes */}
+          {/* Role-specific dashboards */}
+          <Route
+            path="/dashboard/admin"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/supervisor"
+            element={
+              <ProtectedRoute allowedRoles={['SUPERVISOR']}>
+                <SupervisorDashboardNew />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/officer"
+            element={
+              <ProtectedRoute allowedRoles={['FIELD_OFFICER']}>
+                <FieldOfficerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/executive"
+            element={
+              <ProtectedRoute allowedRoles={['EXECUTIVE']}>
+                <ExecutiveDashboard />
+              </ProtectedRoute>
+            }
+          />
+          {/* Admin Routes */}
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <UsersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <SettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* Supervisor Routes */}
+          <Route
+            path="/teams"
+            element={
+              <ProtectedRoute allowedRoles={['SUPERVISOR']}>
+                <TeamsPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* Executive Routes */}
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute allowedRoles={['EXECUTIVE']}>
+                <AnalyticsPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* Field Officer Routes */}
+          <Route
+            path="/field-survey/:taskId"
+            element={
+              <ProtectedRoute allowedRoles={['FIELD_OFFICER']}>
+                <InitialSurveyPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/detailed-assessment/:taskId"
+            element={
+              <ProtectedRoute allowedRoles={['FIELD_OFFICER']}>
+                <DetailedAssessmentPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/report-history"
+            element={
+              <ProtectedRoute allowedRoles={['FIELD_OFFICER']}>
+                <ReportHistoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/map-incidents"
+            element={
+              <ProtectedRoute allowedRoles={['FIELD_OFFICER']}>
+                <MapIncidentPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/workflow-guide"
+            element={
+              <ProtectedRoute allowedRoles={['FIELD_OFFICER']}>
+                <WorkflowGuidePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/create-incident"
+            element={
+              <ProtectedRoute allowedRoles={['FIELD_OFFICER']}>
+                <CreateIncidentReportPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/submit-report"
+            element={
+              <ProtectedRoute allowedRoles={['FIELD_OFFICER']}>
+                <SubmitReportPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/tasks/my-tasks"
             element={
@@ -44,14 +184,15 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* Temporarily disabled - needs Chakra UI */}
+          {/* <Route
             path="/tasks/:id"
             element={
               <ProtectedRoute allowedRoles={['FIELD_OFFICER', 'SUPERVISOR', 'ADMIN']}>
                 <TaskDetailPage />
               </ProtectedRoute>
             }
-          />
+          /> */}
           <Route
             path="/executive-dashboard"
             element={

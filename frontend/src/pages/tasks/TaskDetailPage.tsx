@@ -1,26 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  Box,
-  Container,
-  Heading,
-  VStack,
-  HStack,
-  Text,
-  Badge,
-  Button,
-  useToast,
-  Spinner,
-  Card,
-  CardBody,
-  CardHeader,
-  Divider,
-  Alert,
-  AlertIcon,
-  AlertDescription,
-} from '@chakra-ui/react';
-import { ArrowBackIcon } from '@chakra-ui/icons';
-import { FieldSurveyForm, FieldSurveyData } from '../../components/tasks/FieldSurveyForm';
+import toast from 'react-hot-toast';
+// import { FieldSurveyForm, FieldSurveyData } from '../../components/tasks/FieldSurveyForm';
 import { tasksApi } from '../../api/tasks';
 
 interface TaskDetail {
