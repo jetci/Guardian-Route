@@ -32,7 +32,6 @@ export class AnalyticsController {
   async getIncidentsByStatus(): Promise<IncidentsByStatusDto[]> {
     return this.analyticsService.getIncidentsByStatus();
   }
-}
 
   @Get('trend')
   @HttpCode(HttpStatus.OK)
@@ -69,3 +68,4 @@ export class AnalyticsController {
   async getRiskAreas() {
     return this.analyticsService.getRiskAreas();
   }
+}
