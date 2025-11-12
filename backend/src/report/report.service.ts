@@ -5,6 +5,9 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
+import { PdfGeneratorService } from './pdf-generator.service';
+import * as path from 'path';
+import * as fs from 'fs/promises';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { FilterReportDto } from './dto/filter-report.dto';
@@ -14,7 +17,10 @@ import { ReportStatus, ReportType, Role } from '@prisma/client';
 
 @Injectable()
 export class ReportService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private pdfGeneratorService: PdfGeneratorService,
+  ) {}
 
   /**
    * Create a new report
@@ -416,23 +422,82 @@ export class ReportService {
       };
     }
 
-    // TODO: Implement actual PDF generation logic
-    // For now, return a placeholder
-    const pdfUrl = `https://example.com/reports/${id}.pdf`;
+    try {
+      // Update status to GENERATING
+      await this.prisma.report.update({
+        where: { id },
+        data: { status: ReportStatus.GENERATING },
+      });
 
-    await this.prisma.report.update({
-      where: { id },
-      data: {
+      // Generate HTML content
+      const html = this.pdfGeneratorService.generateReportHtml({
+        title: report.title,
+        summary: report.summary || undefined,
+        content: report.content || undefined,
+        createdAt: report.createdAt,
+        author: `${report.author.firstName || ''} ${report.author.lastName || ''}`.trim() || 'Unknown',
+      });
+
+      // Generate PDF
+      const pdfBuffer = await this.pdfGeneratorService.generatePdfFromHtml(html);
+
+      // Save PDF to file system
+      const pdfDir = path.join(process.cwd(), 'uploads', 'reports');
+      const filename = `report-${id}-${Date.now()}.pdf`;
+      const filePath = path.join(pdfDir, filename);
+      
+      await this.pdfGeneratorService.savePdfToFile(pdfBuffer, filePath);
+
+      // Update report with PDF URL and status
+      const pdfUrl = `/uploads/reports/${filename}`;
+      await this.prisma.report.update({
+        where: { id },
+        data: {
+          pdfUrl,
+          pdfGeneratedAt: new Date(),
+          status: ReportStatus.READY,
+        },
+      });
+
+      return {
+        message: 'PDF generated successfully',
         pdfUrl,
-        pdfGeneratedAt: new Date(),
-      },
-    });
+        generatedAt: new Date(),
+      };
+    } catch (error) {
+      // Update status to ERROR
+      await this.prisma.report.update({
+        where: { id },
+        data: { status: ReportStatus.ERROR },
+      });
 
-    return {
-      message: 'PDF generated successfully',
-      pdfUrl,
-      generatedAt: new Date(),
-    };
+      throw new BadRequestException(
+        `Failed to generate PDF: ${error.message}`,
+      );
+    }
+  }
+
+  /**
+   * Download PDF of a report
+   */
+  async downloadPdf(id: string): Promise<{ buffer: Buffer; filename: string }> {
+    const report = await this.findOne(id);
+
+    if (!report.pdfUrl) {
+      throw new NotFoundException('PDF not generated for this report');
+    }
+
+    // Get file path from pdfUrl
+    const filePath = path.join(process.cwd(), report.pdfUrl);
+
+    try {
+      const buffer = await fs.readFile(filePath);
+      const filename = `report-${report.title.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.pdf`;
+
+      return { buffer, filename };
+    } catch (error) {
+      throw new NotFoundException('PDF file not found on server');
+    }
   }
 
   /**

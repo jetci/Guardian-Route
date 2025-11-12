@@ -44,6 +44,7 @@ async function main() {
     where: { email: 'admin@obtwiang.go.th' },
     update: {},
     create: {
+      username: 'admin',
       email: 'admin@obtwiang.go.th',
       username: 'admin',
       password: hashedPassword,
@@ -62,6 +63,7 @@ async function main() {
     where: { email: 'executive@obtwiang.go.th' },
     update: {},
     create: {
+      username: 'executive',
       email: 'executive@obtwiang.go.th',
       username: 'executive',
       password: hashedPassword,
@@ -80,6 +82,7 @@ async function main() {
     where: { email: 'supervisor@obtwiang.go.th' },
     update: {},
     create: {
+      username: 'supervisor',
       email: 'supervisor@obtwiang.go.th',
       username: 'supervisor',
       password: hashedPassword,
@@ -98,6 +101,7 @@ async function main() {
     where: { email: 'field@obtwiang.go.th' },
     update: {},
     create: {
+      username: 'field',
       email: 'field@obtwiang.go.th',
       username: 'field',
       password: hashedPassword,
