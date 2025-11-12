@@ -5,7 +5,7 @@
  * Usage: npx ts-node prisma/seed-incidents.ts
  */
 
-import { PrismaClient, IncidentStatus, IncidentPriority } from '@prisma/client';
+import { PrismaClient, IncidentStatus, Priority } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -72,6 +72,7 @@ async function main() {
           email: `officer${i}@guardian.test`,
           username: `officer${i}`,
           password: 'hashed_password', // In real scenario, this should be properly hashed
+          fullName: `Officer ${i}`,
           role: 'FIELD_OFFICER',
         },
       });
@@ -98,7 +99,7 @@ async function main() {
           title: `${randomElement(INCIDENT_TYPES)} in ${location.name}`,
           description: randomElement(DESCRIPTIONS),
           status: status as IncidentStatus,
-          priority: priority as IncidentPriority,
+          priority: priority as Priority,
           latitude: location.lat + (Math.random() - 0.5) * 0.1, // Add some randomness
           longitude: location.lng + (Math.random() - 0.5) * 0.1,
           createdAt,

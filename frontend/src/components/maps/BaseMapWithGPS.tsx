@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import { LatLngExpression, DivIcon } from 'leaflet';
+import { type LatLngExpression, DivIcon } from 'leaflet';
 import { Box, Button, useToast, Text, VStack } from '@chakra-ui/react';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { mapConfig } from '../../config/mapConfig';
 
 // Fix Leaflet default icon issue
 import icon from 'leaflet/dist/images/marker-icon.png';

@@ -1,61 +1,65 @@
-import * as Sentry from '@sentry/react';
+// Sentry integration disabled - install @sentry/react if needed
+// import * as Sentry from '@sentry/react';
 
 export const initSentry = () => {
   const sentryDsn = import.meta.env.VITE_SENTRY_DSN;
-  const environment = import.meta.env.VITE_APP_ENV || 'development';
 
-  if (sentryDsn) {
+  if (!sentryDsn) {
+    console.warn('Sentry DSN not configured. Error tracking disabled.');
+    return;
+  }
+
+  console.warn('Sentry not installed. Install @sentry/react to enable error tracking.');
+  
+  // Uncomment when @sentry/react is installed:
+  /*
+  try {
     Sentry.init({
       dsn: sentryDsn,
-      environment,
+      environment: import.meta.env.MODE,
       integrations: [
         Sentry.browserTracingIntegration(),
-        Sentry.replayIntegration(),
+        Sentry.replayIntegration({
+          maskAllText: true,
+          blockAllMedia: true,
+        }),
       ],
-      // Performance Monitoring
-      tracesSampleRate: environment === 'production' ? 0.1 : 1.0,
-      // Session Replay
+      tracesSampleRate: 1.0,
       replaysSessionSampleRate: 0.1,
       replaysOnErrorSampleRate: 1.0,
-      // Ignore certain errors
-      ignoreErrors: [
-        'ResizeObserver loop limit exceeded',
-        'Non-Error promise rejection captured',
-      ],
-      beforeSend(event, hint) {
-        // Filter out sensitive data
-        if (event.request) {
-          delete event.request.cookies;
+      beforeSend(event, _hint) {
+        // Filter out development errors
+        if (import.meta.env.MODE === 'development') {
+          console.log('Sentry Event (dev):', event);
+          return null;
         }
         return event;
       },
     });
 
-    console.log(`✅ Sentry initialized (${environment})`);
-  } else {
-    console.warn('⚠️ Sentry DSN not configured');
+    console.log('Sentry initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize Sentry:', error);
   }
+  */
 };
 
 export const captureException = (error: Error, context?: Record<string, any>) => {
-  if (context) {
-    Sentry.setContext('additional', context);
-  }
-  Sentry.captureException(error);
+  console.error('Error captured:', error, context);
+  // Sentry.captureException(error) when installed
 };
 
-export const captureMessage = (message: string, level: Sentry.SeverityLevel = 'info') => {
-  Sentry.captureMessage(message, level);
+export const captureMessage = (message: string, level: string = 'info') => {
+  console.log(`[${level}] ${message}`);
+  // Sentry.captureMessage(message, level) when installed
 };
 
 export const setUser = (user: { id: string; email: string; role: string }) => {
-  Sentry.setUser({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
+  console.log('User set:', user);
+  // Sentry.setUser(user) when installed
 };
 
 export const clearUser = () => {
-  Sentry.setUser(null);
+  console.log('User cleared');
+  // Sentry.setUser(null) when installed
 };

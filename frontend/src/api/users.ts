@@ -16,6 +16,6 @@ export const usersApi = {
   },
 
   async getFieldOfficers(): Promise<User[]> {
-    return this.getAll({ role: 'FIELD_OFFICER' });
+    return this.getAll({ role: 'FIELD_OFFICER' as Role });
   },
 };

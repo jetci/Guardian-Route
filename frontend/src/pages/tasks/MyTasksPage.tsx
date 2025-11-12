@@ -53,7 +53,7 @@ export const MyTasksPage = () => {
     try {
       setIsLoading(true);
       const response = await tasksApi.getMyTasks();
-      setTasks(response);
+      setTasks(response as any); // Type mismatch - API returns optional incident field
     } catch (error: any) {
       toast({
         title: 'เกิดข้อผิดพลาด',

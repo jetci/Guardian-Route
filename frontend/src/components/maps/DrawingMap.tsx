@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -8,7 +8,7 @@ import {
   useMapEvents,
   useMap,
 } from 'react-leaflet';
-import { LatLngExpression, LatLng, DivIcon } from 'leaflet';
+import { type LatLngExpression, LatLng, DivIcon } from 'leaflet';
 import {
   Box,
   Button,
@@ -18,10 +18,7 @@ import {
   VStack,
   HStack,
   Badge,
-  IconButton,
-  Tooltip,
 } from '@chakra-ui/react';
-import { DeleteIcon } from '@chakra-ui/icons';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 

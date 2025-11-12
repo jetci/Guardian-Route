@@ -165,8 +165,10 @@ export interface Task {
   incident?: {
     id: string;
     title: string;
-    status: string;
+    description?: string;
     disasterType: string;
+    priority: string;
+    address?: string;
   };
   assignedTo?: User;
   createdBy?: User;

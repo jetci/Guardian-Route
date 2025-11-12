@@ -11,7 +11,10 @@ import {
   Request,
   HttpCode,
   HttpStatus,
+  Res,
+  StreamableFile,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import {
   ApiTags,
   ApiOperation,
@@ -233,7 +236,7 @@ export class ReportController {
     );
   }
 
-  @Post(':id/generate-pdf')
+  @Post(':id/generate')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Generate PDF for a report' })
   @ApiParam({
@@ -242,16 +245,45 @@ export class ReportController {
   })
   @ApiResponse({
     status: 200,
-    description: 'PDF generated successfully',
+    description: 'PDF generation started successfully',
   })
   @ApiResponse({
     status: 404,
     description: 'Report not found',
   })
-  generatePdf(
+  async generatePdf(
     @Param('id') id: string,
     @Body() generatePdfDto: GeneratePdfDto,
   ) {
     return this.reportService.generatePdf(id, generatePdfDto);
+  }
+
+  @Get(':id/pdf')
+  @ApiOperation({ summary: 'Download PDF of a report' })
+  @ApiParam({
+    name: 'id',
+    description: 'Report ID',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'PDF file',
+    content: {
+      'application/pdf': {},
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Report or PDF not found',
+  })
+  async downloadPdf(@Param('id') id: string, @Res() res: Response) {
+    const result = await this.reportService.downloadPdf(id);
+    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${result.filename}"`,
+      'Content-Length': result.buffer.length,
+    });
+    
+    res.send(result.buffer);
   }
 }

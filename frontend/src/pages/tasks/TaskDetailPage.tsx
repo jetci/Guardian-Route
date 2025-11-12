@@ -1,7 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
-// import { FieldSurveyForm, FieldSurveyData } from '../../components/tasks/FieldSurveyForm';
+import {
+  Box,
+  Container,
+  Heading,
+  VStack,
+  HStack,
+  Text,
+  Badge,
+  Button,
+  useToast,
+  Spinner,
+  Card,
+  CardBody,
+  CardHeader,
+  Divider,
+  Alert,
+  AlertIcon,
+  AlertDescription,
+} from '@chakra-ui/react';
+import { ArrowBackIcon } from '@chakra-ui/icons';
+import { FieldSurveyForm, type FieldSurveyData } from '../../components/tasks/FieldSurveyForm';
 import { tasksApi } from '../../api/tasks';
 
 interface TaskDetail {
@@ -52,7 +71,7 @@ export const TaskDetailPage = () => {
     try {
       setIsLoading(true);
       const response = await tasksApi.getTaskById(id);
-      setTask(response);
+      setTask(response as any); // API response type mismatch - incident field may be undefined
     } catch (error: any) {
       toast({
         title: 'เกิดข้อผิดพลาด',

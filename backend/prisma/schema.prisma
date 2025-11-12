@@ -46,6 +46,9 @@ enum TaskStatus {
 
 enum ReportStatus {
   DRAFT
+  GENERATING
+  READY
+  ERROR
   SUBMITTED
   UNDER_REVIEW
   REVISION_REQUIRED
@@ -55,9 +58,13 @@ enum ReportStatus {
 
 enum ReportType {
   INCIDENT
+  INCIDENT_SUMMARY
   TASK
+  TASK_PROGRESS
   SURVEY
+  SURVEY_RESULTS
   MONTHLY
+  MONTHLY_SUMMARY
   CUSTOM
 }
 
@@ -304,7 +311,8 @@ model Report {
   // Report content
   title   String
   summary String?
-  details Json? // Structured report data
+  content Json? // Main report content (JSON)
+  details Json? // Structured report data (legacy)
 
   // Damage assessment
   totalDamageEstimate Decimal? @map("total_damage_estimate") @db.Decimal(15, 2)
@@ -336,6 +344,10 @@ model Report {
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
+  // Related entities
+  taskIds   String[] @default([]) @map("task_ids")
+  surveyIds String[] @default([]) @map("survey_ids")
+
   // Foreign Keys
   incidentId   String? @map("incident_id")
   authorId     String  @map("author_id")
@@ -353,6 +365,21 @@ model Report {
   @@index([periodStart])
   @@index([createdAt])
   @@map("reports")
+}
+
+model ReportTemplate {
+  id          String     @id @default(uuid())
+  name        String
+  type        ReportType
+  description String?
+  structure   Json       // Template structure (JSON)
+  isActive    Boolean    @default(true) @map("is_active")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@index([isActive])
+  @@map("report_templates")
 }
 
 model ActivityLog {
