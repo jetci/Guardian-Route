@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Developer Handbook Page - COMPLETE 12 SECTIONS
  * Guardian Route Project - Open Government Initiative
  * Generated: 2025-11-13T16:31:06.792Z
@@ -248,15 +248,8 @@ export default function DeveloperHandbookPage() {
             </div>
 
             <div className="section-nav">
-              <button onClick={() => scrollToSection('tech-stack')} className="btn-nav prev">â† à¸à¹ˆà¸­à¸™à¸«à¸™à¹‰à¸²: à¹€à¸—à¸„à¹‚à¸™à¹‚à¸¥à¸¢à¸µ</button>
-              <button onClick={() => scrollToSection('structure')} className="btn-nav next">à¸–à¸±à¸”à¹„à¸›: à¹‚à¸„à¸£à¸‡à¸ªà¸£à¹‰à¸²à¸‡ â†’</button>
-            </div>
-          </section>
-
-
-            <div className="section-nav">
-              <button onClick={() => scrollToSection('tech-stack')} className="btn-nav prev"> ก่อนหน้า: เทคโนโลยี</button>
-              <button onClick={() => scrollToSection('structure')} className="btn-nav next">ถัดไป: โครงสร้าง </button>
+              <button onClick={() => scrollToSection('tech-stack')} className="btn-nav prev">← ก่อนหน้า: เทคโนโลยี</button>
+              <button onClick={() => scrollToSection('structure')} className="btn-nav next">ถัดไป: โครงสร้าง →</button>
             </div>
           </section>
 
@@ -590,7 +583,7 @@ docker run -p 3000:3000 guardian-route`}</pre>
       </div>
 
       {showBackToTop && (
-        <button onClick={scrollToTop} className="back-to-top" aria-label="Back to top">â†‘</button>
+        <button onClick={scrollToTop} className="back-to-top" aria-label="Back to top">↑</button>
       )}
     </div>
   );
