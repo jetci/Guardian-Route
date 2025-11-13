@@ -37,11 +37,21 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Handle 401 Unauthorized - Token expired
+    // Only handle 401 if we have a valid response (not network error)
+    // This prevents logout when backend is not running
     if (error.response?.status === 401) {
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
-      toast.error('Session expired. Please login again.');
+      const token = useAuthStore.getState().accessToken;
+      // Only logout if we actually have a token (real auth failure)
+      // Don't logout on network errors or when backend is down
+      if (token && token.startsWith('mock-')) {
+        // Using mock auth - don't logout on API errors
+        console.warn('API call failed but using mock auth, not logging out');
+      } else if (token) {
+        // Real token expired
+        useAuthStore.getState().logout();
+        window.location.href = '/login';
+        toast.error('Session expired. Please login again.');
+      }
     }
     
     // Handle 403 Forbidden - No permission
@@ -54,9 +64,10 @@ api.interceptors.response.use(
       toast.error('Server error. Please try again later.');
     }
     
-    // Handle network errors
+    // Handle network errors - Don't show toast, just log
     if (!error.response) {
-      toast.error('Network error. Please check your connection.');
+      console.warn('Network error - backend may not be running:', error.message);
+      // Don't show toast for network errors when using mock auth
     }
     
     return Promise.reject(error);
