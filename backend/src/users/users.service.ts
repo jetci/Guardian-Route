@@ -132,4 +132,74 @@ export class UsersService {
       data: { isActive: false },
     });
   }
+
+  async getStatistics() {
+    const [total, byRole, byStatus] = await Promise.all([
+      // Total users
+      this.prisma.user.count(),
+      
+      // Count by role
+      this.prisma.user.groupBy({
+        by: ['role'],
+        _count: true,
+      }),
+      
+      // Count by status
+      this.prisma.user.groupBy({
+        by: ['isActive'],
+        _count: true,
+      }),
+    ]);
+
+    // Transform role counts
+    const roleStats = {
+      ADMIN: 0,
+      EXECUTIVE: 0,
+      SUPERVISOR: 0,
+      FIELD_OFFICER: 0,
+    };
+
+    byRole.forEach((item) => {
+      roleStats[item.role] = item._count;
+    });
+
+    // Transform status counts
+    const statusStats = {
+      ACTIVE: 0,
+      INACTIVE: 0,
+    };
+
+    byStatus.forEach((item) => {
+      if (item.isActive) {
+        statusStats.ACTIVE = item._count;
+      } else {
+        statusStats.INACTIVE = item._count;
+      }
+    });
+
+    return {
+      total,
+      byRole: roleStats,
+      byStatus: statusStats,
+    };
+  }
+
+  async toggleStatus(id: string) {
+    const user = await this.findOne(id);
+
+    return this.prisma.user.update({
+      where: { id },
+      data: { isActive: !user.isActive },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phone: true,
+        role: true,
+        isActive: true,
+        updatedAt: true,
+      },
+    });
+  }
 }

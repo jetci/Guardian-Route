@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import toast from 'react-hot-toast';
+import userService, { type User, type CreateUserDto, type UpdateUserDto } from '../../services/userService';
+import statisticsService from '../../services/statisticsService';
 import './AdminDashboard.css';
 
-// Mock users data
-const mockUsers = [
+// Removed mock users - using real API
+/* const mockUsers = [
   {
     id: 1,
     username: 'admin',
@@ -72,8 +75,8 @@ const mockUsers = [
   }
 ];
 
-// Mock activity logs
-const mockActivityLogs = [
+// Removed mock activity logs - using real API
+/* const mockActivityLogs = [
   {
     id: 1,
     user: 'admin@obtwiang.go.th',
@@ -114,7 +117,7 @@ const mockActivityLogs = [
     timestamp: '2025-11-13 07:00:05',
     status: 'SUCCESS'
   }
-];
+]; */
 
 type UserFormData = {
   username: string;
@@ -127,14 +130,15 @@ type UserFormData = {
 };
 
 export default function AdminDashboard() {
-  const [users, setUsers] = useState(mockUsers);
+  // State
+  const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<UserFormData>({
     username: '',
     email: '',
@@ -145,12 +149,74 @@ export default function AdminDashboard() {
     password: ''
   });
 
-  // Stats
-  const stats = {
-    totalUsers: users.length,
-    activeIncidents: 23,
-    pendingReports: 8,
-    systemHealth: 98
+  // Loading & Error states
+  const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Stats state
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeIncidents: 0,
+    pendingReports: 0,
+    systemHealth: 0
+  });
+
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+
+  // Fetch data on mount
+  useEffect(() => {
+    fetchUsers();
+    fetchStatistics();
+    fetchActivityLogs();
+  }, []);
+
+  // Fetch users
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await userService.getUsers();
+      setUsers(response.data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch users');
+      toast.error('ไม่สามารถโหลดข้อมูลผู้ใช้ได้');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch statistics
+  const fetchStatistics = async () => {
+    try {
+      setStatsLoading(true);
+      const [userStats, incidentStats, reportStats] = await Promise.all([
+        userService.getUserStatistics(),
+        statisticsService.getIncidentStatistics(),
+        statisticsService.getReportStatistics()
+      ]);
+
+      setStats({
+        totalUsers: userStats.total,
+        activeIncidents: incidentStats.byStatus.IN_PROGRESS + incidentStats.byStatus.PENDING,
+        pendingReports: reportStats.pending,
+        systemHealth: 98 // TODO: Get from health endpoint
+      });
+    } catch (err) {
+      console.error('Failed to fetch statistics:', err);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  // Fetch activity logs
+  const fetchActivityLogs = async () => {
+    try {
+      const response = await statisticsService.getActivityLogs({ limit: 20 });
+      setActivityLogs(response.data);
+    } catch (err) {
+      console.error('Failed to fetch activity logs:', err);
+    }
   };
 
   // Filter users
@@ -175,37 +241,69 @@ export default function AdminDashboard() {
     FIELD_OFFICER: users.filter(u => u.role === 'FIELD_OFFICER').length
   };
 
-  const handleCreateUser = (e: React.FormEvent) => {
+  const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newUser = {
-      id: users.length + 1,
-      ...formData,
-      status: 'ACTIVE',
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-    setUsers([...users, newUser]);
-    setShowCreateModal(false);
-    resetForm();
-    alert('User created successfully!');
+    try {
+      const userData: CreateUserDto = {
+        username: formData.username,
+        email: formData.email,
+        password: formData.password || 'password123',
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        role: formData.role,
+        phone: formData.phone
+      };
+      
+      await userService.createUser(userData);
+      toast.success('สร้างผู้ใช้สำเร็จ!');
+      setShowCreateModal(false);
+      resetForm();
+      fetchUsers(); // Refresh list
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'ไม่สามารถสร้างผู้ใช้ได้');
+    }
   };
 
-  const handleEditUser = (e: React.FormEvent) => {
+  const handleEditUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    setUsers(users.map(u => 
-      u.id === selectedUser.id 
-        ? { ...u, ...formData }
-        : u
-    ));
-    setShowEditModal(false);
-    resetForm();
-    alert('User updated successfully!');
+    if (!selectedUser) return;
+    
+    try {
+      const userData: UpdateUserDto = {
+        username: formData.username,
+        email: formData.email,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        role: formData.role,
+        phone: formData.phone
+      };
+      
+      if (formData.password) {
+        userData.password = formData.password;
+      }
+      
+      await userService.updateUser(selectedUser.id, userData);
+      toast.success('อัพเดทผู้ใช้สำเร็จ!');
+      setShowEditModal(false);
+      resetForm();
+      fetchUsers(); // Refresh list
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'ไม่สามารถอัพเดทผู้ใช้ได้');
+    }
   };
 
-  const handleDeleteUser = () => {
-    setUsers(users.filter(u => u.id !== selectedUser.id));
-    setShowDeleteModal(false);
-    setSelectedUser(null);
-    alert('User deleted successfully!');
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+    
+    try {
+      await userService.deleteUser(selectedUser.id);
+      toast.success('ลบผู้ใช้สำเร็จ!');
+      setShowDeleteModal(false);
+      setSelectedUser(null);
+      fetchUsers(); // Refresh list
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'ไม่สามารถลบผู้ใช้ได้');
+    }
   };
 
   const openEditModal = (user: any) => {
@@ -239,12 +337,14 @@ export default function AdminDashboard() {
     setSelectedUser(null);
   };
 
-  const toggleUserStatus = (userId: number) => {
-    setUsers(users.map(u => 
-      u.id === userId 
-        ? { ...u, status: u.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }
-        : u
-    ));
+  const toggleUserStatus = async (userId: string) => {
+    try {
+      await userService.toggleUserStatus(userId);
+      toast.success('เปลี่ยนสถานะผู้ใช้สำเร็จ!');
+      fetchUsers(); // Refresh list
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'ไม่สามารถเปลี่ยนสถานะได้');
+    }
   };
 
   return (
@@ -357,27 +457,38 @@ export default function AdminDashboard() {
 
           {/* Users Table */}
           <div className="table-container">
-            <table className="users-table">
-              <thead>
-                <tr>
-                  <th>Username</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Phone</th>
-                  <th>Created</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.length === 0 ? (
+            {loading ? (
+              <div className="loading-state">
+                <div className="spinner"></div>
+                <p>Loading users...</p>
+              </div>
+            ) : error ? (
+              <div className="error-state">
+                <p>❌ {error}</p>
+                <button onClick={fetchUsers} className="btn-secondary">Retry</button>
+              </div>
+            ) : (
+              <table className="users-table">
+                <thead>
                   <tr>
-                    <td colSpan={8} className="empty-state">
-                      No users found
-                    </td>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Phone</th>
+                    <th>Created</th>
+                    <th>Actions</th>
                   </tr>
-                ) : (
+                </thead>
+                <tbody>
+                  {filteredUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="empty-state">
+                        No users found
+                      </td>
+                    </tr>
+                  ) : (
                   filteredUsers.map(user => (
                     <tr key={user.id}>
                       <td><strong>{user.username}</strong></td>
@@ -390,13 +501,13 @@ export default function AdminDashboard() {
                       </td>
                       <td>
                         <button
-                          className={`status-badge ${user.status.toLowerCase()}`}
+                          className={`status-badge ${(user.status || 'ACTIVE').toLowerCase()}`}
                           onClick={() => toggleUserStatus(user.id)}
                         >
-                          {user.status}
+                          {user.status || 'ACTIVE'}
                         </button>
                       </td>
-                      <td>{user.phone}</td>
+                      <td>{user.phone || '-'}</td>
                       <td>{user.createdAt}</td>
                       <td>
                         <div className="action-buttons">
@@ -418,9 +529,10 @@ export default function AdminDashboard() {
                       </td>
                     </tr>
                   ))
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
@@ -439,19 +551,27 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {mockActivityLogs.map(log => (
-                  <tr key={log.id}>
-                    <td>{log.timestamp}</td>
-                    <td>{log.user}</td>
-                    <td><strong>{log.action}</strong></td>
-                    <td>{log.target}</td>
-                    <td>
-                      <span className={`status-badge ${log.status.toLowerCase()}`}>
-                        {log.status}
-                      </span>
+                {activityLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="empty-state">
+                      No activity logs found
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  activityLogs.map((log: any) => (
+                    <tr key={log.id}>
+                      <td>{new Date(log.timestamp).toLocaleString('th-TH')}</td>
+                      <td>{log.user?.email || 'Unknown'}</td>
+                      <td><strong>{log.action}</strong></td>
+                      <td>{log.target || '-'}</td>
+                      <td>
+                        <span className={`status-badge ${log.status.toLowerCase()}`}>
+                          {log.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

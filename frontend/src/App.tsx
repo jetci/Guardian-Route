@@ -37,6 +37,7 @@ import { CreateFullReportPage } from './pages/reports/CreateFullReportPage';
 import { OverlayMapPage } from './pages/analysis/OverlayMapPage';
 import { MyTasksPage } from './pages/tasks/MyTasksPage';
 import { TaskDetailPage } from './pages/tasks/TaskDetailPage';
+import DeveloperHandbookPage from './pages/DeveloperHandbookPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { RoleBasedRedirect } from './components/RoleBasedRedirect';
 
@@ -46,6 +47,10 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          
+          {/* Public Routes */}
+          <Route path="/developer-handbook" element={<DeveloperHandbookPage />} />
+          
           <Route
             path="/dashboard"
             element={

@@ -1,0 +1,438 @@
+/**
+ * Developer Handbook Page
+ * Guardian Route Project - Open Government Initiative
+ * 
+ * Static documentation page for developers
+ * Accessible without authentication
+ */
+
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import './DeveloperHandbookPage.css';
+
+export default function DeveloperHandbookPage() {
+  const [activeSection, setActiveSection] = useState('principles');
+
+  // Smooth scroll to section
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      setActiveSection(sectionId);
+    }
+  };
+
+  // Update active section on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ['principles', 'architecture', 'implementation', 'qa'];
+      const scrollPosition = window.scrollY + 100;
+
+      for (const section of sections) {
+        const element = document.getElementById(section);
+        if (element) {
+          const { offsetTop, offsetHeight } = element;
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            setActiveSection(section);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <div className="handbook-container">
+      {/* Header */}
+      <header className="handbook-header">
+        <div className="header-content">
+          <h1>📘 Developer Handbook</h1>
+          <p className="subtitle">Guardian Route - Open Government Initiative</p>
+          <p className="description">
+            คู่มือนักพัฒนาสำหรับระบบบริหารจัดการภัยพิบัติ ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
+          </p>
+          <div className="header-badges">
+            <span className="badge">React 19</span>
+            <span className="badge">TypeScript</span>
+            <span className="badge">NestJS</span>
+            <span className="badge">PostgreSQL</span>
+            <span className="badge">Open Source</span>
+          </div>
+        </div>
+      </header>
+
+      <div className="handbook-layout">
+        {/* Sidebar Navigation */}
+        <nav className="handbook-nav">
+          <div className="nav-sticky">
+            <h3>📑 สารบัญ</h3>
+            <ul>
+              <li className={activeSection === 'principles' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('principles')}>
+                  📘 Principles & Guidelines
+                </button>
+              </li>
+              <li className={activeSection === 'architecture' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('architecture')}>
+                  🧠 Architecture & Design
+                </button>
+              </li>
+              <li className={activeSection === 'implementation' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('implementation')}>
+                  🛠️ Implementation & Practices
+                </button>
+              </li>
+              <li className={activeSection === 'qa' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('qa')}>
+                  ✅ QA, Deployment & Maintenance
+                </button>
+              </li>
+            </ul>
+
+            <div className="nav-footer">
+              <Link to="/" className="btn-back">← กลับหน้าหลัก</Link>
+            </div>
+          </div>
+        </nav>
+
+        {/* Main Content */}
+        <main className="handbook-content">
+          {/* Section 1: Principles & Guidelines */}
+          <section id="principles" className="handbook-section">
+            <h2>📘 Principles & Guidelines</h2>
+            <p className="section-intro">
+              หลักการและแนวทางการพัฒนาระบบตามมาตรฐานภาครัฐและกฎหมายที่เกี่ยวข้อง
+            </p>
+
+            <div className="content-card">
+              <h3>🎯 ปรัชญาการพัฒนา</h3>
+              <ul>
+                <li><strong>Open Government:</strong> เปิดเผยโค้ดและกระบวนการพัฒนา</li>
+                <li><strong>Citizen-Centric:</strong> ออกแบบเพื่อประชาชนเป็นศูนย์กลาง</li>
+                <li><strong>Data-Driven:</strong> ใช้ข้อมูลในการตัดสินใจ</li>
+                <li><strong>Sustainable:</strong> พัฒนาอย่างยั่งยืนและต่อเนื่อง</li>
+                <li><strong>Secure by Design:</strong> ความปลอดภัยตั้งแต่เริ่มต้น</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>⚖️ กฎหมายและมาตรฐานที่เกี่ยวข้อง</h3>
+              <ul>
+                <li><strong>PDPA (พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล):</strong> ปกป้องข้อมูลส่วนบุคคลของประชาชน</li>
+                <li><strong>DGA Standards:</strong> มาตรฐานการพัฒนาระบบภาครัฐ</li>
+                <li><strong>WCAG 2.1 Level AA:</strong> มาตรฐานการเข้าถึงสำหรับผู้พิการ</li>
+                <li><strong>Cybersecurity Act:</strong> กฎหมายความมั่นคงปลอดภัยไซเบอร์</li>
+                <li><strong>Open Data Charter:</strong> หลักการข้อมูลเปิดภาครัฐ</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>🔧 เทคโนโลยีที่ใช้</h3>
+              <div className="tech-grid">
+                <div className="tech-item">
+                  <h4>Frontend</h4>
+                  <ul>
+                    <li>React 19 + TypeScript</li>
+                    <li>Vite (Build Tool)</li>
+                    <li>React Router v6</li>
+                    <li>Zustand (State Management)</li>
+                    <li>Tailwind CSS</li>
+                    <li>Leaflet (Maps)</li>
+                  </ul>
+                </div>
+                <div className="tech-item">
+                  <h4>Backend</h4>
+                  <ul>
+                    <li>NestJS + TypeScript</li>
+                    <li>PostgreSQL + PostGIS</li>
+                    <li>Prisma ORM</li>
+                    <li>JWT Authentication</li>
+                    <li>Swagger/OpenAPI</li>
+                    <li>Docker</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="content-card">
+              <h3>📜 นโยบาย Open Source</h3>
+              <ul>
+                <li><strong>License:</strong> MIT License - เปิดให้ใช้งานและดัดแปลงได้อย่างเสรี</li>
+                <li><strong>Repository:</strong> <a href="https://github.com/jetci/Guardian-Route" target="_blank" rel="noopener noreferrer">github.com/jetci/Guardian-Route</a></li>
+                <li><strong>Contribution:</strong> ยินดีรับ Pull Requests และ Issues</li>
+                <li><strong>Documentation:</strong> เอกสารครบถ้วนเป็นภาษาไทยและอังกฤษ</li>
+                <li><strong>Community:</strong> สนับสนุนการแบ่งปันความรู้และพัฒนาร่วมกัน</li>
+              </ul>
+            </div>
+          </section>
+
+          {/* Section 2: Architecture & Design */}
+          <section id="architecture" className="handbook-section">
+            <h2>🧠 Architecture & Design</h2>
+            <p className="section-intro">
+              โครงสร้างระบบและหลักการออกแบบที่ใช้ในโปรเจกต์
+            </p>
+
+            <div className="content-card">
+              <h3>🏗️ โครงสร้างโปรเจกต์</h3>
+              <pre className="code-block">
+{`Guardian-Route/
+├── frontend/                 # React Application
+│   ├── src/
+│   │   ├── components/      # Reusable components
+│   │   ├── pages/           # Page components
+│   │   ├── services/        # API services
+│   │   ├── stores/          # State management
+│   │   ├── types/           # TypeScript types
+│   │   └── utils/           # Utility functions
+│   └── public/              # Static assets
+│
+├── backend/                  # NestJS Application
+│   ├── src/
+│   │   ├── auth/            # Authentication module
+│   │   ├── users/           # User management
+│   │   ├── incidents/       # Incident management
+│   │   ├── reports/         # Report generation
+│   │   ├── villages/        # Village data
+│   │   ├── tasks/           # Task management
+│   │   └── common/          # Shared utilities
+│   └── prisma/              # Database schema & migrations
+│
+└── docs/                     # Documentation`}
+              </pre>
+            </div>
+
+            <div className="content-card">
+              <h3>🎨 Design Patterns</h3>
+              <ul>
+                <li><strong>MVC Pattern:</strong> Model-View-Controller สำหรับ Backend</li>
+                <li><strong>Repository Pattern:</strong> แยก Data Access Layer</li>
+                <li><strong>Service Layer:</strong> Business Logic แยกจาก Controllers</li>
+                <li><strong>DTO Pattern:</strong> Data Transfer Objects สำหรับ API</li>
+                <li><strong>Guard Pattern:</strong> Authentication & Authorization</li>
+                <li><strong>Interceptor Pattern:</strong> Request/Response transformation</li>
+                <li><strong>Component Pattern:</strong> Reusable UI components</li>
+                <li><strong>Custom Hooks:</strong> Shared logic ใน React</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>🔐 Security Checklist</h3>
+              <ul>
+                <li>✅ JWT Token-based authentication</li>
+                <li>✅ Role-Based Access Control (RBAC)</li>
+                <li>✅ Password hashing (bcrypt)</li>
+                <li>✅ SQL Injection prevention (Prisma ORM)</li>
+                <li>✅ XSS protection (React auto-escaping)</li>
+                <li>✅ CSRF protection</li>
+                <li>✅ Rate limiting (Throttler)</li>
+                <li>✅ Input validation (class-validator)</li>
+                <li>✅ HTTPS only in production</li>
+                <li>✅ Environment variables for secrets</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>📊 Database Schema</h3>
+              <p>ใช้ PostgreSQL + PostGIS สำหรับข้อมูลภูมิศาสตร์</p>
+              <ul>
+                <li><strong>Users:</strong> ผู้ใช้งานระบบ (4 roles)</li>
+                <li><strong>Villages:</strong> ข้อมูล 20 หมู่บ้านในตำบลเวียง</li>
+                <li><strong>Incidents:</strong> เหตุการณ์ภัยพิบัติ</li>
+                <li><strong>Reports:</strong> รายงานการประเมิน</li>
+                <li><strong>Tasks:</strong> ภารกิจที่มอบหมาย</li>
+                <li><strong>ActivityLogs:</strong> บันทึกการใช้งานระบบ</li>
+              </ul>
+            </div>
+          </section>
+
+          {/* Section 3: Implementation & Practices */}
+          <section id="implementation" className="handbook-section">
+            <h2>🛠️ Implementation & Practices</h2>
+            <p className="section-intro">
+              แนวปฏิบัติในการเขียนโค้ดและการทำงานร่วมกัน
+            </p>
+
+            <div className="content-card">
+              <h3>💻 Coding Style</h3>
+              <ul>
+                <li><strong>TypeScript:</strong> ใช้ strict mode, หลีกเลี่ยง any</li>
+                <li><strong>ESLint:</strong> ตรวจสอบคุณภาพโค้ดอัตโนมัติ</li>
+                <li><strong>Prettier:</strong> จัดรูปแบบโค้ดให้สม่ำเสมอ</li>
+                <li><strong>Naming Convention:</strong>
+                  <ul>
+                    <li>camelCase สำหรับ variables, functions</li>
+                    <li>PascalCase สำหรับ Components, Classes</li>
+                    <li>UPPER_SNAKE_CASE สำหรับ constants</li>
+                  </ul>
+                </li>
+                <li><strong>Comments:</strong> เขียนภาษาไทยหรืออังกฤษ ชัดเจนกระชับ</li>
+                <li><strong>File Organization:</strong> 1 component = 1 file</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>🌿 Git Workflow</h3>
+              <ul>
+                <li><strong>Branch Strategy:</strong>
+                  <ul>
+                    <li><code>main</code> - Production-ready code</li>
+                    <li><code>develop</code> - Development branch</li>
+                    <li><code>feature/*</code> - New features</li>
+                    <li><code>fix/*</code> - Bug fixes</li>
+                    <li><code>hotfix/*</code> - Urgent production fixes</li>
+                  </ul>
+                </li>
+                <li><strong>Commit Messages:</strong>
+                  <ul>
+                    <li><code>feat:</code> New feature</li>
+                    <li><code>fix:</code> Bug fix</li>
+                    <li><code>docs:</code> Documentation</li>
+                    <li><code>style:</code> Formatting</li>
+                    <li><code>refactor:</code> Code refactoring</li>
+                    <li><code>test:</code> Tests</li>
+                    <li><code>chore:</code> Maintenance</li>
+                  </ul>
+                </li>
+                <li><strong>Pull Requests:</strong> ต้องผ่าน Code Review ก่อน merge</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>🔌 API Design</h3>
+              <ul>
+                <li><strong>RESTful API:</strong> ใช้ HTTP methods ตามมาตรฐาน</li>
+                <li><strong>Versioning:</strong> <code>/api/v1/...</code></li>
+                <li><strong>Response Format:</strong> JSON with consistent structure</li>
+                <li><strong>Error Handling:</strong> HTTP status codes + error messages</li>
+                <li><strong>Pagination:</strong> <code>?page=1&limit=20</code></li>
+                <li><strong>Filtering:</strong> <code>?status=ACTIVE&role=ADMIN</code></li>
+                <li><strong>Swagger Documentation:</strong> Auto-generated API docs</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>📝 Documentation Standards</h3>
+              <ul>
+                <li>README.md ในทุก module</li>
+                <li>JSDoc comments สำหรับ functions</li>
+                <li>API documentation ใน Swagger</li>
+                <li>Architecture Decision Records (ADR)</li>
+                <li>Changelog for releases</li>
+              </ul>
+            </div>
+          </section>
+
+          {/* Section 4: QA, Deployment & Maintenance */}
+          <section id="qa" className="handbook-section">
+            <h2>✅ QA, Deployment & Maintenance</h2>
+            <p className="section-intro">
+              การทดสอบ การ deploy และการดูแลรักษาระบบ
+            </p>
+
+            <div className="content-card">
+              <h3>🧪 Testing Pyramid</h3>
+              <ul>
+                <li><strong>Unit Tests:</strong> ทดสอบ functions และ components แยกส่วน</li>
+                <li><strong>Integration Tests:</strong> ทดสอบการทำงานร่วมกันของ modules</li>
+                <li><strong>E2E Tests:</strong> ทดสอบ user workflows ทั้งหมด</li>
+                <li><strong>Tools:</strong> Vitest, React Testing Library, Playwright</li>
+                <li><strong>Coverage Target:</strong> &gt;80% for critical paths</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>🐳 Docker Deployment</h3>
+              <pre className="code-block">
+{`# Development
+docker-compose up -d
+
+# Production
+docker build -t guardian-route .
+docker run -p 3000:3000 guardian-route
+
+# Environment Variables
+DATABASE_URL=postgresql://...
+JWT_SECRET=...
+NODE_ENV=production`}
+              </pre>
+            </div>
+
+            <div className="content-card">
+              <h3>🔄 CI/CD Pipeline</h3>
+              <ul>
+                <li>✅ Automated testing on every commit</li>
+                <li>✅ Code quality checks (ESLint, TypeScript)</li>
+                <li>✅ Security scanning</li>
+                <li>✅ Automated deployment to staging</li>
+                <li>✅ Manual approval for production</li>
+                <li>✅ Rollback capability</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>🛠️ Maintenance Plan</h3>
+              <ul>
+                <li><strong>Daily:</strong> Monitor logs and errors</li>
+                <li><strong>Weekly:</strong> Review performance metrics</li>
+                <li><strong>Monthly:</strong> Update dependencies</li>
+                <li><strong>Quarterly:</strong> Security audit</li>
+                <li><strong>Yearly:</strong> Architecture review</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>📊 Monitoring & Logging</h3>
+              <ul>
+                <li>Application logs (Winston)</li>
+                <li>Error tracking (Sentry)</li>
+                <li>Performance monitoring</li>
+                <li>Database query analysis</li>
+                <li>User activity logs</li>
+              </ul>
+            </div>
+          </section>
+
+          {/* Footer Links */}
+          <section className="handbook-footer">
+            <h2>🔗 แหล่งข้อมูลเพิ่มเติม</h2>
+            <div className="footer-links">
+              <div className="link-group">
+                <h3>📚 มาตรฐานและกฎหมาย</h3>
+                <ul>
+                  <li><a href="https://www.dga.or.th" target="_blank" rel="noopener noreferrer">DGA - สำนักงานพัฒนารัฐบาลดิจิทัล</a></li>
+                  <li><a href="https://www.pdpc.or.th" target="_blank" rel="noopener noreferrer">PDPA - คณะกรรมการคุ้มครองข้อมูลส่วนบุคคล</a></li>
+                  <li><a href="https://www.w3.org/WAI/WCAG21/quickref/" target="_blank" rel="noopener noreferrer">WCAG 2.1 Guidelines</a></li>
+                </ul>
+              </div>
+              <div className="link-group">
+                <h3>💻 เทคโนโลยี</h3>
+                <ul>
+                  <li><a href="https://react.dev" target="_blank" rel="noopener noreferrer">React Documentation</a></li>
+                  <li><a href="https://docs.nestjs.com" target="_blank" rel="noopener noreferrer">NestJS Documentation</a></li>
+                  <li><a href="https://www.prisma.io/docs" target="_blank" rel="noopener noreferrer">Prisma Documentation</a></li>
+                </ul>
+              </div>
+              <div className="link-group">
+                <h3>🤝 ติดต่อทีมพัฒนา</h3>
+                <ul>
+                  <li><a href="https://github.com/jetci/Guardian-Route" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+                  <li><a href="https://github.com/jetci/Guardian-Route/issues" target="_blank" rel="noopener noreferrer">Report Issues</a></li>
+                  <li>Email: dev@obtwiang.go.th</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="copyright">
+              <p>© 2025 Guardian Route Project - Open Government Initiative</p>
+              <p>Licensed under MIT License | Made with ❤️ for Tambon Wiang, Fang District</p>
+            </div>
+          </section>
+        </main>
+      </div>
+    </div>
+  );
+}

@@ -42,6 +42,13 @@ export class IncidentsController {
     private readonly photosService: PhotosService,
   ) {}
 
+  @Get('statistics')
+  @ApiOperation({ summary: 'Get incident statistics' })
+  @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+  getStatistics() {
+    return this.incidentsService.getStatistics();
+  }
+
   @Post()
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
   @ApiOperation({ summary: 'Create a new incident' })
@@ -118,13 +125,6 @@ export class IncidentsController {
     @CurrentUser() user: any,
   ) {
     return this.incidentsService.review(id, reviewDto, user.id);
-  }
-
-  @Get('statistics')
-  @ApiOperation({ summary: 'Get incidents statistics' })
-  @ApiResponse({ status: 200, description: 'Return statistics' })
-  getStatistics() {
-    return this.incidentsService.getStatistics();
   }
 
   @Get(':id')

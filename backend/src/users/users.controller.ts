@@ -32,6 +32,13 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
+  @Get('statistics')
+  @Roles(Role.ADMIN, Role.EXECUTIVE)
+  @ApiOperation({ summary: 'Get user statistics' })
+  getStatistics() {
+    return this.usersService.getStatistics();
+  }
+
   @Get()
   @Roles(Role.ADMIN, Role.SUPERVISOR)
   @ApiOperation({ summary: 'Get all users' })
@@ -43,6 +50,13 @@ export class UsersController {
   @ApiOperation({ summary: 'Get user by ID' })
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
+  }
+
+  @Patch(':id/toggle-status')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Toggle user active/inactive status (Admin only)' })
+  toggleStatus(@Param('id') id: string) {
+    return this.usersService.toggleStatus(id);
   }
 
   @Patch(':id')
