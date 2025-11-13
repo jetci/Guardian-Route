@@ -34,8 +34,11 @@ export function ProtectedRoute({
 
   // Check role-based access if allowedRoles is specified
   if (allowedRoles && allowedRoles.length > 0) {
-    if (!user || !allowedRoles.includes(user.role)) {
-      console.warn(`Access denied: User role "${user?.role}" not in allowed roles [${allowedRoles.join(', ')}]`);
+    // Convert user.role to string for comparison (handles both string and enum)
+    const userRoleString = typeof user?.role === 'string' ? user.role : String(user?.role);
+    
+    if (!user || !allowedRoles.includes(userRoleString)) {
+      console.warn(`Access denied: User role "${userRoleString}" not in allowed roles [${allowedRoles.join(', ')}]`);
       return <Navigate to={redirectTo} replace />;
     }
   }
