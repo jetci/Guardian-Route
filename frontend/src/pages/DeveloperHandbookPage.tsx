@@ -12,6 +12,7 @@ import './DeveloperHandbookPage.css';
 
 export default function DeveloperHandbookPage() {
   const [activeSection, setActiveSection] = useState('principles');
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   // Smooth scroll to section
   const scrollToSection = (sectionId: string) => {
@@ -22,11 +23,19 @@ export default function DeveloperHandbookPage() {
     }
   };
 
+  // Scroll to top
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Update active section on scroll
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['principles', 'architecture', 'implementation', 'qa'];
+      const sections = ['principles', 'architecture', 'security', 'implementation', 'testing', 'qa'];
       const scrollPosition = window.scrollY + 100;
+
+      // Show/hide back to top button
+      setShowBackToTop(window.scrollY > 500);
 
       for (const section of sections) {
         const element = document.getElementById(section);
@@ -80,9 +89,19 @@ export default function DeveloperHandbookPage() {
                   🧠 Architecture & Design
                 </button>
               </li>
+              <li className={activeSection === 'security' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('security')}>
+                  🔐 Security Checklist
+                </button>
+              </li>
               <li className={activeSection === 'implementation' ? 'active' : ''}>
                 <button onClick={() => scrollToSection('implementation')}>
                   🛠️ Implementation & Practices
+                </button>
+              </li>
+              <li className={activeSection === 'testing' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('testing')}>
+                  🧪 Testing Strategy
                 </button>
               </li>
               <li className={activeSection === 'qa' ? 'active' : ''}>
@@ -219,21 +238,6 @@ export default function DeveloperHandbookPage() {
               </ul>
             </div>
 
-            <div className="content-card">
-              <h3>🔐 Security Checklist</h3>
-              <ul>
-                <li>✅ JWT Token-based authentication</li>
-                <li>✅ Role-Based Access Control (RBAC)</li>
-                <li>✅ Password hashing (bcrypt)</li>
-                <li>✅ SQL Injection prevention (Prisma ORM)</li>
-                <li>✅ XSS protection (React auto-escaping)</li>
-                <li>✅ CSRF protection</li>
-                <li>✅ Rate limiting (Throttler)</li>
-                <li>✅ Input validation (class-validator)</li>
-                <li>✅ HTTPS only in production</li>
-                <li>✅ Environment variables for secrets</li>
-              </ul>
-            </div>
 
             <div className="content-card">
               <h3>📊 Database Schema</h3>
@@ -249,7 +253,93 @@ export default function DeveloperHandbookPage() {
             </div>
           </section>
 
-          {/* Section 3: Implementation & Practices */}
+          {/* Section 3: Security Checklist */}
+          <section id="security" className="handbook-section">
+            <h2>🔐 Security Checklist</h2>
+            <p className="section-intro">
+              มาตรการรักษาความปลอดภัยที่ใช้ในระบบ ตามมาตรฐาน OWASP และ Cybersecurity Act
+            </p>
+
+            <div className="content-card">
+              <h3>🔑 Authentication & Authorization</h3>
+              <ul>
+                <li>✅ <strong>JWT Token-based Authentication:</strong> ใช้ Access Token (15 นาที) และ Refresh Token (7 วัน)</li>
+                <li>✅ <strong>Role-Based Access Control (RBAC):</strong> 5 roles - DEVELOPER, ADMIN, EXECUTIVE, SUPERVISOR, FIELD_OFFICER</li>
+                <li>✅ <strong>Password Security:</strong> bcrypt hashing (10 rounds), minimum 8 characters, complexity requirements</li>
+                <li>✅ <strong>Session Management:</strong> Secure token storage, automatic logout on inactivity</li>
+                <li>✅ <strong>Multi-Factor Authentication (MFA):</strong> รองรับ OTP ผ่าน Email/SMS (Phase 2)</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>🛡️ Input Validation & Sanitization</h3>
+              <ul>
+                <li>✅ <strong>Backend Validation:</strong> class-validator ทุก DTO</li>
+                <li>✅ <strong>Frontend Validation:</strong> React Hook Form + Zod schema</li>
+                <li>✅ <strong>SQL Injection Prevention:</strong> Prisma ORM (parameterized queries)</li>
+                <li>✅ <strong>XSS Protection:</strong> React auto-escaping, DOMPurify สำหรับ rich text</li>
+                <li>✅ <strong>File Upload Security:</strong> Type validation, size limits, virus scanning</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>🌐 Network & API Security</h3>
+              <ul>
+                <li>✅ <strong>HTTPS Only:</strong> TLS 1.3, HSTS headers</li>
+                <li>✅ <strong>CORS Policy:</strong> Whitelist allowed origins</li>
+                <li>✅ <strong>Rate Limiting:</strong> 100 requests/15 minutes per IP</li>
+                <li>✅ <strong>API Throttling:</strong> Prevent brute force attacks</li>
+                <li>✅ <strong>CSRF Protection:</strong> SameSite cookies, CSRF tokens</li>
+                <li>✅ <strong>Security Headers:</strong> CSP, X-Frame-Options, X-Content-Type-Options</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>🔒 Data Protection (PDPA Compliance)</h3>
+              <ul>
+                <li>✅ <strong>Encryption at Rest:</strong> Database encryption, encrypted backups</li>
+                <li>✅ <strong>Encryption in Transit:</strong> TLS/SSL for all communications</li>
+                <li>✅ <strong>Personal Data Handling:</strong> Consent management, data minimization</li>
+                <li>✅ <strong>Right to Access:</strong> Users can view their data</li>
+                <li>✅ <strong>Right to Deletion:</strong> Data erasure on request</li>
+                <li>✅ <strong>Audit Logs:</strong> Track all data access and modifications</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>🔍 Security Monitoring & Incident Response</h3>
+              <ul>
+                <li>✅ <strong>Logging:</strong> Winston logger, structured logs</li>
+                <li>✅ <strong>Error Tracking:</strong> Sentry integration</li>
+                <li>✅ <strong>Security Alerts:</strong> Suspicious activity detection</li>
+                <li>✅ <strong>Vulnerability Scanning:</strong> npm audit, Snyk</li>
+                <li>✅ <strong>Penetration Testing:</strong> Quarterly security audits</li>
+                <li>✅ <strong>Incident Response Plan:</strong> Documented procedures</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>⚙️ Environment & Secrets Management</h3>
+              <ul>
+                <li>✅ <strong>Environment Variables:</strong> Never commit secrets to Git</li>
+                <li>✅ <strong>.env Files:</strong> Different configs for dev/staging/prod</li>
+                <li>✅ <strong>Secrets Rotation:</strong> Regular JWT secret rotation</li>
+                <li>✅ <strong>Access Control:</strong> Principle of least privilege</li>
+                <li>✅ <strong>Docker Secrets:</strong> Secure secret injection in containers</li>
+              </ul>
+            </div>
+
+            <div className="section-nav">
+              <button onClick={() => scrollToSection('architecture')} className="btn-nav prev">
+                ← Previous: Architecture
+              </button>
+              <button onClick={() => scrollToSection('implementation')} className="btn-nav next">
+                Next: Implementation →
+              </button>
+            </div>
+          </section>
+
+          {/* Section 4: Implementation & Practices */}
           <section id="implementation" className="handbook-section">
             <h2>🛠️ Implementation & Practices</h2>
             <p className="section-intro">
@@ -324,9 +414,131 @@ export default function DeveloperHandbookPage() {
                 <li>Changelog for releases</li>
               </ul>
             </div>
+
+            <div className="section-nav">
+              <button onClick={() => scrollToSection('security')} className="btn-nav prev">
+                ← Previous: Security
+              </button>
+              <button onClick={() => scrollToSection('testing')} className="btn-nav next">
+                Next: Testing →
+              </button>
+            </div>
           </section>
 
-          {/* Section 4: QA, Deployment & Maintenance */}
+          {/* Section 5: Testing Strategy */}
+          <section id="testing" className="handbook-section">
+            <h2>🧪 Testing Strategy</h2>
+            <p className="section-intro">
+              กลยุทธ์การทดสอบแบบครอบคลุม เพื่อรับประกันคุณภาพและความน่าเชื่อถือของระบบ
+            </p>
+
+            <div className="content-card">
+              <h3>🔬 Testing Pyramid</h3>
+              <ul>
+                <li><strong>Unit Tests (70%):</strong> ทดสอบ functions, components แยกส่วน</li>
+                <li><strong>Integration Tests (20%):</strong> ทดสอบการทำงานร่วมกันของ modules</li>
+                <li><strong>E2E Tests (10%):</strong> ทดสอบ user workflows ทั้งหมด</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>🛠️ Testing Tools</h3>
+              <div className="tech-grid">
+                <div className="tech-item">
+                  <h4>Frontend Testing</h4>
+                  <ul>
+                    <li><strong>Vitest:</strong> Unit & Integration tests</li>
+                    <li><strong>React Testing Library:</strong> Component testing</li>
+                    <li><strong>Playwright:</strong> E2E testing</li>
+                    <li><strong>MSW:</strong> API mocking</li>
+                  </ul>
+                </div>
+                <div className="tech-item">
+                  <h4>Backend Testing</h4>
+                  <ul>
+                    <li><strong>Jest:</strong> Unit & Integration tests</li>
+                    <li><strong>Supertest:</strong> API endpoint testing</li>
+                    <li><strong>Prisma Mock:</strong> Database mocking</li>
+                    <li><strong>Artillery:</strong> Load testing</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="content-card">
+              <h3>📊 Test Coverage Requirements</h3>
+              <ul>
+                <li><strong>Overall Coverage:</strong> &gt;80%</li>
+                <li><strong>Critical Paths:</strong> 100% (Authentication, Authorization, Payment)</li>
+                <li><strong>Business Logic:</strong> &gt;90%</li>
+                <li><strong>UI Components:</strong> &gt;70%</li>
+                <li><strong>Utility Functions:</strong> &gt;85%</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>✅ Test Scenarios</h3>
+              <ul>
+                <li><strong>Happy Path:</strong> ทดสอบการทำงานปกติ</li>
+                <li><strong>Error Handling:</strong> ทดสอบการจัดการ errors</li>
+                <li><strong>Edge Cases:</strong> ทดสอบกรณีพิเศษ</li>
+                <li><strong>Security Tests:</strong> ทดสอบช่องโหว่ความปลอดภัย</li>
+                <li><strong>Performance Tests:</strong> ทดสอบประสิทธิภาพ</li>
+                <li><strong>Accessibility Tests:</strong> ทดสอบการเข้าถึง (WCAG 2.1)</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>🔄 Continuous Testing</h3>
+              <ul>
+                <li>✅ <strong>Pre-commit Hooks:</strong> Run unit tests before commit</li>
+                <li>✅ <strong>CI Pipeline:</strong> Run all tests on every push</li>
+                <li>✅ <strong>Nightly Builds:</strong> Full E2E test suite</li>
+                <li>✅ <strong>Coverage Reports:</strong> Track coverage trends</li>
+                <li>✅ <strong>Test Automation:</strong> Automated regression testing</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>📝 Test Documentation</h3>
+              <pre className="code-block">
+{`// Example: Unit Test
+import { describe, it, expect } from 'vitest';
+import { validateEmail } from './validators';
+
+describe('Email Validator', () => {
+  it('should accept valid email', () => {
+    expect(validateEmail('user@example.com')).toBe(true);
+  });
+
+  it('should reject invalid email', () => {
+    expect(validateEmail('invalid-email')).toBe(false);
+  });
+});
+
+// Example: Component Test
+import { render, screen } from '@testing-library/react';
+import { LoginForm } from './LoginForm';
+
+it('renders login form', () => {
+  render(<LoginForm />);
+  expect(screen.getByLabelText('Email')).toBeInTheDocument();
+  expect(screen.getByLabelText('Password')).toBeInTheDocument();
+});`}
+              </pre>
+            </div>
+
+            <div className="section-nav">
+              <button onClick={() => scrollToSection('implementation')} className="btn-nav prev">
+                ← Previous: Implementation
+              </button>
+              <button onClick={() => scrollToSection('qa')} className="btn-nav next">
+                Next: QA & Deployment →
+              </button>
+            </div>
+          </section>
+
+          {/* Section 6: QA, Deployment & Maintenance */}
           <section id="qa" className="handbook-section">
             <h2>✅ QA, Deployment & Maintenance</h2>
             <p className="section-intro">
@@ -394,6 +606,15 @@ NODE_ENV=production`}
                 <li>User activity logs</li>
               </ul>
             </div>
+
+            <div className="section-nav">
+              <button onClick={() => scrollToSection('testing')} className="btn-nav prev">
+                ← Previous: Testing
+              </button>
+              <button onClick={scrollToTop} className="btn-nav next">
+                ↑ Back to Top
+              </button>
+            </div>
           </section>
 
           {/* Footer Links */}
@@ -433,6 +654,17 @@ NODE_ENV=production`}
           </section>
         </main>
       </div>
+
+      {/* Back to Top Button */}
+      {showBackToTop && (
+        <button
+          onClick={scrollToTop}
+          className="back-to-top"
+          aria-label="Back to top"
+        >
+          ↑
+        </button>
+      )}
     </div>
   );
 }
