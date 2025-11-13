@@ -23,10 +23,11 @@ export const RoleBasedRedirect = () => {
 
   // Role-based redirect mapping
   const redirectMap: Record<string, string> = {
-    FIELD_OFFICER: '/dashboard/officer',
-    SUPERVISOR: '/dashboard/supervisor',
-    EXECUTIVE: '/dashboard/executive',
+    DEVELOPER: '/dashboard/developer',
     ADMIN: '/dashboard/admin',
+    EXECUTIVE: '/dashboard/executive',
+    SUPERVISOR: '/dashboard/supervisor',
+    FIELD_OFFICER: '/dashboard/officer',
   };
 
   // Get redirect path for user's role

@@ -129,7 +129,7 @@ type UserFormData = {
   password?: string;
 };
 
-export default function AdminDashboard() {
+export default function DeveloperDashboard() {
   // State
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -144,7 +144,7 @@ export default function AdminDashboard() {
     email: '',
     firstName: '',
     lastName: '',
-    role: 'FIELD_OFFICER',
+    role: 'DEVELOPER',
     phone: '',
     password: ''
   });
@@ -219,13 +219,8 @@ export default function AdminDashboard() {
     }
   };
 
-  // Filter users - ADMIN cannot see DEVELOPER users
+  // Filter users
   const filteredUsers = users.filter(user => {
-    // Hide DEVELOPER users from ADMIN
-    if (user.role === 'DEVELOPER') {
-      return false;
-    }
-
     const matchesSearch = 
       user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -240,6 +235,7 @@ export default function AdminDashboard() {
 
   // Role counts
   const roleCounts = {
+    DEVELOPER: users.filter(u => u.role === 'DEVELOPER').length,
     ADMIN: users.filter(u => u.role === 'ADMIN').length,
     EXECUTIVE: users.filter(u => u.role === 'EXECUTIVE').length,
     SUPERVISOR: users.filter(u => u.role === 'SUPERVISOR').length,
@@ -356,8 +352,8 @@ export default function AdminDashboard() {
     <DashboardLayout>
       <div className="admin-dashboard">
         <header>
-          <h2>🛡️ Admin Dashboard</h2>
-          <p>จัดการผู้ใช้และระบบ</p>
+          <h2>👨‍💻 Developer Dashboard</h2>
+          <p>จัดการผู้ใช้และระบบ (Full Access)</p>
         </header>
 
         {/* KPI Cards */}

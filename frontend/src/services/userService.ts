@@ -13,7 +13,7 @@ export interface User {
   firstName: string;
   lastName: string;
   fullName?: string;
-  role: 'ADMIN' | 'EXECUTIVE' | 'SUPERVISOR' | 'FIELD_OFFICER';
+  role: 'ADMIN' | 'EXECUTIVE' | 'SUPERVISOR' | 'FIELD_OFFICER' | 'DEVELOPER';
   status?: 'ACTIVE' | 'INACTIVE';
   phone?: string;
   createdAt: string;

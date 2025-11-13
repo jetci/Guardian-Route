@@ -38,6 +38,7 @@ import { OverlayMapPage } from './pages/analysis/OverlayMapPage';
 import { MyTasksPage } from './pages/tasks/MyTasksPage';
 import { TaskDetailPage } from './pages/tasks/TaskDetailPage';
 import DeveloperHandbookPage from './pages/DeveloperHandbookPage';
+import DeveloperDashboard from './pages/developer/DeveloperDashboard';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { RoleBasedRedirect } from './components/RoleBasedRedirect';
 
@@ -60,6 +61,14 @@ function App() {
             }
           />
           {/* Role-specific dashboards */}
+          <Route
+            path="/dashboard/developer"
+            element={
+              <ProtectedRoute allowedRoles={['DEVELOPER']}>
+                <DeveloperDashboard />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/dashboard/admin"
             element={
