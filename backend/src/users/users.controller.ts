@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
+  Request,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -40,10 +41,10 @@ export class UsersController {
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.SUPERVISOR)
+  @Roles(Role.ADMIN, Role.SUPERVISOR, Role.DEVELOPER)
   @ApiOperation({ summary: 'Get all users' })
-  findAll(@Query('role') role?: Role) {
-    return this.usersService.findAll(role);
+  findAll(@Query('role') role?: Role, @Request() req?: any) {
+    return this.usersService.findAll(role, req?.user?.role);
   }
 
   @Get(':id')
@@ -60,16 +61,16 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Update user (Admin only)' })
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  @Roles(Role.ADMIN, Role.DEVELOPER)
+  @ApiOperation({ summary: 'Update user' })
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @Request() req?: any) {
+    return this.usersService.update(id, updateUserDto, req?.user?.role);
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
-  @ApiOperation({ summary: 'Deactivate user (Admin only)' })
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  @Roles(Role.ADMIN, Role.DEVELOPER)
+  @ApiOperation({ summary: 'Deactivate user' })
+  remove(@Param('id') id: string, @Request() req?: any) {
+    return this.usersService.remove(id, req?.user?.role);
   }
 }

@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -59,9 +60,16 @@ export class UsersService {
     return user;
   }
 
-  async findAll(role?: Role) {
+  async findAll(role?: Role, requestingUserRole?: Role) {
+    // Hide DEVELOPER users from ADMIN
+    const whereClause: any = role ? { role } : {};
+    
+    if (requestingUserRole === Role.ADMIN) {
+      whereClause.role = { not: Role.DEVELOPER };
+    }
+
     return this.prisma.user.findMany({
-      where: role ? { role } : undefined,
+      where: whereClause,
       select: {
         id: true,
         email: true,
@@ -99,8 +107,18 @@ export class UsersService {
     return user;
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
-    await this.findOne(id);
+  async update(id: string, updateUserDto: UpdateUserDto, requestingUserRole?: Role) {
+    const user = await this.findOne(id);
+
+    // RBAC: ADMIN cannot update DEVELOPER users
+    if (requestingUserRole === Role.ADMIN && user.role === Role.DEVELOPER) {
+      throw new ForbiddenException('Admin cannot modify Developer users');
+    }
+
+    // RBAC: ADMIN cannot change role to DEVELOPER
+    if (requestingUserRole === Role.ADMIN && updateUserDto.role === Role.DEVELOPER) {
+      throw new ForbiddenException('Admin cannot create or assign Developer role');
+    }
 
     // Hash password if updating
     if (updateUserDto.password) {
@@ -123,8 +141,13 @@ export class UsersService {
     });
   }
 
-  async remove(id: string) {
-    await this.findOne(id);
+  async remove(id: string, requestingUserRole?: Role) {
+    const user = await this.findOne(id);
+
+    // RBAC: ADMIN cannot delete DEVELOPER users
+    if (requestingUserRole === Role.ADMIN && user.role === Role.DEVELOPER) {
+      throw new ForbiddenException('Admin cannot delete Developer users');
+    }
 
     // Soft delete - deactivate user
     return this.prisma.user.update({
