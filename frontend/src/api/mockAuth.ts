@@ -4,6 +4,14 @@ import { Role } from '../types';
 
 // Mock users database
 const mockUsers = {
+  'jetci.jm@gmail.com': {
+    id: '0',
+    email: 'jetci.jm@gmail.com',
+    firstName: 'Jetci',
+    lastName: 'Developer',
+    role: Role.DEVELOPER,
+    password: 'g0KEk,^],k;yo',
+  },
   'admin@obtwiang.go.th': {
     id: '1',
     email: 'admin@obtwiang.go.th',
