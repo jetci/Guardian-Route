@@ -30,12 +30,15 @@ export const RoleBasedRedirect = () => {
     FIELD_OFFICER: '/dashboard/officer',
   };
 
+  // Convert role to string for lookup (handles both string and enum)
+  const userRoleString = typeof user.role === 'string' ? user.role : String(user.role);
+  
   // Get redirect path for user's role
-  const redirectPath = redirectMap[user.role];
+  const redirectPath = redirectMap[userRoleString];
 
   // If role not found in map, redirect to login
   if (!redirectPath) {
-    console.error(`Unknown role: ${user.role}`);
+    console.error(`Unknown role: ${userRoleString}`);
     return <Navigate to="/login" replace />;
   }
 
