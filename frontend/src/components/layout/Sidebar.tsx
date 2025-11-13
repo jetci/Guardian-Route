@@ -40,30 +40,34 @@ export function Sidebar() {
         ];
       case 'ADMIN':
         return [
-          { icon: '📊', label: 'Dashboard', path: '/dashboard/admin' },
-          { icon: '👥', label: 'Users', path: '/users' },
-          { icon: '⚙️', label: 'Settings', path: '/settings' },
+          { icon: '🗄️', label: 'แดชบอร์ดระบบ (System Dashboard)', path: '/dashboard/admin' },
+          { icon: '👤', label: 'จัดการผู้ใช้ (Manage Users)', path: '/manage-users' },
+          { icon: '💾', label: 'จัดการข้อมูล (Manage Data)', path: '/manage-data' },
+          { icon: '🌐', label: 'กำหนดขอบเขตหมู่บ้าน (Define Village Boundaries)', path: '/village-boundaries' },
+          { icon: '⚙️', label: 'ตั้งค่า (Settings)', path: '/settings' },
+          { icon: '📋', label: 'Audit Log', path: '/audit-log' },
         ];
       case 'SUPERVISOR':
         return [
-          { icon: '📊', label: 'Dashboard', path: '/dashboard/supervisor' },
-          { icon: '📋', label: 'Tasks', path: '/tasks' },
-          { icon: '👨‍👩‍👧‍👦', label: 'Teams', path: '/teams' },
-          { icon: '📄', label: 'Reports', path: '/reports' },
+          { icon: '🖥️', label: 'แดชบอร์ดบัญชาการ (Command Dashboard)', path: '/dashboard/supervisor' },
+          { icon: '⚠️', label: 'จัดการเหตุการณ์ (Manage Incidents)', path: '/manage-incidents' },
+          { icon: '👥', label: 'ภาพรวมทีม (Team Overview)', path: '/team-overview' },
+          { icon: '📄', label: 'รายงานการปฏิบัติงาน (Operational Reports)', path: '/operational-reports' },
+          { icon: '📊', label: 'วิเคราะห์ข้อมูลสำรวจ (Survey Analysis)', path: '/survey-analysis' },
         ];
       case 'EXECUTIVE':
         return [
-          { icon: '📊', label: 'Dashboard', path: '/dashboard/executive' },
-          { icon: '📈', label: 'Analytics', path: '/analytics' },
-          { icon: '📄', label: 'Reports', path: '/reports' },
+          { icon: '📈', label: 'แดชบอร์ดสรุป (Summary Dashboard)', path: '/dashboard/executive' },
+          { icon: '📊', label: 'รายงานและสถิติ (Reports & Statistics)', path: '/reports-statistics' },
+          { icon: '📊', label: 'วิเคราะห์ข้อมูลสำรวจ (Survey Analysis)', path: '/survey-analysis' },
         ];
       case 'FIELD_OFFICER':
         return [
-          { icon: '📊', label: 'My Tasks', path: '/dashboard/officer' },
-          { icon: '➕', label: 'รายงานเหตุการณ์ใหม่', path: '/create-incident' },
-          { icon: '🗺️', label: 'แผนที่เหตุการณ์', path: '/map-incidents' },
-          { icon: '📋', label: 'ประวัติรายงาน', path: '/report-history' },
-          { icon: '📖', label: 'คู่มือการทำงาน', path: '/workflow-guide' },
+          { icon: '📋', label: 'งานของฉัน (My Tasks)', path: '/dashboard/officer' },
+          { icon: '🌊', label: 'ขั้นตอนการทำงาน (Workflow)', path: '/workflow-guide' },
+          { icon: '🗺️', label: 'แผนที่และรายงานเหตุการณ์', path: '/map-incidents' },
+          { icon: '🔍', label: 'สำรวจพื้นที่ (Survey Area)', path: '/survey-area' },
+          { icon: '📜', label: 'ประวัติการรายงาน (Report History)', path: '/report-history' },
         ];
       default:
         return [];
