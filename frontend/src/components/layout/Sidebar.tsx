@@ -19,6 +19,7 @@ export function Sidebar() {
       case 'DEVELOPER':
         return [
           { icon: '🛠️', label: 'Developer Dashboard', path: '/dashboard/developer' },
+          { icon: '🔌', label: 'API Documentation', path: '/developer/api-docs' },
           { icon: '📘', label: 'Developer Handbook', path: '/developer-handbook' },
         ];
       case 'ADMIN':

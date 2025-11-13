@@ -39,6 +39,7 @@ import { MyTasksPage } from './pages/tasks/MyTasksPage';
 import { TaskDetailPage } from './pages/tasks/TaskDetailPage';
 import DeveloperHandbookPage from './pages/DeveloperHandbookPage';
 import DeveloperDashboard from './pages/developer/DeveloperDashboard';
+import ApiDocsPage from './pages/developer/ApiDocsPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { RoleBasedRedirect } from './components/RoleBasedRedirect';
 
@@ -51,6 +52,16 @@ function App() {
           
           {/* Public Routes */}
           <Route path="/developer-handbook" element={<DeveloperHandbookPage />} />
+          
+          {/* Developer Routes */}
+          <Route
+            path="/developer/api-docs"
+            element={
+              <ProtectedRoute allowedRoles={['DEVELOPER']}>
+                <ApiDocsPage />
+              </ProtectedRoute>
+            }
+          />
           
           <Route
             path="/dashboard"
