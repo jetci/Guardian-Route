@@ -13,6 +13,13 @@ export function Sidebar() {
 
   const getMenuItems = () => {
     switch (user?.role) {
+      case 'DEVELOPER':
+        return [
+          { icon: '🛠️', label: 'Developer Tools', path: '/dashboard/developer' },
+          { icon: '👥', label: 'User Management', path: '/dashboard/developer' },
+          { icon: '📘', label: 'Developer Handbook', path: '/developer-handbook' },
+          { icon: '📊', label: 'System Stats', path: '/dashboard/developer' },
+        ];
       case 'ADMIN':
         return [
           { icon: '📊', label: 'Dashboard', path: '/dashboard/admin' },
