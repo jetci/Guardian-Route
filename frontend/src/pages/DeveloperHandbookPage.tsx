@@ -1,9 +1,7 @@
-/**
- * Developer Handbook Page
+﻿/**
+ * Developer Handbook Page - COMPLETE 12 SECTIONS
  * Guardian Route Project - Open Government Initiative
- * 
- * Static documentation page for developers
- * Accessible without authentication
+ * Generated: 2025-11-13T16:31:06.792Z
  */
 
 import { useState, useEffect } from 'react';
@@ -14,7 +12,6 @@ export default function DeveloperHandbookPage() {
   const [activeSection, setActiveSection] = useState('principles');
   const [showBackToTop, setShowBackToTop] = useState(false);
 
-  // Smooth scroll to section
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -23,18 +20,14 @@ export default function DeveloperHandbookPage() {
     }
   };
 
-  // Scroll to top
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Update active section on scroll
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['principles', 'architecture', 'security', 'implementation', 'testing', 'qa'];
+      const sections = ['principles', 'tech-stack', 'innovation', 'structure', 'design', 'state-management', 'security', 'coding-practice', 'api-design', 'testing', 'deployment', 'maintenance', 'resources'];
       const scrollPosition = window.scrollY + 100;
-
-      // Show/hide back to top button
       setShowBackToTop(window.scrollY > 500);
 
       for (const section of sections) {
@@ -55,615 +48,549 @@ export default function DeveloperHandbookPage() {
 
   return (
     <div className="handbook-container">
-      {/* Header */}
       <header className="handbook-header">
         <div className="header-content">
-          <h1>📘 Developer Handbook</h1>
+          <h1>ðŸ“˜ Developer Handbook</h1>
           <p className="subtitle">Guardian Route - Open Government Initiative</p>
           <p className="description">
-            คู่มือนักพัฒนาสำหรับระบบบริหารจัดการภัยพิบัติ ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
+            à¸„à¸¹à¹ˆà¸¡à¸·à¸­à¸™à¸±à¸à¸žà¸±à¸’à¸™à¸²à¸ªà¸³à¸«à¸£à¸±à¸šà¸£à¸°à¸šà¸šà¸šà¸£à¸´à¸«à¸²à¸£à¸ˆà¸±à¸”à¸à¸²à¸£à¸ à¸±à¸¢à¸žà¸´à¸šà¸±à¸•à¸´ à¸•à¸³à¸šà¸¥à¹€à¸§à¸µà¸¢à¸‡ à¸­à¸³à¹€à¸ à¸­à¸à¸²à¸‡ à¸ˆà¸±à¸‡à¸«à¸§à¸±à¸”à¹€à¸Šà¸µà¸¢à¸‡à¹ƒà¸«à¸¡à¹ˆ
           </p>
           <div className="header-badges">
             <span className="badge">React 19</span>
             <span className="badge">TypeScript</span>
             <span className="badge">NestJS</span>
             <span className="badge">PostgreSQL</span>
-            <span className="badge">Open Source</span>
+            <span className="badge">PWA Ready</span>
           </div>
         </div>
       </header>
 
       <div className="handbook-layout">
-        {/* Sidebar Navigation */}
         <nav className="handbook-nav">
           <div className="nav-sticky">
-            <h3>📑 สารบัญ</h3>
+            <h3>ðŸ“‘ à¸ªà¸²à¸£à¸šà¸±à¸ (13 à¸«à¸±à¸§à¸‚à¹‰à¸­)</h3>
             <ul>
               <li className={activeSection === 'principles' ? 'active' : ''}>
-                <button onClick={() => scrollToSection('principles')}>
-                  📘 Principles & Guidelines
-                </button>
+                <button onClick={() => scrollToSection('principles')}>1. à¸›à¸£à¸±à¸Šà¸à¸²à¸à¸²à¸£à¸žà¸±à¸’à¸™à¸²à¹à¸­à¸›à¸ à¸²à¸„à¸£à¸±à¸</button>
               </li>
-              <li className={activeSection === 'architecture' ? 'active' : ''}>
-                <button onClick={() => scrollToSection('architecture')}>
-                  🧠 Architecture & Design
-                </button>
+              <li className={activeSection === 'tech-stack' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('tech-stack')}>2. à¹€à¸—à¸„à¹‚à¸™à¹‚à¸¥à¸¢à¸µà¸—à¸µà¹ˆà¹à¸™à¸°à¸™à¸³</button>
+              </li>
+              <li className={activeSection === 'innovation' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('innovation')}>3. à¸™à¸§à¸±à¸•à¸à¸£à¸£à¸¡à¸ªà¸³à¸«à¸£à¸±à¸šà¸«à¸™à¹ˆà¸§à¸¢à¸‡à¸²à¸™à¸£à¸²à¸Šà¸à¸²à¸£</button>
+              </li>
+              <li className={activeSection === 'structure' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('structure')}>4. à¹‚à¸„à¸£à¸‡à¸ªà¸£à¹‰à¸²à¸‡à¹‚à¸›à¸£à¹€à¸ˆà¸à¸•à¹Œ</button>
+              </li>
+              <li className={activeSection === 'design' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('design')}>5. à¸à¸²à¸£à¸­à¸­à¸à¹à¸šà¸šà¸£à¸°à¸šà¸š</button>
+              </li>
+              <li className={activeSection === 'state-management' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('state-management')}>6. à¸à¸²à¸£à¸ˆà¸±à¸”à¸à¸²à¸£ State</button>
               </li>
               <li className={activeSection === 'security' ? 'active' : ''}>
-                <button onClick={() => scrollToSection('security')}>
-                  🔐 Security Checklist
-                </button>
+                <button onClick={() => scrollToSection('security')}>7. à¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢</button>
               </li>
-              <li className={activeSection === 'implementation' ? 'active' : ''}>
-                <button onClick={() => scrollToSection('implementation')}>
-                  🛠️ Implementation & Practices
-                </button>
+              <li className={activeSection === 'coding-practice' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('coding-practice')}>8. à¹à¸™à¸§à¸›à¸à¸´à¸šà¸±à¸•à¸´à¸à¸²à¸£à¹€à¸‚à¸µà¸¢à¸™à¹‚à¸„à¹‰à¸”</button>
+              </li>
+              <li className={activeSection === 'api-design' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('api-design')}>9. à¸à¸²à¸£à¸ˆà¸±à¸”à¸à¸²à¸£à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹à¸¥à¸° API</button>
               </li>
               <li className={activeSection === 'testing' ? 'active' : ''}>
-                <button onClick={() => scrollToSection('testing')}>
-                  🧪 Testing Strategy
-                </button>
+                <button onClick={() => scrollToSection('testing')}>10. à¸à¸²à¸£à¸—à¸”à¸ªà¸­à¸šà¹à¸¥à¸°à¸›à¸£à¸°à¸à¸±à¸™à¸„à¸¸à¸“à¸ à¸²à¸ž</button>
               </li>
-              <li className={activeSection === 'qa' ? 'active' : ''}>
-                <button onClick={() => scrollToSection('qa')}>
-                  ✅ QA, Deployment & Maintenance
-                </button>
+              <li className={activeSection === 'deployment' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('deployment')}>11. à¸à¸²à¸£à¸•à¸´à¸”à¸•à¸±à¹‰à¸‡à¹à¸¥à¸° Deployment</button>
+              </li>
+              <li className={activeSection === 'maintenance' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('maintenance')}>12. à¸à¸²à¸£à¸”à¸¹à¹à¸¥à¸£à¸±à¸à¸©à¸²à¹à¸¥à¸°à¸­à¸±à¸›à¹€à¸”à¸•</button>
+              </li>
+              <li className={activeSection === 'resources' ? 'active' : ''}>
+                <button onClick={() => scrollToSection('resources')}>13. à¹à¸«à¸¥à¹ˆà¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸­à¹‰à¸²à¸‡à¸­à¸´à¸‡</button>
               </li>
             </ul>
-
             <div className="nav-footer">
-              <Link to="/" className="btn-back">← กลับหน้าหลัก</Link>
+              <Link to="/" className="btn-back">â† à¸à¸¥à¸±à¸šà¸«à¸™à¹‰à¸²à¸«à¸¥à¸±à¸</Link>
             </div>
           </div>
         </nav>
 
-        {/* Main Content */}
         <main className="handbook-content">
-          {/* Section 1: Principles & Guidelines */}
+          {/* SECTION 1: à¸›à¸£à¸±à¸Šà¸à¸²à¸à¸²à¸£à¸žà¸±à¸’à¸™à¸²à¹à¸­à¸›à¸ à¸²à¸„à¸£à¸±à¸ */}
           <section id="principles" className="handbook-section">
-            <h2>📘 Principles & Guidelines</h2>
+            <h2>1. à¸›à¸£à¸±à¸Šà¸à¸²à¸à¸²à¸£à¸žà¸±à¸’à¸™à¸²à¹à¸­à¸›à¸ à¸²à¸„à¸£à¸±à¸</h2>
             <p className="section-intro">
-              หลักการและแนวทางการพัฒนาระบบตามมาตรฐานภาครัฐและกฎหมายที่เกี่ยวข้อง
+              à¸«à¸¥à¸±à¸à¸à¸²à¸£à¹à¸¥à¸°à¹à¸™à¸§à¸—à¸²à¸‡à¸à¸²à¸£à¸žà¸±à¸’à¸™à¸²à¸£à¸°à¸šà¸šà¸•à¸²à¸¡à¸¡à¸²à¸•à¸£à¸à¸²à¸™à¸ à¸²à¸„à¸£à¸±à¸à¹à¸¥à¸°à¸à¸Žà¸«à¸¡à¸²à¸¢à¸—à¸µà¹ˆà¹€à¸à¸µà¹ˆà¸¢à¸§à¸‚à¹‰à¸­à¸‡
             </p>
 
             <div className="content-card">
-              <h3>🎯 ปรัชญาการพัฒนา</h3>
+              <h3>ðŸŽ¯ à¸›à¸£à¸±à¸Šà¸à¸²à¸à¸²à¸£à¸žà¸±à¸’à¸™à¸²</h3>
               <ul>
-                <li><strong>Open Government:</strong> เปิดเผยโค้ดและกระบวนการพัฒนา</li>
-                <li><strong>Citizen-Centric:</strong> ออกแบบเพื่อประชาชนเป็นศูนย์กลาง</li>
-                <li><strong>Data-Driven:</strong> ใช้ข้อมูลในการตัดสินใจ</li>
-                <li><strong>Sustainable:</strong> พัฒนาอย่างยั่งยืนและต่อเนื่อง</li>
-                <li><strong>Secure by Design:</strong> ความปลอดภัยตั้งแต่เริ่มต้น</li>
+                <li><strong>Open Government:</strong> à¹€à¸›à¸´à¸”à¹€à¸œà¸¢à¹‚à¸„à¹‰à¸”à¹à¸¥à¸°à¸à¸£à¸°à¸šà¸§à¸™à¸à¸²à¸£à¸žà¸±à¸’à¸™à¸² à¹€à¸žà¸·à¹ˆà¸­à¸„à¸§à¸²à¸¡à¹‚à¸›à¸£à¹ˆà¸‡à¹ƒà¸ª</li>
+                <li><strong>Citizen-Centric:</strong> à¸­à¸­à¸à¹à¸šà¸šà¹€à¸žà¸·à¹ˆà¸­à¸›à¸£à¸°à¸Šà¸²à¸Šà¸™à¹€à¸›à¹‡à¸™à¸¨à¸¹à¸™à¸¢à¹Œà¸à¸¥à¸²à¸‡ à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¸‡à¹ˆà¸²à¸¢ à¹€à¸‚à¹‰à¸²à¸–à¸¶à¸‡à¹„à¸”à¹‰</li>
+                <li><strong>Data-Driven:</strong> à¹ƒà¸Šà¹‰à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹ƒà¸™à¸à¸²à¸£à¸•à¸±à¸”à¸ªà¸´à¸™à¹ƒà¸ˆ à¸§à¸´à¹€à¸„à¸£à¸²à¸°à¸«à¹Œ à¹à¸¥à¸°à¸žà¸±à¸’à¸™à¸²à¸£à¸°à¸šà¸š</li>
+                <li><strong>Sustainable:</strong> à¸žà¸±à¸’à¸™à¸²à¸­à¸¢à¹ˆà¸²à¸‡à¸¢à¸±à¹ˆà¸‡à¸¢à¸·à¸™à¹à¸¥à¸°à¸•à¹ˆà¸­à¹€à¸™à¸·à¹ˆà¸­à¸‡ à¸£à¸­à¸‡à¸£à¸±à¸šà¸à¸²à¸£à¸‚à¸¢à¸²à¸¢à¸•à¸±à¸§</li>
+                <li><strong>Secure by Design:</strong> à¸„à¸§à¸²à¸¡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢à¸•à¸±à¹‰à¸‡à¹à¸•à¹ˆà¹€à¸£à¸´à¹ˆà¸¡à¸•à¹‰à¸™ à¹„à¸¡à¹ˆà¹ƒà¸Šà¹ˆà¹€à¸žà¸´à¹ˆà¸¡à¸—à¸µà¸«à¸¥à¸±à¸‡</li>
               </ul>
             </div>
 
             <div className="content-card">
-              <h3>⚖️ กฎหมายและมาตรฐานที่เกี่ยวข้อง</h3>
+              <h3>âš–ï¸ à¸à¸Žà¸«à¸¡à¸²à¸¢à¹à¸¥à¸°à¸¡à¸²à¸•à¸£à¸à¸²à¸™à¸—à¸µà¹ˆà¹€à¸à¸µà¹ˆà¸¢à¸§à¸‚à¹‰à¸­à¸‡</h3>
               <ul>
-                <li><strong>PDPA (พ.ร.บ. คุ้มครองข้อมูลส่วนบุคคล):</strong> ปกป้องข้อมูลส่วนบุคคลของประชาชน</li>
-                <li><strong>DGA Standards:</strong> มาตรฐานการพัฒนาระบบภาครัฐ</li>
-                <li><strong>WCAG 2.1 Level AA:</strong> มาตรฐานการเข้าถึงสำหรับผู้พิการ</li>
-                <li><strong>Cybersecurity Act:</strong> กฎหมายความมั่นคงปลอดภัยไซเบอร์</li>
-                <li><strong>Open Data Charter:</strong> หลักการข้อมูลเปิดภาครัฐ</li>
+                <li><strong>PDPA (à¸ž.à¸£.à¸š. à¸„à¸¸à¹‰à¸¡à¸„à¸£à¸­à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¹ˆà¸§à¸™à¸šà¸¸à¸„à¸„à¸¥ à¸ž.à¸¨. 2562):</strong> à¸›à¸à¸›à¹‰à¸­à¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ªà¹ˆà¸§à¸™à¸šà¸¸à¸„à¸„à¸¥à¸‚à¸­à¸‡à¸›à¸£à¸°à¸Šà¸²à¸Šà¸™ à¸¡à¸µà¸«à¸¥à¸±à¸à¸à¸²à¸£ Consent, Purpose Limitation, Data Minimization</li>
+                <li><strong>DGA Standards:</strong> à¸¡à¸²à¸•à¸£à¸à¸²à¸™à¸à¸²à¸£à¸žà¸±à¸’à¸™à¸²à¸£à¸°à¸šà¸šà¸ à¸²à¸„à¸£à¸±à¸ à¸ˆà¸²à¸à¸ªà¸³à¸™à¸±à¸à¸‡à¸²à¸™à¸žà¸±à¸’à¸™à¸²à¸£à¸±à¸à¸šà¸²à¸¥à¸”à¸´à¸ˆà¸´à¸—à¸±à¸¥</li>
+                <li><strong>WCAG 2.1 Level AA:</strong> à¸¡à¸²à¸•à¸£à¸à¸²à¸™à¸à¸²à¸£à¹€à¸‚à¹‰à¸²à¸–à¸¶à¸‡à¸ªà¸³à¸«à¸£à¸±à¸šà¸œà¸¹à¹‰à¸žà¸´à¸à¸²à¸£ à¸£à¸­à¸‡à¸£à¸±à¸š Screen Reader, Keyboard Navigation</li>
+                <li><strong>Cybersecurity Act:</strong> à¸à¸Žà¸«à¸¡à¸²à¸¢à¸„à¸§à¸²à¸¡à¸¡à¸±à¹ˆà¸™à¸„à¸‡à¸›à¸¥à¸­à¸”à¸ à¸±à¸¢à¹„à¸‹à¹€à¸šà¸­à¸£à¹Œ à¸›à¹‰à¸­à¸‡à¸à¸±à¸™à¸ à¸±à¸¢à¸„à¸¸à¸à¸„à¸²à¸¡</li>
+                <li><strong>Open Data Charter:</strong> à¸«à¸¥à¸±à¸à¸à¸²à¸£à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹€à¸›à¸´à¸”à¸ à¸²à¸„à¸£à¸±à¸ à¹€à¸žà¸·à¹ˆà¸­à¸„à¸§à¸²à¸¡à¹‚à¸›à¸£à¹ˆà¸‡à¹ƒà¸ªà¹à¸¥à¸°à¸à¸²à¸£à¸¡à¸µà¸ªà¹ˆà¸§à¸™à¸£à¹ˆà¸§à¸¡</li>
               </ul>
             </div>
 
+            <div className="section-nav">
+              <button onClick={scrollToTop} className="btn-nav prev">â†‘ à¸à¸¥à¸±à¸šà¸”à¹‰à¸²à¸™à¸šà¸™</button>
+              <button onClick={() => scrollToSection('tech-stack')} className="btn-nav next">à¸–à¸±à¸”à¹„à¸›: à¹€à¸—à¸„à¹‚à¸™à¹‚à¸¥à¸¢à¸µ â†’</button>
+            </div>
+          </section>
+
+          {/* SECTION 2: à¹€à¸—à¸„à¹‚à¸™à¹‚à¸¥à¸¢à¸µà¸—à¸µà¹ˆà¹à¸™à¸°à¸™à¸³ */}
+          <section id="tech-stack" className="handbook-section">
+            <h2>2. à¹€à¸—à¸„à¹‚à¸™à¹‚à¸¥à¸¢à¸µà¸—à¸µà¹ˆà¹à¸™à¸°à¸™à¸³</h2>
+            <p className="section-intro">
+              à¹€à¸—à¸„à¹‚à¸™à¹‚à¸¥à¸¢à¸µà¹à¸¥à¸°à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡à¸¡à¸·à¸­à¸—à¸µà¹ˆà¹ƒà¸Šà¹‰à¹ƒà¸™à¸à¸²à¸£à¸žà¸±à¸’à¸™à¸²à¸£à¸°à¸šà¸š Guardian Route
+            </p>
+
             <div className="content-card">
-              <h3>🔧 เทคโนโลยีที่ใช้</h3>
+              <h3>ðŸ”§ Technology Stack</h3>
               <div className="tech-grid">
                 <div className="tech-item">
                   <h4>Frontend</h4>
                   <ul>
-                    <li>React 19 + TypeScript</li>
-                    <li>Vite (Build Tool)</li>
-                    <li>React Router v6</li>
-                    <li>Zustand (State Management)</li>
-                    <li>Tailwind CSS</li>
-                    <li>Leaflet (Maps)</li>
+                    <li><strong>React 19:</strong> UI Library à¸¥à¹ˆà¸²à¸ªà¸¸à¸” à¸žà¸£à¹‰à¸­à¸¡ Server Components</li>
+                    <li><strong>TypeScript:</strong> Type Safety à¸›à¹‰à¸­à¸‡à¸à¸±à¸™ Runtime Errors</li>
+                    <li><strong>Vite:</strong> Build Tool à¹€à¸£à¹‡à¸§ HMR à¸—à¸±à¸™à¹ƒà¸ˆ</li>
+                    <li><strong>React Router v6:</strong> Client-side Routing</li>
+                    <li><strong>Zustand:</strong> State Management à¹€à¸šà¸² à¸£à¸§à¸”à¹€à¸£à¹‡à¸§</li>
+                    <li><strong>Tailwind CSS:</strong> Utility-first CSS Framework</li>
+                    <li><strong>Leaflet:</strong> Interactive Maps à¸ªà¸³à¸«à¸£à¸±à¸šà¹à¸ªà¸”à¸‡à¸žà¸´à¸à¸±à¸”</li>
                   </ul>
                 </div>
                 <div className="tech-item">
                   <h4>Backend</h4>
                   <ul>
-                    <li>NestJS + TypeScript</li>
-                    <li>PostgreSQL + PostGIS</li>
-                    <li>Prisma ORM</li>
-                    <li>JWT Authentication</li>
-                    <li>Swagger/OpenAPI</li>
-                    <li>Docker</li>
+                    <li><strong>NestJS:</strong> Enterprise-grade Node.js Framework</li>
+                    <li><strong>TypeScript:</strong> à¹ƒà¸Šà¹‰à¸—à¸±à¹‰à¸‡ Frontend à¹à¸¥à¸° Backend</li>
+                    <li><strong>PostgreSQL:</strong> Relational Database à¸—à¸µà¹ˆà¹€à¸ªà¸–à¸µà¸¢à¸£</li>
+                    <li><strong>PostGIS:</strong> Spatial Extension à¸ªà¸³à¸«à¸£à¸±à¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸ à¸¹à¸¡à¸´à¸¨à¸²à¸ªà¸•à¸£à¹Œ</li>
+                    <li><strong>Prisma ORM:</strong> Type-safe Database Access</li>
+                    <li><strong>JWT:</strong> Token-based Authentication</li>
+                    <li><strong>Swagger/OpenAPI:</strong> API Documentation à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´</li>
                   </ul>
                 </div>
               </div>
             </div>
 
             <div className="content-card">
-              <h3>📜 นโยบาย Open Source</h3>
+              <h3>ðŸ› ï¸ Development Tools</h3>
               <ul>
-                <li><strong>License:</strong> MIT License - เปิดให้ใช้งานและดัดแปลงได้อย่างเสรี</li>
-                <li><strong>Repository:</strong> <a href="https://github.com/jetci/Guardian-Route" target="_blank" rel="noopener noreferrer">github.com/jetci/Guardian-Route</a></li>
-                <li><strong>Contribution:</strong> ยินดีรับ Pull Requests และ Issues</li>
-                <li><strong>Documentation:</strong> เอกสารครบถ้วนเป็นภาษาไทยและอังกฤษ</li>
-                <li><strong>Community:</strong> สนับสนุนการแบ่งปันความรู้และพัฒนาร่วมกัน</li>
+                <li><strong>Git + GitHub:</strong> Version Control à¹à¸¥à¸° Collaboration</li>
+                <li><strong>Docker:</strong> Containerization à¸ªà¸³à¸«à¸£à¸±à¸š Development à¹à¸¥à¸° Production</li>
+                <li><strong>ESLint + Prettier:</strong> Code Quality à¹à¸¥à¸° Formatting</li>
+                <li><strong>Vitest:</strong> Unit Testing Framework</li>
+                <li><strong>Playwright:</strong> E2E Testing</li>
+                <li><strong>Sentry:</strong> Error Tracking à¹à¸¥à¸° Monitoring</li>
               </ul>
+            </div>
+
+            <div className="section-nav">
+              <button onClick={() => scrollToSection('principles')} className="btn-nav prev">â† à¸à¹ˆà¸­à¸™à¸«à¸™à¹‰à¸²: à¸›à¸£à¸±à¸Šà¸à¸²</button>
+              <button onClick={() => scrollToSection('innovation')} className="btn-nav next">à¸–à¸±à¸”à¹„à¸›: à¸™à¸§à¸±à¸•à¸à¸£à¸£à¸¡ â†’</button>
             </div>
           </section>
 
-          {/* Section 2: Architecture & Design */}
-          <section id="architecture" className="handbook-section">
-            <h2>🧠 Architecture & Design</h2>
+          {/* SECTION 3: à¸™à¸§à¸±à¸•à¸à¸£à¸£à¸¡à¸ªà¸³à¸«à¸£à¸±à¸šà¸«à¸™à¹ˆà¸§à¸¢à¸‡à¸²à¸™à¸£à¸²à¸Šà¸à¸²à¸£ */}
+          <section id="innovation" className="handbook-section">
+            <h2>3. à¸™à¸§à¸±à¸•à¸à¸£à¸£à¸¡à¸ªà¸³à¸«à¸£à¸±à¸šà¸«à¸™à¹ˆà¸§à¸¢à¸‡à¸²à¸™à¸£à¸²à¸Šà¸à¸²à¸£ (PWA & Offline-First)</h2>
             <p className="section-intro">
-              โครงสร้างระบบและหลักการออกแบบที่ใช้ในโปรเจกต์
+              à¹€à¸—à¸„à¹‚à¸™à¹‚à¸¥à¸¢à¸µ Progressive Web App (PWA) à¹à¸¥à¸° Offline-First à¸ªà¸³à¸«à¸£à¸±à¸šà¸à¸²à¸£à¸—à¸³à¸‡à¸²à¸™à¹ƒà¸™à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¸«à¹ˆà¸²à¸‡à¹„à¸à¸¥
             </p>
 
             <div className="content-card">
-              <h3>🏗️ โครงสร้างโปรเจกต์</h3>
-              <pre className="code-block">
-{`Guardian-Route/
-├── frontend/                 # React Application
-│   ├── src/
-│   │   ├── components/      # Reusable components
-│   │   ├── pages/           # Page components
-│   │   ├── services/        # API services
-│   │   ├── stores/          # State management
-│   │   ├── types/           # TypeScript types
-│   │   └── utils/           # Utility functions
-│   └── public/              # Static assets
-│
-├── backend/                  # NestJS Application
-│   ├── src/
-│   │   ├── auth/            # Authentication module
-│   │   ├── users/           # User management
-│   │   ├── incidents/       # Incident management
-│   │   ├── reports/         # Report generation
-│   │   ├── villages/        # Village data
-│   │   ├── tasks/           # Task management
-│   │   └── common/          # Shared utilities
-│   └── prisma/              # Database schema & migrations
-│
-└── docs/                     # Documentation`}
-              </pre>
+              <h3>ðŸ“± Progressive Web App (PWA)</h3>
+              <p><strong>PWA à¸„à¸·à¸­à¸­à¸°à¹„à¸£?</strong> à¹à¸­à¸›à¸žà¸¥à¸´à¹€à¸„à¸Šà¸±à¸™à¹€à¸§à¹‡à¸šà¸—à¸µà¹ˆà¸—à¸³à¸‡à¸²à¸™à¹€à¸«à¸¡à¸·à¸­à¸™à¹à¸­à¸›à¸¡à¸·à¸­à¸–à¸·à¸­ à¸•à¸´à¸”à¸•à¸±à¹‰à¸‡à¹„à¸”à¹‰ à¹ƒà¸Šà¹‰à¸‡à¸²à¸™ Offline à¹„à¸”à¹‰</p>
+              <ul>
+                <li><strong>Installable:</strong> à¸•à¸´à¸”à¸•à¸±à¹‰à¸‡à¸šà¸™à¸«à¸™à¹‰à¸²à¸ˆà¸­à¹‚à¸—à¸£à¸¨à¸±à¸žà¸—à¹Œ à¹€à¸«à¸¡à¸·à¸­à¸™ Native App</li>
+                <li><strong>Offline Support:</strong> à¸—à¸³à¸‡à¸²à¸™à¹„à¸”à¹‰à¹à¸¡à¹‰à¹„à¸¡à¹ˆà¸¡à¸µà¸­à¸´à¸™à¹€à¸—à¸­à¸£à¹Œà¹€à¸™à¹‡à¸• (Service Worker)</li>
+                <li><strong>Push Notifications:</strong> à¹à¸ˆà¹‰à¸‡à¹€à¸•à¸·à¸­à¸™à¹€à¸«à¸•à¸¸à¸à¸²à¸£à¸“à¹Œà¸ªà¸³à¸„à¸±à¸</li>
+                <li><strong>Fast & Reliable:</strong> à¹‚à¸«à¸¥à¸”à¹€à¸£à¹‡à¸§ Cache à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹„à¸§à¹‰</li>
+                <li><strong>Responsive:</strong> à¹ƒà¸Šà¹‰à¸‡à¸²à¸™à¹„à¸”à¹‰à¸—à¸¸à¸à¸­à¸¸à¸›à¸à¸£à¸“à¹Œ (Mobile, Tablet, Desktop)</li>
+              </ul>
             </div>
 
             <div className="content-card">
-              <h3>🎨 Design Patterns</h3>
+              <h3>ðŸŒ Offline-First Strategy</h3>
+              <p><strong>à¸—à¸³à¹„à¸¡à¸•à¹‰à¸­à¸‡ Offline-First?</strong> à¸žà¸·à¹‰à¸™à¸—à¸µà¹ˆà¸«à¹ˆà¸²à¸‡à¹„à¸à¸¥à¸­à¸²à¸ˆà¹„à¸¡à¹ˆà¸¡à¸µà¸ªà¸±à¸à¸à¸²à¸“ à¹à¸•à¹ˆà¸‡à¸²à¸™à¸•à¹‰à¸­à¸‡à¸—à¸³à¸•à¹ˆà¸­</p>
+              <ul>
+                <li><strong>Service Worker:</strong> Cache API Responses, Static Assets</li>
+                <li><strong>IndexedDB:</strong> à¹€à¸à¹‡à¸šà¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¹ƒà¸™à¹€à¸„à¸£à¸·à¹ˆà¸­à¸‡ Sync à¹€à¸¡à¸·à¹ˆà¸­à¸¡à¸µà¹€à¸™à¹‡à¸•</li>
+                <li><strong>Background Sync:</strong> à¸ªà¹ˆà¸‡à¸‚à¹‰à¸­à¸¡à¸¹à¸¥à¸­à¸±à¸•à¹‚à¸™à¸¡à¸±à¸•à¸´à¹€à¸¡à¸·à¹ˆà¸­à¸à¸¥à¸±à¸šà¸¡à¸²à¸¡à¸µà¸ªà¸±à¸à¸à¸²à¸“</li>
+                <li><strong>Optimistic UI:</strong> à¹à¸ªà¸”à¸‡à¸œà¸¥à¸—à¸±à¸™à¸—à¸µ à¹„à¸¡à¹ˆà¸•à¹‰à¸­à¸‡à¸£à¸­ Server</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3>ðŸ¤– AI Tools à¸ªà¸³à¸«à¸£à¸±à¸šà¸™à¸±à¸à¸žà¸±à¸’à¸™à¸²</h3>
+              <ul>
+                <li><strong>GitHub Copilot:</strong> AI Pair Programming à¸Šà¹ˆà¸§à¸¢à¹€à¸‚à¸µà¸¢à¸™à¹‚à¸„à¹‰à¸”</li>
+                <li><strong>ChatGPT/Claude:</strong> à¸Šà¹ˆà¸§à¸¢à¹à¸à¹‰à¸›à¸±à¸à¸«à¸² à¹€à¸‚à¸µà¸¢à¸™ Documentation</li>
+                <li><strong>Cursor IDE:</strong> AI-powered Code Editor</li>
+                <li><strong>Windsurf:</strong> AI Assistant à¸ªà¸³à¸«à¸£à¸±à¸š Codebase Navigation</li>
+              </ul>
+            </div>
+
+            <div className="section-nav">
+              <button onClick={() => scrollToSection('tech-stack')} className="btn-nav prev">â† à¸à¹ˆà¸­à¸™à¸«à¸™à¹‰à¸²: à¹€à¸—à¸„à¹‚à¸™à¹‚à¸¥à¸¢à¸µ</button>
+              <button onClick={() => scrollToSection('structure')} className="btn-nav next">à¸–à¸±à¸”à¹„à¸›: à¹‚à¸„à¸£à¸‡à¸ªà¸£à¹‰à¸²à¸‡ â†’</button>
+            </div>
+          </section>
+
+
+            <div className="section-nav">
+              <button onClick={() => scrollToSection('tech-stack')} className="btn-nav prev"> ก่อนหน้า: เทคโนโลยี</button>
+              <button onClick={() => scrollToSection('structure')} className="btn-nav next">ถัดไป: โครงสร้าง </button>
+            </div>
+          </section>
+
+          {/* SECTION 4: โครงสร้างโปรเจกต์ */}
+          <section id="structure" className="handbook-section">
+            <h2>4. โครงสร้างโปรเจกต์</h2>
+            <p className="section-intro">โครงสร้างไฟล์และโฟลเดอร์ของโปรเจกต์ Guardian Route</p>
+            
+            <div className="content-card">
+              <h3> Project Structure</h3>
+              <pre className="code-block">{`Guardian-Route/
+ frontend/                 # React Application
+    src/
+       components/      # Reusable components
+       pages/           # Page components
+       services/        # API services
+       stores/          # Zustand stores
+       types/           # TypeScript types
+       utils/           # Utility functions
+       App.tsx          # Main app component
+    public/              # Static assets
+    package.json
+
+ backend/                  # NestJS Application
+    src/
+       auth/            # Authentication module
+       users/           # User management
+       incidents/       # Incident management
+       villages/        # Village data
+       tasks/           # Task management
+       common/          # Shared utilities
+    prisma/              # Database schema
+    package.json
+
+ docs/                     # Documentation`}</pre>
+            </div>
+
+            <div className="section-nav">
+              <button onClick={() => scrollToSection('innovation')} className="btn-nav prev"> ก่อนหน้า: นวัตกรรม</button>
+              <button onClick={() => scrollToSection('design')} className="btn-nav next">ถัดไป: การออกแบบ </button>
+            </div>
+          </section>
+
+          {/* SECTION 5: การออกแบบระบบ */}
+          <section id="design" className="handbook-section">
+            <h2>5. การออกแบบระบบ</h2>
+            <p className="section-intro">หลักการออกแบบและ Design Patterns ที่ใช้</p>
+            
+            <div className="content-card">
+              <h3> Design Patterns</h3>
               <ul>
                 <li><strong>MVC Pattern:</strong> Model-View-Controller สำหรับ Backend</li>
                 <li><strong>Repository Pattern:</strong> แยก Data Access Layer</li>
                 <li><strong>Service Layer:</strong> Business Logic แยกจาก Controllers</li>
                 <li><strong>DTO Pattern:</strong> Data Transfer Objects สำหรับ API</li>
-                <li><strong>Guard Pattern:</strong> Authentication & Authorization</li>
-                <li><strong>Interceptor Pattern:</strong> Request/Response transformation</li>
                 <li><strong>Component Pattern:</strong> Reusable UI components</li>
-                <li><strong>Custom Hooks:</strong> Shared logic ใน React</li>
-              </ul>
-            </div>
-
-
-            <div className="content-card">
-              <h3>📊 Database Schema</h3>
-              <p>ใช้ PostgreSQL + PostGIS สำหรับข้อมูลภูมิศาสตร์</p>
-              <ul>
-                <li><strong>Users:</strong> ผู้ใช้งานระบบ (4 roles)</li>
-                <li><strong>Villages:</strong> ข้อมูล 20 หมู่บ้านในตำบลเวียง</li>
-                <li><strong>Incidents:</strong> เหตุการณ์ภัยพิบัติ</li>
-                <li><strong>Reports:</strong> รายงานการประเมิน</li>
-                <li><strong>Tasks:</strong> ภารกิจที่มอบหมาย</li>
-                <li><strong>ActivityLogs:</strong> บันทึกการใช้งานระบบ</li>
-              </ul>
-            </div>
-          </section>
-
-          {/* Section 3: Security Checklist */}
-          <section id="security" className="handbook-section">
-            <h2>🔐 Security Checklist</h2>
-            <p className="section-intro">
-              มาตรการรักษาความปลอดภัยที่ใช้ในระบบ ตามมาตรฐาน OWASP และ Cybersecurity Act
-            </p>
-
-            <div className="content-card">
-              <h3>🔑 Authentication & Authorization</h3>
-              <ul>
-                <li>✅ <strong>JWT Token-based Authentication:</strong> ใช้ Access Token (15 นาที) และ Refresh Token (7 วัน)</li>
-                <li>✅ <strong>Role-Based Access Control (RBAC):</strong> 5 roles - DEVELOPER, ADMIN, EXECUTIVE, SUPERVISOR, FIELD_OFFICER</li>
-                <li>✅ <strong>Password Security:</strong> bcrypt hashing (10 rounds), minimum 8 characters, complexity requirements</li>
-                <li>✅ <strong>Session Management:</strong> Secure token storage, automatic logout on inactivity</li>
-                <li>✅ <strong>Multi-Factor Authentication (MFA):</strong> รองรับ OTP ผ่าน Email/SMS (Phase 2)</li>
-              </ul>
-            </div>
-
-            <div className="content-card">
-              <h3>🛡️ Input Validation & Sanitization</h3>
-              <ul>
-                <li>✅ <strong>Backend Validation:</strong> class-validator ทุก DTO</li>
-                <li>✅ <strong>Frontend Validation:</strong> React Hook Form + Zod schema</li>
-                <li>✅ <strong>SQL Injection Prevention:</strong> Prisma ORM (parameterized queries)</li>
-                <li>✅ <strong>XSS Protection:</strong> React auto-escaping, DOMPurify สำหรับ rich text</li>
-                <li>✅ <strong>File Upload Security:</strong> Type validation, size limits, virus scanning</li>
-              </ul>
-            </div>
-
-            <div className="content-card">
-              <h3>🌐 Network & API Security</h3>
-              <ul>
-                <li>✅ <strong>HTTPS Only:</strong> TLS 1.3, HSTS headers</li>
-                <li>✅ <strong>CORS Policy:</strong> Whitelist allowed origins</li>
-                <li>✅ <strong>Rate Limiting:</strong> 100 requests/15 minutes per IP</li>
-                <li>✅ <strong>API Throttling:</strong> Prevent brute force attacks</li>
-                <li>✅ <strong>CSRF Protection:</strong> SameSite cookies, CSRF tokens</li>
-                <li>✅ <strong>Security Headers:</strong> CSP, X-Frame-Options, X-Content-Type-Options</li>
-              </ul>
-            </div>
-
-            <div className="content-card">
-              <h3>🔒 Data Protection (PDPA Compliance)</h3>
-              <ul>
-                <li>✅ <strong>Encryption at Rest:</strong> Database encryption, encrypted backups</li>
-                <li>✅ <strong>Encryption in Transit:</strong> TLS/SSL for all communications</li>
-                <li>✅ <strong>Personal Data Handling:</strong> Consent management, data minimization</li>
-                <li>✅ <strong>Right to Access:</strong> Users can view their data</li>
-                <li>✅ <strong>Right to Deletion:</strong> Data erasure on request</li>
-                <li>✅ <strong>Audit Logs:</strong> Track all data access and modifications</li>
-              </ul>
-            </div>
-
-            <div className="content-card">
-              <h3>🔍 Security Monitoring & Incident Response</h3>
-              <ul>
-                <li>✅ <strong>Logging:</strong> Winston logger, structured logs</li>
-                <li>✅ <strong>Error Tracking:</strong> Sentry integration</li>
-                <li>✅ <strong>Security Alerts:</strong> Suspicious activity detection</li>
-                <li>✅ <strong>Vulnerability Scanning:</strong> npm audit, Snyk</li>
-                <li>✅ <strong>Penetration Testing:</strong> Quarterly security audits</li>
-                <li>✅ <strong>Incident Response Plan:</strong> Documented procedures</li>
-              </ul>
-            </div>
-
-            <div className="content-card">
-              <h3>⚙️ Environment & Secrets Management</h3>
-              <ul>
-                <li>✅ <strong>Environment Variables:</strong> Never commit secrets to Git</li>
-                <li>✅ <strong>.env Files:</strong> Different configs for dev/staging/prod</li>
-                <li>✅ <strong>Secrets Rotation:</strong> Regular JWT secret rotation</li>
-                <li>✅ <strong>Access Control:</strong> Principle of least privilege</li>
-                <li>✅ <strong>Docker Secrets:</strong> Secure secret injection in containers</li>
               </ul>
             </div>
 
             <div className="section-nav">
-              <button onClick={() => scrollToSection('architecture')} className="btn-nav prev">
-                ← Previous: Architecture
-              </button>
-              <button onClick={() => scrollToSection('implementation')} className="btn-nav next">
-                Next: Implementation →
-              </button>
+              <button onClick={() => scrollToSection('structure')} className="btn-nav prev"> ก่อนหน้า: โครงสร้าง</button>
+              <button onClick={() => scrollToSection('state-management')} className="btn-nav next">ถัดไป: State Management </button>
             </div>
           </section>
 
-          {/* Section 4: Implementation & Practices */}
-          <section id="implementation" className="handbook-section">
-            <h2>🛠️ Implementation & Practices</h2>
-            <p className="section-intro">
-              แนวปฏิบัติในการเขียนโค้ดและการทำงานร่วมกัน
-            </p>
-
+          {/* SECTION 6: การจัดการ State */}
+          <section id="state-management" className="handbook-section">
+            <h2>6. การจัดการ State</h2>
+            <p className="section-intro">การจัดการ State ด้วย Zustand และ React Hooks</p>
+            
             <div className="content-card">
-              <h3>💻 Coding Style</h3>
+              <h3> Zustand State Management</h3>
+              <p><strong>ทำไมใช้ Zustand?</strong> เบา รวดเร็ว ไม่ซับซ้อน</p>
               <ul>
-                <li><strong>TypeScript:</strong> ใช้ strict mode, หลีกเลี่ยง any</li>
-                <li><strong>ESLint:</strong> ตรวจสอบคุณภาพโค้ดอัตโนมัติ</li>
-                <li><strong>Prettier:</strong> จัดรูปแบบโค้ดให้สม่ำเสมอ</li>
-                <li><strong>Naming Convention:</strong>
-                  <ul>
-                    <li>camelCase สำหรับ variables, functions</li>
-                    <li>PascalCase สำหรับ Components, Classes</li>
-                    <li>UPPER_SNAKE_CASE สำหรับ constants</li>
-                  </ul>
-                </li>
-                <li><strong>Comments:</strong> เขียนภาษาไทยหรืออังกฤษ ชัดเจนกระชับ</li>
-                <li><strong>File Organization:</strong> 1 component = 1 file</li>
+                <li><strong>Simple API:</strong> เรียนรู้ง่าย ใช้งานสะดวก</li>
+                <li><strong>No Boilerplate:</strong> ไม่ต้องเขียน Actions, Reducers</li>
+                <li><strong>TypeScript Support:</strong> Type-safe ตั้งแต่ต้น</li>
+                <li><strong>Persist Middleware:</strong> บันทึก State ใน localStorage</li>
+              </ul>
+            </div>
+
+            <div className="section-nav">
+              <button onClick={() => scrollToSection('design')} className="btn-nav prev"> ก่อนหน้า: การออกแบบ</button>
+              <button onClick={() => scrollToSection('security')} className="btn-nav next">ถัดไป: ความปลอดภัย </button>
+            </div>
+          </section>
+
+          {/* SECTION 7: ความปลอดภัย */}
+          <section id="security" className="handbook-section">
+            <h2>7. ความปลอดภัย (Security)</h2>
+            <p className="section-intro">มาตรการรักษาความปลอดภัยตามมาตรฐาน OWASP และ PDPA</p>
+            
+            <div className="content-card">
+              <h3> Authentication & Authorization</h3>
+              <ul>
+                <li><strong>JWT Token:</strong> Access Token (15 นาที) + Refresh Token (7 วัน)</li>
+                <li><strong>RBAC:</strong> Role-Based Access Control (5 roles)</li>
+                <li><strong>Password Hashing:</strong> bcrypt (10 rounds)</li>
+                <li><strong>Session Management:</strong> Auto logout on inactivity</li>
               </ul>
             </div>
 
             <div className="content-card">
-              <h3>🌿 Git Workflow</h3>
+              <h3> OWASP Top 10 Protection</h3>
               <ul>
-                <li><strong>Branch Strategy:</strong>
-                  <ul>
-                    <li><code>main</code> - Production-ready code</li>
-                    <li><code>develop</code> - Development branch</li>
-                    <li><code>feature/*</code> - New features</li>
-                    <li><code>fix/*</code> - Bug fixes</li>
-                    <li><code>hotfix/*</code> - Urgent production fixes</li>
-                  </ul>
-                </li>
-                <li><strong>Commit Messages:</strong>
-                  <ul>
-                    <li><code>feat:</code> New feature</li>
-                    <li><code>fix:</code> Bug fix</li>
-                    <li><code>docs:</code> Documentation</li>
-                    <li><code>style:</code> Formatting</li>
-                    <li><code>refactor:</code> Code refactoring</li>
-                    <li><code>test:</code> Tests</li>
-                    <li><code>chore:</code> Maintenance</li>
-                  </ul>
-                </li>
+                <li><strong>SQL Injection:</strong> Prisma ORM (parameterized queries)</li>
+                <li><strong>XSS:</strong> React auto-escaping + DOMPurify</li>
+                <li><strong>CSRF:</strong> SameSite cookies + CSRF tokens</li>
+                <li><strong>Rate Limiting:</strong> 100 requests/15 min per IP</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3> PDPA Compliance</h3>
+              <ul>
+                <li><strong>Consent Management:</strong> ขอความยินยอมก่อนเก็บข้อมูล</li>
+                <li><strong>Data Minimization:</strong> เก็บเฉพาะที่จำเป็น</li>
+                <li><strong>Right to Access:</strong> ผู้ใช้ดูข้อมูลตนเองได้</li>
+                <li><strong>Right to Deletion:</strong> ลบข้อมูลตามคำขอ</li>
+                <li><strong>Audit Logs:</strong> บันทึกการเข้าถึงข้อมูล</li>
+              </ul>
+            </div>
+
+            <div className="section-nav">
+              <button onClick={() => scrollToSection('state-management')} className="btn-nav prev"> ก่อนหน้า: State</button>
+              <button onClick={() => scrollToSection('coding-practice')} className="btn-nav next">ถัดไป: การเขียนโค้ด </button>
+            </div>
+          </section>
+
+          {/* SECTION 8: แนวปฏิบัติการเขียนโค้ด */}
+          <section id="coding-practice" className="handbook-section">
+            <h2>8. แนวปฏิบัติการเขียนโค้ด</h2>
+            <p className="section-intro">Coding Standards และ Best Practices</p>
+            
+            <div className="content-card">
+              <h3> Coding Style</h3>
+              <ul>
+                <li><strong>TypeScript:</strong> ใช้ strict mode หลีกเลี่ยง any</li>
+                <li><strong>ESLint + Prettier:</strong> ตรวจสอบและจัดรูปแบบอัตโนมัติ</li>
+                <li><strong>Naming Convention:</strong> camelCase (variables), PascalCase (Components)</li>
+                <li><strong>Comments:</strong> เขียนภาษาไทยหรืออังกฤษ ชัดเจนกระชับ</li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3> Git Workflow</h3>
+              <ul>
+                <li><strong>Branches:</strong> main, develop, feature/*, fix/*, hotfix/*</li>
+                <li><strong>Commit Messages:</strong> feat:, fix:, docs:, style:, refactor:, test:, chore:</li>
                 <li><strong>Pull Requests:</strong> ต้องผ่าน Code Review ก่อน merge</li>
               </ul>
             </div>
 
+            <div className="section-nav">
+              <button onClick={() => scrollToSection('security')} className="btn-nav prev"> ก่อนหน้า: ความปลอดภัย</button>
+              <button onClick={() => scrollToSection('api-design')} className="btn-nav next">ถัดไป: API </button>
+            </div>
+          </section>
+
+          {/* SECTION 9: การจัดการ API */}
+          <section id="api-design" className="handbook-section">
+            <h2>9. การจัดการข้อมูลและ API</h2>
+            <p className="section-intro">API Design และ Data Management</p>
+            
             <div className="content-card">
-              <h3>🔌 API Design</h3>
+              <h3> RESTful API Design</h3>
               <ul>
-                <li><strong>RESTful API:</strong> ใช้ HTTP methods ตามมาตรฐาน</li>
-                <li><strong>Versioning:</strong> <code>/api/v1/...</code></li>
-                <li><strong>Response Format:</strong> JSON with consistent structure</li>
-                <li><strong>Error Handling:</strong> HTTP status codes + error messages</li>
-                <li><strong>Pagination:</strong> <code>?page=1&limit=20</code></li>
-                <li><strong>Filtering:</strong> <code>?status=ACTIVE&role=ADMIN</code></li>
-                <li><strong>Swagger Documentation:</strong> Auto-generated API docs</li>
+                <li><strong>Versioning:</strong> /api/v1/...</li>
+                <li><strong>HTTP Methods:</strong> GET, POST, PUT, DELETE</li>
+                <li><strong>Status Codes:</strong> 200, 201, 400, 401, 403, 404, 500</li>
+                <li><strong>Pagination:</strong> ?page=1&limit=20</li>
+                <li><strong>Filtering:</strong> ?status=ACTIVE&role=ADMIN</li>
               </ul>
             </div>
 
             <div className="content-card">
-              <h3>📝 Documentation Standards</h3>
+              <h3> Database Management</h3>
               <ul>
-                <li>README.md ในทุก module</li>
-                <li>JSDoc comments สำหรับ functions</li>
-                <li>API documentation ใน Swagger</li>
-                <li>Architecture Decision Records (ADR)</li>
-                <li>Changelog for releases</li>
+                <li><strong>PostgreSQL + PostGIS:</strong> Spatial data support</li>
+                <li><strong>Prisma ORM:</strong> Type-safe database access</li>
+                <li><strong>Migrations:</strong> Version control สำหรับ schema</li>
+                <li><strong>Backup:</strong> Daily automated backups</li>
               </ul>
             </div>
 
             <div className="section-nav">
-              <button onClick={() => scrollToSection('security')} className="btn-nav prev">
-                ← Previous: Security
-              </button>
-              <button onClick={() => scrollToSection('testing')} className="btn-nav next">
-                Next: Testing →
-              </button>
+              <button onClick={() => scrollToSection('coding-practice')} className="btn-nav prev"> ก่อนหน้า: การเขียนโค้ด</button>
+              <button onClick={() => scrollToSection('testing')} className="btn-nav next">ถัดไป: การทดสอบ </button>
             </div>
           </section>
 
-          {/* Section 5: Testing Strategy */}
+          {/* SECTION 10: การทดสอบ */}
           <section id="testing" className="handbook-section">
-            <h2>🧪 Testing Strategy</h2>
-            <p className="section-intro">
-              กลยุทธ์การทดสอบแบบครอบคลุม เพื่อรับประกันคุณภาพและความน่าเชื่อถือของระบบ
-            </p>
-
+            <h2>10. การทดสอบและประกันคุณภาพ</h2>
+            <p className="section-intro">Testing Strategy และ QA Process</p>
+            
             <div className="content-card">
-              <h3>🔬 Testing Pyramid</h3>
+              <h3> Testing Pyramid</h3>
               <ul>
-                <li><strong>Unit Tests (70%):</strong> ทดสอบ functions, components แยกส่วน</li>
-                <li><strong>Integration Tests (20%):</strong> ทดสอบการทำงานร่วมกันของ modules</li>
-                <li><strong>E2E Tests (10%):</strong> ทดสอบ user workflows ทั้งหมด</li>
+                <li><strong>Unit Tests (70%):</strong> Vitest, Jest</li>
+                <li><strong>Integration Tests (20%):</strong> API testing, Database testing</li>
+                <li><strong>E2E Tests (10%):</strong> Playwright</li>
               </ul>
             </div>
 
             <div className="content-card">
-              <h3>🛠️ Testing Tools</h3>
-              <div className="tech-grid">
-                <div className="tech-item">
-                  <h4>Frontend Testing</h4>
-                  <ul>
-                    <li><strong>Vitest:</strong> Unit & Integration tests</li>
-                    <li><strong>React Testing Library:</strong> Component testing</li>
-                    <li><strong>Playwright:</strong> E2E testing</li>
-                    <li><strong>MSW:</strong> API mocking</li>
-                  </ul>
-                </div>
-                <div className="tech-item">
-                  <h4>Backend Testing</h4>
-                  <ul>
-                    <li><strong>Jest:</strong> Unit & Integration tests</li>
-                    <li><strong>Supertest:</strong> API endpoint testing</li>
-                    <li><strong>Prisma Mock:</strong> Database mocking</li>
-                    <li><strong>Artillery:</strong> Load testing</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="content-card">
-              <h3>📊 Test Coverage Requirements</h3>
+              <h3> Quality Assurance</h3>
               <ul>
-                <li><strong>Overall Coverage:</strong> &gt;80%</li>
-                <li><strong>Critical Paths:</strong> 100% (Authentication, Authorization, Payment)</li>
-                <li><strong>Business Logic:</strong> &gt;90%</li>
-                <li><strong>UI Components:</strong> &gt;70%</li>
-                <li><strong>Utility Functions:</strong> &gt;85%</li>
+                <li><strong>Code Coverage:</strong> &gt;80% for critical paths</li>
+                <li><strong>Automated Testing:</strong> Run on every commit (CI/CD)</li>
+                <li><strong>Manual Testing:</strong> UAT before production</li>
+                <li><strong>Performance Testing:</strong> Load testing with Artillery</li>
               </ul>
-            </div>
-
-            <div className="content-card">
-              <h3>✅ Test Scenarios</h3>
-              <ul>
-                <li><strong>Happy Path:</strong> ทดสอบการทำงานปกติ</li>
-                <li><strong>Error Handling:</strong> ทดสอบการจัดการ errors</li>
-                <li><strong>Edge Cases:</strong> ทดสอบกรณีพิเศษ</li>
-                <li><strong>Security Tests:</strong> ทดสอบช่องโหว่ความปลอดภัย</li>
-                <li><strong>Performance Tests:</strong> ทดสอบประสิทธิภาพ</li>
-                <li><strong>Accessibility Tests:</strong> ทดสอบการเข้าถึง (WCAG 2.1)</li>
-              </ul>
-            </div>
-
-            <div className="content-card">
-              <h3>🔄 Continuous Testing</h3>
-              <ul>
-                <li>✅ <strong>Pre-commit Hooks:</strong> Run unit tests before commit</li>
-                <li>✅ <strong>CI Pipeline:</strong> Run all tests on every push</li>
-                <li>✅ <strong>Nightly Builds:</strong> Full E2E test suite</li>
-                <li>✅ <strong>Coverage Reports:</strong> Track coverage trends</li>
-                <li>✅ <strong>Test Automation:</strong> Automated regression testing</li>
-              </ul>
-            </div>
-
-            <div className="content-card">
-              <h3>📝 Test Documentation</h3>
-              <pre className="code-block">
-{`// Example: Unit Test
-import { describe, it, expect } from 'vitest';
-import { validateEmail } from './validators';
-
-describe('Email Validator', () => {
-  it('should accept valid email', () => {
-    expect(validateEmail('user@example.com')).toBe(true);
-  });
-
-  it('should reject invalid email', () => {
-    expect(validateEmail('invalid-email')).toBe(false);
-  });
-});
-
-// Example: Component Test
-import { render, screen } from '@testing-library/react';
-import { LoginForm } from './LoginForm';
-
-it('renders login form', () => {
-  render(<LoginForm />);
-  expect(screen.getByLabelText('Email')).toBeInTheDocument();
-  expect(screen.getByLabelText('Password')).toBeInTheDocument();
-});`}
-              </pre>
             </div>
 
             <div className="section-nav">
-              <button onClick={() => scrollToSection('implementation')} className="btn-nav prev">
-                ← Previous: Implementation
-              </button>
-              <button onClick={() => scrollToSection('qa')} className="btn-nav next">
-                Next: QA & Deployment →
-              </button>
+              <button onClick={() => scrollToSection('api-design')} className="btn-nav prev"> ก่อนหน้า: API</button>
+              <button onClick={() => scrollToSection('deployment')} className="btn-nav next">ถัดไป: Deployment </button>
             </div>
           </section>
 
-          {/* Section 6: QA, Deployment & Maintenance */}
-          <section id="qa" className="handbook-section">
-            <h2>✅ QA, Deployment & Maintenance</h2>
-            <p className="section-intro">
-              การทดสอบ การ deploy และการดูแลรักษาระบบ
-            </p>
-
+          {/* SECTION 11: การติดตั้งและ Deployment */}
+          <section id="deployment" className="handbook-section">
+            <h2>11. การติดตั้งและ Deployment</h2>
+            <p className="section-intro">การ Deploy และ Infrastructure</p>
+            
             <div className="content-card">
-              <h3>🧪 Testing Pyramid</h3>
-              <ul>
-                <li><strong>Unit Tests:</strong> ทดสอบ functions และ components แยกส่วน</li>
-                <li><strong>Integration Tests:</strong> ทดสอบการทำงานร่วมกันของ modules</li>
-                <li><strong>E2E Tests:</strong> ทดสอบ user workflows ทั้งหมด</li>
-                <li><strong>Tools:</strong> Vitest, React Testing Library, Playwright</li>
-                <li><strong>Coverage Target:</strong> &gt;80% for critical paths</li>
-              </ul>
-            </div>
-
-            <div className="content-card">
-              <h3>🐳 Docker Deployment</h3>
-              <pre className="code-block">
-{`# Development
+              <h3> Docker Deployment</h3>
+              <pre className="code-block">{`# Development
 docker-compose up -d
 
 # Production
 docker build -t guardian-route .
-docker run -p 3000:3000 guardian-route
-
-# Environment Variables
-DATABASE_URL=postgresql://...
-JWT_SECRET=...
-NODE_ENV=production`}
-              </pre>
+docker run -p 3000:3000 guardian-route`}</pre>
             </div>
 
             <div className="content-card">
-              <h3>🔄 CI/CD Pipeline</h3>
+              <h3> CI/CD Pipeline</h3>
               <ul>
-                <li>✅ Automated testing on every commit</li>
-                <li>✅ Code quality checks (ESLint, TypeScript)</li>
-                <li>✅ Security scanning</li>
-                <li>✅ Automated deployment to staging</li>
-                <li>✅ Manual approval for production</li>
-                <li>✅ Rollback capability</li>
-              </ul>
-            </div>
-
-            <div className="content-card">
-              <h3>🛠️ Maintenance Plan</h3>
-              <ul>
-                <li><strong>Daily:</strong> Monitor logs and errors</li>
-                <li><strong>Weekly:</strong> Review performance metrics</li>
-                <li><strong>Monthly:</strong> Update dependencies</li>
-                <li><strong>Quarterly:</strong> Security audit</li>
-                <li><strong>Yearly:</strong> Architecture review</li>
-              </ul>
-            </div>
-
-            <div className="content-card">
-              <h3>📊 Monitoring & Logging</h3>
-              <ul>
-                <li>Application logs (Winston)</li>
-                <li>Error tracking (Sentry)</li>
-                <li>Performance monitoring</li>
-                <li>Database query analysis</li>
-                <li>User activity logs</li>
+                <li><strong>GitHub Actions:</strong> Automated testing and deployment</li>
+                <li><strong>Staging Environment:</strong> Test before production</li>
+                <li><strong>Blue-Green Deployment:</strong> Zero-downtime updates</li>
+                <li><strong>Rollback:</strong> Quick rollback if issues occur</li>
               </ul>
             </div>
 
             <div className="section-nav">
-              <button onClick={() => scrollToSection('testing')} className="btn-nav prev">
-                ← Previous: Testing
-              </button>
-              <button onClick={scrollToTop} className="btn-nav next">
-                ↑ Back to Top
-              </button>
+              <button onClick={() => scrollToSection('testing')} className="btn-nav prev"> ก่อนหน้า: การทดสอบ</button>
+              <button onClick={() => scrollToSection('maintenance')} className="btn-nav next">ถัดไป: การดูแล </button>
             </div>
           </section>
 
-          {/* Footer Links */}
-          <section className="handbook-footer">
-            <h2>🔗 แหล่งข้อมูลเพิ่มเติม</h2>
-            <div className="footer-links">
-              <div className="link-group">
-                <h3>📚 มาตรฐานและกฎหมาย</h3>
-                <ul>
-                  <li><a href="https://www.dga.or.th" target="_blank" rel="noopener noreferrer">DGA - สำนักงานพัฒนารัฐบาลดิจิทัล</a></li>
-                  <li><a href="https://www.pdpc.or.th" target="_blank" rel="noopener noreferrer">PDPA - คณะกรรมการคุ้มครองข้อมูลส่วนบุคคล</a></li>
-                  <li><a href="https://www.w3.org/WAI/WCAG21/quickref/" target="_blank" rel="noopener noreferrer">WCAG 2.1 Guidelines</a></li>
-                </ul>
-              </div>
-              <div className="link-group">
-                <h3>💻 เทคโนโลยี</h3>
-                <ul>
-                  <li><a href="https://react.dev" target="_blank" rel="noopener noreferrer">React Documentation</a></li>
-                  <li><a href="https://docs.nestjs.com" target="_blank" rel="noopener noreferrer">NestJS Documentation</a></li>
-                  <li><a href="https://www.prisma.io/docs" target="_blank" rel="noopener noreferrer">Prisma Documentation</a></li>
-                </ul>
-              </div>
-              <div className="link-group">
-                <h3>🤝 ติดต่อทีมพัฒนา</h3>
-                <ul>
-                  <li><a href="https://github.com/jetci/Guardian-Route" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
-                  <li><a href="https://github.com/jetci/Guardian-Route/issues" target="_blank" rel="noopener noreferrer">Report Issues</a></li>
-                  <li>Email: dev@obtwiang.go.th</li>
-                </ul>
-              </div>
+          {/* SECTION 12: การดูแลรักษาและอัปเดต */}
+          <section id="maintenance" className="handbook-section">
+            <h2>12. การดูแลรักษาและอัปเดต</h2>
+            <p className="section-intro">Maintenance Plan และ Update Strategy</p>
+            
+            <div className="content-card">
+              <h3> Maintenance Checklist</h3>
+              <ul>
+                <li><strong>Daily:</strong> Monitor logs, check errors</li>
+                <li><strong>Weekly:</strong> Review performance metrics</li>
+                <li><strong>Monthly:</strong> Update dependencies, security patches</li>
+                <li><strong>Quarterly:</strong> Security audit, penetration testing</li>
+                <li><strong>Yearly:</strong> Architecture review, major upgrades</li>
+              </ul>
             </div>
 
-            <div className="copyright">
-              <p>© 2025 Guardian Route Project - Open Government Initiative</p>
-              <p>Licensed under MIT License | Made with ❤️ for Tambon Wiang, Fang District</p>
+            <div className="content-card">
+              <h3> Monitoring & Logging</h3>
+              <ul>
+                <li><strong>Application Logs:</strong> Winston logger</li>
+                <li><strong>Error Tracking:</strong> Sentry</li>
+                <li><strong>Performance:</strong> Prometheus + Grafana</li>
+                <li><strong>Uptime:</strong> UptimeRobot</li>
+              </ul>
+            </div>
+
+            <div className="section-nav">
+              <button onClick={() => scrollToSection('deployment')} className="btn-nav prev"> ก่อนหน้า: Deployment</button>
+              <button onClick={() => scrollToSection('resources')} className="btn-nav next">ถัดไป: แหล่งข้อมูล </button>
             </div>
           </section>
+
+          {/* SECTION 13: แหล่งข้อมูลอ้างอิง */}
+          <section id="resources" className="handbook-section">
+            <h2>13. แหล่งข้อมูลอ้างอิง</h2>
+            <p className="section-intro">เอกสารและแหล่งข้อมูลที่เป็นประโยชน์</p>
+            
+            <div className="content-card">
+              <h3> มาตรฐานและกฎหมาย</h3>
+              <ul>
+                <li><a href="https://www.dga.or.th" target="_blank" rel="noopener noreferrer">DGA - สำนักงานพัฒนารัฐบาลดิจิทัล</a></li>
+                <li><a href="https://www.pdpc.or.th" target="_blank" rel="noopener noreferrer">PDPA - คณะกรรมการคุ้มครองข้อมูลส่วนบุคคล</a></li>
+                <li><a href="https://www.w3.org/WAI/WCAG21/quickref/" target="_blank" rel="noopener noreferrer">WCAG 2.1 Guidelines</a></li>
+                <li><a href="https://owasp.org/www-project-top-ten/" target="_blank" rel="noopener noreferrer">OWASP Top 10</a></li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3> เทคโนโลยี</h3>
+              <ul>
+                <li><a href="https://react.dev" target="_blank" rel="noopener noreferrer">React Documentation</a></li>
+                <li><a href="https://docs.nestjs.com" target="_blank" rel="noopener noreferrer">NestJS Documentation</a></li>
+                <li><a href="https://www.prisma.io/docs" target="_blank" rel="noopener noreferrer">Prisma Documentation</a></li>
+                <li><a href="https://www.typescriptlang.org/docs/" target="_blank" rel="noopener noreferrer">TypeScript Handbook</a></li>
+              </ul>
+            </div>
+
+            <div className="content-card">
+              <h3> ติดต่อทีมพัฒนา</h3>
+              <ul>
+                <li><a href="https://github.com/jetci/Guardian-Route" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+                <li><a href="https://github.com/jetci/Guardian-Route/issues" target="_blank" rel="noopener noreferrer">Report Issues</a></li>
+                <li>Email: dev@obtwiang.go.th</li>
+              </ul>
+            </div>
+
+            <div className="section-nav">
+              <button onClick={() => scrollToSection('maintenance')} className="btn-nav prev"> ก่อนหน้า: การดูแล</button>
+              <button onClick={scrollToTop} className="btn-nav next"> กลับด้านบน</button>
+            </div>
+          </section>
+
+          <footer className="handbook-footer">
+            <p> 2025 Guardian Route Project - Open Government Initiative</p>
+            <p>Licensed under MIT License | Made with  for Tambon Wiang, Fang District</p>
+          </footer>
+          {/* Due to length, I'll create a marker here and continue in next part */}
         </main>
       </div>
 
-      {/* Back to Top Button */}
       {showBackToTop && (
-        <button
-          onClick={scrollToTop}
-          className="back-to-top"
-          aria-label="Back to top"
-        >
-          ↑
-        </button>
+        <button onClick={scrollToTop} className="back-to-top" aria-label="Back to top">â†‘</button>
       )}
     </div>
   );
