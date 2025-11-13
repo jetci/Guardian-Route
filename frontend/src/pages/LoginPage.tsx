@@ -31,6 +31,7 @@ export function LoginPage() {
 
   const quickLogin = (role: string) => {
     const credentials = {
+      DEVELOPER: { email: 'jetci.jm@gmail.com', password: 'g0KEk,^],k;yo' },
       ADMIN: { email: 'admin@obtwiang.go.th', password: 'password123' },
       SUPERVISOR: { email: 'supervisor@obtwiang.go.th', password: 'password123' },
       EXECUTIVE: { email: 'executive@obtwiang.go.th', password: 'password123' },
@@ -100,6 +101,14 @@ export function LoginPage() {
         <div className="quick-login">
           <p className="quick-login-title">เข้าสู่ระบบด่วน (Quick Login)</p>
           <div className="quick-login-buttons">
+            <button
+              onClick={() => quickLogin('DEVELOPER')}
+              className="quick-login-button developer"
+              type="button"
+            >
+              <span className="quick-login-icon">👨‍💻</span>
+              <span>Developer</span>
+            </button>
             <button
               onClick={() => quickLogin('ADMIN')}
               className="quick-login-button admin"
