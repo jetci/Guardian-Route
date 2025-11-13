@@ -3,9 +3,11 @@ import { Toaster } from 'react-hot-toast';
 import { LoginPage } from './pages/LoginPage';
 import { SimpleDashboard } from './pages/SimpleDashboard';
 import { AdminDashboard } from './pages/dashboards/AdminDashboard';
+import AdminDashboardV2 from './pages/admin/AdminDashboardV2';
 import { SupervisorDashboard as SupervisorDashboardNew } from './pages/dashboards/SupervisorDashboard';
 import { FieldOfficerDashboard } from './pages/dashboards/FieldOfficerDashboard';
 import { ExecutiveDashboard } from './pages/dashboards/ExecutiveDashboard';
+import ExecutiveDashboardV2 from './pages/executive/ExecutiveDashboardV2';
 import { UsersPage } from './pages/UsersPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TeamsPage } from './pages/TeamsPage';
@@ -19,6 +21,7 @@ import { WorkflowGuidePage } from './pages/field-officer/WorkflowGuidePage';
 import { CreateIncidentReportPage } from './pages/field-officer/CreateIncidentReportPage';
 // import { DashboardPage } from './pages/DashboardPage';
 import { SupervisorDashboard } from './pages/supervisor/SupervisorDashboard';
+import SupervisorDashboardV2 from './pages/supervisor/SupervisorDashboardV2';
 import { MapView } from './pages/supervisor/MapView';
 import { TasksPage } from './pages/supervisor/TasksPage';
 import SurveyTemplateList from './pages/supervisor/SurveyTemplateList';
@@ -56,7 +59,7 @@ function App() {
             path="/dashboard/admin"
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
-                <AdminDashboard />
+                <AdminDashboardV2 />
               </ProtectedRoute>
             }
           />
@@ -64,7 +67,7 @@ function App() {
             path="/dashboard/supervisor"
             element={
               <ProtectedRoute allowedRoles={['SUPERVISOR']}>
-                <SupervisorDashboardNew />
+                <SupervisorDashboardV2 />
               </ProtectedRoute>
             }
           />
@@ -80,7 +83,7 @@ function App() {
             path="/dashboard/executive"
             element={
               <ProtectedRoute allowedRoles={['EXECUTIVE']}>
-                <ExecutiveDashboard />
+                <ExecutiveDashboardV2 />
               </ProtectedRoute>
             }
           />

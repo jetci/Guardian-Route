@@ -21,7 +21,7 @@ import {
   AlertDescription,
 } from '@chakra-ui/react';
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
-import { authApi } from '../../api/auth';
+import { authService } from '../../services/authService';
 import { useAuthStore } from '../../stores/authStore';
 
 export const LoginPage = () => {
@@ -41,8 +41,8 @@ export const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await authApi.login(email, password);
-      setAuth(response.user, response.accessToken, response.refreshToken);
+      const response = await authService.login({ email, password });
+      setAuth(response.user, response.access_token, response.refresh_token);
 
       toast({
         title: 'เข้าสู่ระบบสำเร็จ',

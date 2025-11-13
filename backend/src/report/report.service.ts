@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { PdfGeneratorService } from './pdf-generator.service';
+// import { PdfGeneratorService } from './pdf-generator.service'; // TODO: Re-enable when PDF feature is needed
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { CreateReportDto } from './dto/create-report.dto';
@@ -19,7 +19,7 @@ import { ReportStatus, ReportType, Role } from '@prisma/client';
 export class ReportService {
   constructor(
     private prisma: PrismaService,
-    private pdfGeneratorService: PdfGeneratorService,
+    // private pdfGeneratorService: PdfGeneratorService, // TODO: Re-enable when PDF feature is needed
   ) {}
 
   /**
@@ -404,9 +404,11 @@ export class ReportService {
     });
   }
 
+  // TODO: Re-enable PDF generation when puppeteer is installed
   /**
    * Generate PDF for a report
    */
+  /*
   async generatePdf(id: string, generatePdfDto: GeneratePdfDto) {
     const report = await this.findOne(id);
 
@@ -476,10 +478,13 @@ export class ReportService {
       );
     }
   }
+  */
 
+  // TODO: Re-enable PDF download when puppeteer is installed
   /**
    * Download PDF of a report
    */
+  /*
   async downloadPdf(id: string): Promise<{ buffer: Buffer; filename: string }> {
     const report = await this.findOne(id);
 
@@ -499,6 +504,7 @@ export class ReportService {
       throw new NotFoundException('PDF file not found on server');
     }
   }
+  */
 
   /**
    * Get report statistics

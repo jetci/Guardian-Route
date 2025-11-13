@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
-import { mockTasks } from '../../mocks/dashboardData';
+import { reportService } from '../../services/reportService';
 import './ReportHistoryPage.css';
 
 type ReportStatus = 'ALL' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'REVISION_REQUIRED';
@@ -18,11 +19,31 @@ export function ReportHistoryPage() {
   const [statusFilter, setStatusFilter] = useState<ReportStatus>('ALL');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [reports, setReports] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch reports on mount
+  useEffect(() => {
+    loadReports();
+  }, []);
+
+  const loadReports = async () => {
+    setLoading(true);
+    try {
+      const data = await reportService.getMyReports();
+      setReports(data);
+    } catch (error) {
+      console.error('Error loading reports:', error);
+      toast.error('โหลดข้อมูลรายงานไม่สำเร็จ');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter reports
-  const filteredReports = mockTasks.filter(task => {
+  const filteredReports = reports.filter(report => {
     // Status filter
-    if (statusFilter !== 'ALL' && task.status !== statusFilter) {
+    if (statusFilter !== 'ALL' && report.status !== statusFilter) {
       return false;
     }
 

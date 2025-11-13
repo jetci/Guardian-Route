@@ -46,7 +46,6 @@ async function main() {
     create: {
       username: 'admin',
       email: 'admin@obtwiang.go.th',
-      username: 'admin',
       password: hashedPassword,
       fullName: 'Admin System',
       firstName: 'Admin',
@@ -65,7 +64,6 @@ async function main() {
     create: {
       username: 'executive',
       email: 'executive@obtwiang.go.th',
-      username: 'executive',
       password: hashedPassword,
       fullName: 'Somkid Executive',
       firstName: 'Somkid',
@@ -84,7 +82,6 @@ async function main() {
     create: {
       username: 'supervisor',
       email: 'supervisor@obtwiang.go.th',
-      username: 'supervisor',
       password: hashedPassword,
       fullName: 'Somchai Supervisor',
       firstName: 'Somchai',
@@ -103,7 +100,6 @@ async function main() {
     create: {
       username: 'field',
       email: 'field@obtwiang.go.th',
-      username: 'field',
       password: hashedPassword,
       fullName: 'Somsri Field',
       firstName: 'Somsri',

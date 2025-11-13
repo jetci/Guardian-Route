@@ -52,7 +52,7 @@ export class IncidentsController {
     @Body() createIncidentDto: CreateIncidentDto,
     @CurrentUser() user: any,
   ) {
-    return this.incidentsService.create(createIncidentDto, user.userId);
+    return this.incidentsService.create(createIncidentDto, user.id);
   }
 
   @Get()
@@ -80,7 +80,7 @@ export class IncidentsController {
   @ApiOperation({ summary: 'Get my incidents' })
   @ApiResponse({ status: 200, description: 'Return incidents created by current user' })
   findMy(@CurrentUser() user: any) {
-    return this.incidentsService.findMyIncidents(user.userId);
+    return this.incidentsService.findMyIncidents(user.id);
   }
 
   @Get('unassigned')
@@ -103,7 +103,7 @@ export class IncidentsController {
     @Body() assignDto: AssignIncidentDto,
     @CurrentUser() user: any,
   ) {
-    return this.incidentsService.assign(id, assignDto.fieldOfficerId, user.userId, assignDto.notes);
+    return this.incidentsService.assign(id, assignDto.fieldOfficerId, user.id, assignDto.notes);
   }
 
   @Patch(':id/review')
@@ -117,7 +117,7 @@ export class IncidentsController {
     @Body() reviewDto: ReviewIncidentDto,
     @CurrentUser() user: any,
   ) {
-    return this.incidentsService.review(id, reviewDto, user.userId);
+    return this.incidentsService.review(id, reviewDto, user.id);
   }
 
   @Get('statistics')
@@ -148,7 +148,7 @@ export class IncidentsController {
     return this.incidentsService.update(
       id,
       updateIncidentDto,
-      user.userId,
+      user.id,
       user.role,
     );
   }
@@ -171,7 +171,7 @@ export class IncidentsController {
     @UploadedFile() file: Express.Multer.File,
     @CurrentUser() user: any,
   ) {
-    return this.photosService.uploadPhoto(id, file, user.userId);
+    return this.photosService.uploadPhoto(id, file, user.id);
   }
 
   @Get(':id/photos')
@@ -190,7 +190,7 @@ export class IncidentsController {
     @Param('photoId') photoId: string,
     @CurrentUser() user: any,
   ) {
-    return this.photosService.deletePhoto(id, photoId, user.userId);
+    return this.photosService.deletePhoto(id, photoId, user.id);
   }
 
   @Delete(':id')
@@ -199,6 +199,6 @@ export class IncidentsController {
   @ApiResponse({ status: 403, description: 'Forbidden - Admin only' })
   @ApiResponse({ status: 404, description: 'Incident not found' })
   remove(@Param('id') id: string, @CurrentUser() user: any) {
-    return this.incidentsService.remove(id, user.userId, user.role);
+    return this.incidentsService.remove(id, user.id, user.role);
   }
 }

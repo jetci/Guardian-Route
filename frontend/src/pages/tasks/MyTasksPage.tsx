@@ -20,7 +20,7 @@ import {
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { TaskCard } from '../../components/tasks/TaskCard';
-import { tasksApi } from '../../api/tasks';
+import { taskService } from '../../services/taskService';
 
 interface Task {
   id: string;
@@ -52,7 +52,7 @@ export const MyTasksPage = () => {
   const fetchMyTasks = async () => {
     try {
       setIsLoading(true);
-      const response = await tasksApi.getMyTasks();
+      const response = await taskService.getMyTasks();
       setTasks(response as any); // Type mismatch - API returns optional incident field
     } catch (error: any) {
       toast({
@@ -68,7 +68,7 @@ export const MyTasksPage = () => {
 
   const handleAcceptTask = async (taskId: string) => {
     try {
-      await tasksApi.acceptTask(taskId);
+      await taskService.updateStatus(taskId, 'IN_PROGRESS');
       toast({
         title: 'รับงานสำเร็จ',
         description: 'คุณสามารถเริ่มทำงานได้แล้ว',

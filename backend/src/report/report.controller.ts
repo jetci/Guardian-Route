@@ -236,6 +236,8 @@ export class ReportController {
     );
   }
 
+  // TODO: Re-enable PDF generation endpoint when puppeteer is installed
+  /*
   @Post(':id/generate')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Generate PDF for a report' })
@@ -257,7 +259,10 @@ export class ReportController {
   ) {
     return this.reportService.generatePdf(id, generatePdfDto);
   }
+  */
 
+  // TODO: Re-enable PDF download endpoint when puppeteer is installed
+  /*
   @Get(':id/pdf')
   @ApiOperation({ summary: 'Download PDF of a report' })
   @ApiParam({
@@ -286,4 +291,5 @@ export class ReportController {
     
     res.send(result.buffer);
   }
+  */
 }

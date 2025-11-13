@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { incidentService } from '../../services/incidentService';
 import './InitialSurveyPage.css';
 
 // Fix Leaflet default marker icon issue
@@ -183,46 +185,48 @@ export function CreateIncidentReportPage() {
     });
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!polygonData) {
-      alert('⚠️ กรุณาวาดพื้นที่ที่ได้รับผลกระทบบนแผนที่');
+      toast.error('⚠️ กรุณาวาดพื้นที่ที่ได้รับผลกระทบบนแผนที่');
       return;
     }
 
     if (!latitude || !longitude) {
-      alert('⚠️ กรุณาใช้ GPS เพื่อระบุตำแหน่งปัจจุบัน');
+      toast.error('⚠️ กรุณาใช้ GPS เพื่อระบุตำแหน่งปัจจุบัน');
       return;
     }
 
-    const reportData = {
-      type: 'NEW_INCIDENT',
-      incidentDate,
-      disasterType,
-      village,
-      estimatedHouseholds: Number(estimatedHouseholds),
-      severity: Number(severity),
-      notes,
-      latitude,
-      longitude,
-      accuracy,
-      polygon: polygonData,
-      photoCount: photos.length,
-      reportedAt: new Date().toISOString()
-    };
+    setIsSubmitting(true);
 
-    console.log('📋 New Incident Report:', reportData);
-    console.log('📷 Photos:', photos.map(p => p.name));
+    try {
+      const payload = {
+        title: `${disasterType} - ${village}`,
+        description: notes || `เหตุการณ์${disasterType}ที่${village}`,
+        type: disasterType,
+        severity: severity === '5' ? 'CRITICAL' : severity === '4' ? 'HIGH' : severity === '3' ? 'MEDIUM' : 'LOW',
+        location: {
+          lat: latitude,
+          lng: longitude,
+          address: village
+        },
+        affectedArea: polygonData,
+        photos: photos.map(p => p.name)
+      };
 
-    alert('✅ รายงานเหตุการณ์ใหม่สำเร็จ!\n\nรายงานจะถูกส่งไปยังผู้บังคับบัญชาเพื่อตรวจสอบและมอบหมายงาน\n\n' +
-      `พื้นที่: ${village}\n` +
-      `ครัวเรือน: ${estimatedHouseholds}\n` +
-      `ความรุนแรง: ${severity}/5\n` +
-      `รูปถ่าย: ${photos.length} รูป`
-    );
-
-    navigate('/dashboard/officer');
+      await incidentService.create(payload);
+      
+      toast.success('✅ รายงานเหตุการณ์ใหม่สำเร็จ!\nรายงานจะถูกส่งไปยังผู้บังคับบัญชา');
+      navigate('/dashboard/officer');
+    } catch (error) {
+      console.error('Error creating incident:', error);
+      toast.error('❌ ไม่สามารถส่งรายงานได้ กรุณาลองใหม่อีกครั้ง');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
