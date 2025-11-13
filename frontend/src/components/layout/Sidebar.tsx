@@ -12,7 +12,10 @@ export function Sidebar() {
   };
 
   const getMenuItems = () => {
-    switch (user?.role) {
+    // Convert role to string for comparison (handles both string and enum)
+    const userRole = user?.role ? String(user.role) : '';
+    
+    switch (userRole) {
       case 'DEVELOPER':
         return [
           { icon: '🛠️', label: 'Developer Tools', path: '/dashboard/developer' },
