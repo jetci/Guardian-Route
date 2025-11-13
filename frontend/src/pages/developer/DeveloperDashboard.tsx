@@ -396,6 +396,10 @@ export default function DeveloperDashboard() {
           <h3>📊 Users by Role</h3>
           <div className="role-cards">
             <div className="role-card">
+              <span className="role-badge developer">DEVELOPER</span>
+              <span className="role-count">{roleCounts.DEVELOPER}</span>
+            </div>
+            <div className="role-card">
               <span className="role-badge admin">ADMIN</span>
               <span className="role-count">{roleCounts.ADMIN}</span>
             </div>

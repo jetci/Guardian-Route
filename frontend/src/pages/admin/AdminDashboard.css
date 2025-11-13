@@ -260,6 +260,11 @@
   letter-spacing: 0.5px;
 }
 
+.role-badge.developer {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
 .role-badge.admin {
   background: #fce7f3;
   color: #be123c;
