@@ -3,7 +3,7 @@ import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import toast from 'react-hot-toast';
 import userService, { type User, type CreateUserDto, type UpdateUserDto } from '../../services/userService';
 import statisticsService from '../../services/statisticsService';
-import './AdminDashboard.css';
+import '../admin/AdminDashboard.css';
 
 // Removed mock users - using real API
 /* const mockUsers = [
