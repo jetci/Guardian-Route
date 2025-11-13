@@ -43,6 +43,17 @@ import ApiDocsPage from './pages/developer/ApiDocsPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { RoleBasedRedirect } from './components/RoleBasedRedirect';
 
+// New Placeholder Pages
+import ManageIncidentsPage from './pages/supervisor/ManageIncidentsPage';
+import TeamOverviewPage from './pages/supervisor/TeamOverviewPage';
+import OperationalReportsPage from './pages/supervisor/OperationalReportsPage';
+import ReportsStatisticsPage from './pages/executive/ReportsStatisticsPage';
+import ManageUsersPage from './pages/admin/ManageUsersPage';
+import ManageDataPage from './pages/admin/ManageDataPage';
+import VillageBoundariesPage from './pages/admin/VillageBoundariesPage';
+import SurveyAreaPage from './pages/field-officer/SurveyAreaPage';
+import SurveyAnalysisPage from './pages/analysis/SurveyAnalysisPage';
+
 function App() {
   return (
     <>
@@ -341,6 +352,97 @@ function App() {
               </ProtectedRoute>
             }
           />
+          
+          {/* NEW ROUTES - Supervisor */}
+          <Route
+            path="/manage-incidents"
+            element={
+              <ProtectedRoute allowedRoles={['SUPERVISOR']}>
+                <ManageIncidentsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/team-overview"
+            element={
+              <ProtectedRoute allowedRoles={['SUPERVISOR']}>
+                <TeamOverviewPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/operational-reports"
+            element={
+              <ProtectedRoute allowedRoles={['SUPERVISOR']}>
+                <OperationalReportsPage />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* NEW ROUTES - Executive */}
+          <Route
+            path="/reports-statistics"
+            element={
+              <ProtectedRoute allowedRoles={['EXECUTIVE']}>
+                <ReportsStatisticsPage />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* NEW ROUTES - Admin */}
+          <Route
+            path="/manage-users"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <ManageUsersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/manage-data"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <ManageDataPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/village-boundaries"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <VillageBoundariesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/audit-log"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AuditLogsPage />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* NEW ROUTES - Field Officer */}
+          <Route
+            path="/survey-area"
+            element={
+              <ProtectedRoute allowedRoles={['FIELD_OFFICER']}>
+                <SurveyAreaPage />
+              </ProtectedRoute>
+            }
+          />
+          
+          {/* NEW ROUTES - Shared (Supervisor & Executive) */}
+          <Route
+            path="/survey-analysis"
+            element={
+              <ProtectedRoute allowedRoles={['SUPERVISOR', 'EXECUTIVE']}>
+                <SurveyAnalysisPage />
+              </ProtectedRoute>
+            }
+          />
+          
           {/* Role-based redirect */}
           <Route path="/" element={<RoleBasedRedirect />} />
         </Routes>
