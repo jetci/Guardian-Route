@@ -18,10 +18,8 @@ export function Sidebar() {
     switch (userRole) {
       case 'DEVELOPER':
         return [
-          { icon: '🛠️', label: 'Developer Tools', path: '/dashboard/developer' },
-          { icon: '👥', label: 'User Management', path: '/dashboard/developer' },
+          { icon: '🛠️', label: 'Developer Dashboard', path: '/dashboard/developer' },
           { icon: '📘', label: 'Developer Handbook', path: '/developer-handbook' },
-          { icon: '📊', label: 'System Stats', path: '/dashboard/developer' },
         ];
       case 'ADMIN':
         return [
