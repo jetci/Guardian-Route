@@ -19,7 +19,10 @@ export function LoginPage() {
 
     try {
       const response = await authApi.login(email, password);
+      console.log('[Login] Response:', response);
+      console.log('[Login] User Role:', response.user.role);
       setAuth(response.user, response.accessToken, response.refreshToken);
+      console.log('[Login] Auth set, navigating to /dashboard');
       toast.success(`ยินดีต้อนรับ ${response.user.firstName} ${response.user.lastName}!`);
       navigate('/dashboard');
     } catch (error: any) {

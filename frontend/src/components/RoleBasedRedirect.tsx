@@ -16,8 +16,11 @@ import { useAuthStore } from '../stores/authStore';
 export const RoleBasedRedirect = () => {
   const user = useAuthStore((state) => state.user);
 
+  console.log('[RoleBasedRedirect] User:', user);
+
   // If no user, redirect to login
   if (!user) {
+    console.log('[RoleBasedRedirect] No user, redirecting to /login');
     return <Navigate to="/login" replace />;
   }
 
@@ -33,14 +36,19 @@ export const RoleBasedRedirect = () => {
   // Convert role to string for lookup (handles both string and enum)
   const userRoleString = typeof user.role === 'string' ? user.role : String(user.role);
   
+  console.log('[RoleBasedRedirect] User Role String:', userRoleString);
+  
   // Get redirect path for user's role
   const redirectPath = redirectMap[userRoleString];
 
+  console.log('[RoleBasedRedirect] Redirect Path:', redirectPath);
+
   // If role not found in map, redirect to login
   if (!redirectPath) {
-    console.error(`Unknown role: ${userRoleString}`);
+    console.error(`[RoleBasedRedirect] Unknown role: ${userRoleString}`);
     return <Navigate to="/login" replace />;
   }
 
+  console.log('[RoleBasedRedirect] Redirecting to:', redirectPath);
   return <Navigate to={redirectPath} replace />;
 };

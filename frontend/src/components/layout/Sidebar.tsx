@@ -1,10 +1,21 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '../../stores/authStore';
 import './Sidebar.css';
 
 export function Sidebar() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  const [isReady, setIsReady] = useState(false);
+
+  // Force re-render when auth state is loaded from localStorage
+  useEffect(() => {
+    // Small delay to ensure zustand persist has loaded
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -14,6 +25,11 @@ export function Sidebar() {
   const getMenuItems = () => {
     // Convert role to string for comparison (handles both string and enum)
     const userRole = user?.role ? String(user.role) : '';
+    
+    // Debug logging
+    console.log('[Sidebar] User:', user);
+    console.log('[Sidebar] User Role:', userRole);
+    console.log('[Sidebar] Is Ready:', isReady);
     
     switch (userRole) {
       case 'DEVELOPER':
