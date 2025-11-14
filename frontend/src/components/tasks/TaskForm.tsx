@@ -1,9 +1,10 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { tasksApi } from '../../api/tasks';
 import { incidentsApi } from '../../api/incidents';
 import { usersApi } from '../../api/users';
 import toast from 'react-hot-toast';
 import { useState, useEffect } from 'react';
+import ThaiDatePicker from '../ThaiDatePicker';
 import type { CreateTaskDto, TaskPriority, Incident, User, Role } from '../../types';
 
 interface TaskFormData {
@@ -21,7 +22,7 @@ interface TaskFormProps {
 }
 
 export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
-  const { register, handleSubmit, formState: { errors } } = useForm<TaskFormData>();
+  const { register, handleSubmit, control, formState: { errors } } = useForm<TaskFormData>();
   const [loading, setLoading] = useState(false);
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -165,10 +166,17 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
       {/* Due Date */}
       <div>
         <label className="block text-sm font-medium mb-1">กำหนดเสร็จ</label>
-        <input
-          type="date"
-          {...register('dueDate')}
-          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+        <Controller
+          name="dueDate"
+          control={control}
+          render={({ field }) => (
+            <ThaiDatePicker
+              id="task-due-date"
+              value={field.value ? new Date(field.value) : null}
+              onChange={(date) => field.onChange(date ? date.toISOString().split('T')[0] : '')}
+              placeholder="เลือกวันครบกำหนด"
+            />
+          )}
         />
       </div>
 

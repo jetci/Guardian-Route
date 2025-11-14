@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
+import ThaiDatePicker from '../../components/ThaiDatePicker';
 
 export default function ExecutiveAnalytics() {
   const navigate = useNavigate();
@@ -9,8 +10,8 @@ export default function ExecutiveAnalytics() {
   const [activeMenu, setActiveMenu] = useState('analytics');
   
   // Filter states
-  const [dateFrom, setDateFrom] = useState('2025-10-01');
-  const [dateTo, setDateTo] = useState('2025-11-14');
+  const [dateFrom, setDateFrom] = useState<Date | null>(new Date(2025, 9, 1));
+  const [dateTo, setDateTo] = useState<Date | null>(new Date());
   const [incidentType, setIncidentType] = useState('all');
   const [area, setArea] = useState('all');
 
@@ -235,34 +236,22 @@ export default function ExecutiveAnalytics() {
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#4a5568' }}>
                 วันที่เริ่มต้น
               </label>
-              <input
-                type="date"
+              <ThaiDatePicker
+                id="analytics-date-from"
                 value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '2px solid #e2e8f0',
-                  borderRadius: '8px',
-                  fontSize: '14px'
-                }}
+                onChange={setDateFrom}
+                placeholder="เลือกวันเริ่มต้น"
               />
             </div>
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: '500', color: '#4a5568' }}>
                 วันที่สิ้นสุด
               </label>
-              <input
-                type="date"
+              <ThaiDatePicker
+                id="analytics-date-to"
                 value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px',
-                  border: '2px solid #e2e8f0',
-                  borderRadius: '8px',
-                  fontSize: '14px'
-                }}
+                onChange={setDateTo}
+                placeholder="เลือกวันสิ้นสุด"
               />
             </div>
             <div>

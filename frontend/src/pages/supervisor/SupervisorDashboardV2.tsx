@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import toast from 'react-hot-toast';
+import ThaiDatePicker from '../../components/ThaiDatePicker';
 import './SupervisorDashboard.css';
 
 // Mock data - จะเปลี่ยนเป็น real API ทีหลัง
@@ -110,11 +111,12 @@ const mockTeamMembers = [
   }
 ];
 
-export default function SupervisorDashboard() {
+export default function SupervisorDashboardV2() {
   const [activeTab, setActiveTab] = useState<'urgent' | 'normal' | 'reviewed'>('urgent');
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedReport, setSelectedReport] = useState<any>(null);
+  const [taskDueDate, setTaskDueDate] = useState<Date | null>(null);
 
   // Stats
   const stats = {
@@ -351,7 +353,12 @@ export default function SupervisorDashboard() {
                 
                 <div className="form-group">
                   <label>Due Date *</label>
-                  <input type="date" required />
+                  <ThaiDatePicker
+                    id="task-due-date"
+                    value={taskDueDate}
+                    onChange={setTaskDueDate}
+                    placeholder="เลือกวันครบกำหนด"
+                  />
                 </div>
 
                 <div className="form-group">

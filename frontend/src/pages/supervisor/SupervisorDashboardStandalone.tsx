@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
+import ThaiDatePicker from '../../components/ThaiDatePicker';
 import './SupervisorDashboard.css';
 import './SupervisorDashboardStandalone.css';
 
@@ -117,6 +118,7 @@ export default function SupervisorDashboardStandalone() {
   const { user, logout } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'urgent' | 'normal' | 'reviewed'>('urgent');
   const [showAssignModal, setShowAssignModal] = useState(false);
+  const [taskDueDate, setTaskDueDate] = useState<Date | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedReport, setSelectedReport] = useState<any>(null);
 
@@ -372,7 +374,12 @@ export default function SupervisorDashboardStandalone() {
                   
                   <div className="form-group">
                     <label>Due Date *</label>
-                    <input type="date" required />
+                    <ThaiDatePicker
+                      id="task-due-date-standalone"
+                      value={taskDueDate}
+                      onChange={setTaskDueDate}
+                      placeholder="เลือกวันครบกำหนด"
+                    />
                   </div>
 
                   <div className="form-group">
