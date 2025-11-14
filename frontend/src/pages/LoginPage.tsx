@@ -58,7 +58,7 @@ export function LoginPage() {
     }
   };
 
-  const quickLogin = (role: string) => {
+  const quickLogin = async (role: string) => {
     const credentials = {
       DEVELOPER: { email: 'jetci.jm@gmail.com', password: 'g0KEk,^],k;yo' },
       ADMIN: { email: 'admin@obtwiang.go.th', password: 'password123' },
@@ -67,8 +67,32 @@ export function LoginPage() {
       FIELD_OFFICER: { email: 'field@obtwiang.go.th', password: 'password123' },
     };
     const cred = credentials[role as keyof typeof credentials];
-    setEmail(cred.email);
-    setPassword(cred.password);
+    
+    // Auto-submit after filling
+    setLoading(true);
+    try {
+      const response = await authService.login({ email: cred.email, password: cred.password });
+      
+      localStorage.setItem('access_token', response.access_token);
+      localStorage.setItem('refresh_token', response.refresh_token);
+      
+      setAuth(response.user as any, response.access_token, response.refresh_token);
+      
+      toast.success(`ยินดีต้อนรับ ${response.user.firstName} ${response.user.lastName}!`);
+      
+      const redirectPath = getRoleRedirectPath(response.user.role);
+      navigate(redirectPath);
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        toast.error('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+      } else if (error.response?.status === 403) {
+        toast.error('บัญชีของคุณถูกระงับการใช้งาน');
+      } else {
+        toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
