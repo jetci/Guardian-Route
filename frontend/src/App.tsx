@@ -12,6 +12,7 @@ import ExecutiveDashboardNew from './pages/executive/ExecutiveDashboard';
 import ExecutiveAnalytics from './pages/executive/ExecutiveAnalytics';
 import ExecutiveBudgetResources from './pages/executive/ExecutiveBudgetResources';
 import ExecutiveGeospatialAnalysis from './pages/executive/ExecutiveGeospatialAnalysis';
+import ThaiDatePickerDemo from './pages/ThaiDatePickerDemo';
 import { UsersPage } from './pages/UsersPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TeamsPage } from './pages/TeamsPage';
@@ -68,6 +69,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           
           {/* Public Routes */}
+          <Route path="/demo/thai-datepicker" element={<ThaiDatePickerDemo />} />
           <Route path="/developer-handbook" element={<DeveloperHandbookPage />} />
           
           {/* Developer Routes */}
