@@ -6,6 +6,7 @@ import { AdminDashboard } from './pages/dashboards/AdminDashboard';
 import AdminDashboardV2 from './pages/admin/AdminDashboardV2';
 import { SupervisorDashboard as SupervisorDashboardNew } from './pages/dashboards/SupervisorDashboard';
 import { FieldOfficerDashboard } from './pages/dashboards/FieldOfficerDashboard';
+import FieldOfficerDashboardNew from './pages/field-officer/FieldOfficerDashboard';
 import { ExecutiveDashboard } from './pages/dashboards/ExecutiveDashboard';
 import ExecutiveDashboardV2 from './pages/executive/ExecutiveDashboardV2';
 import ExecutiveDashboardNew from './pages/executive/ExecutiveDashboard';
@@ -132,6 +133,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['FIELD_OFFICER']}>
                 <FieldOfficerDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/field-officer/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={['FIELD_OFFICER']}>
+                <FieldOfficerDashboardNew />
               </ProtectedRoute>
             }
           />
