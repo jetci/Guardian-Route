@@ -190,14 +190,14 @@ export default function AdminDashboard() {
   const fetchStatistics = async () => {
     try {
       setStatsLoading(true);
-      const [userStats, incidentStats, reportStats] = await Promise.all([
-        userService.getUserStatistics(),
+      const users = await usersApi.getAll();
+      const [incidentStats, reportStats] = await Promise.all([
         statisticsService.getIncidentStatistics(),
         statisticsService.getReportStatistics()
       ]);
 
       setStats({
-        totalUsers: userStats.total,
+        totalUsers: users.length,
         activeIncidents: incidentStats.byStatus.IN_PROGRESS + incidentStats.byStatus.PENDING,
         pendingReports: reportStats.pending,
         systemHealth: 98 // TODO: Get from health endpoint
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
       user.lastName?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesRole = roleFilter === 'ALL' || user.role === roleFilter;
-    const matchesStatus = statusFilter === 'ALL' || user.status === statusFilter;
+    const matchesStatus = statusFilter === 'ALL' || (user.isActive ? 'ACTIVE' : 'INACTIVE') === statusFilter;
     
     return matchesSearch && matchesRole && matchesStatus;
   });
@@ -250,16 +250,15 @@ export default function AdminDashboard() {
     e.preventDefault();
     try {
       const userData: CreateUserDto = {
-        username: formData.username,
         email: formData.email,
         password: formData.password || 'password123',
         firstName: formData.firstName,
         lastName: formData.lastName,
-        role: formData.role,
+        role: formData.role as any,
         phone: formData.phone
       };
       
-      await userService.createUser(userData);
+      await usersApi.create(userData);
       toast.success('สร้างผู้ใช้สำเร็จ!');
       setShowCreateModal(false);
       resetForm();
@@ -275,19 +274,13 @@ export default function AdminDashboard() {
     
     try {
       const userData: UpdateUserDto = {
-        username: formData.username,
-        email: formData.email,
         firstName: formData.firstName,
         lastName: formData.lastName,
-        role: formData.role,
+        role: formData.role as any,
         phone: formData.phone
       };
       
-      if (formData.password) {
-        userData.password = formData.password;
-      }
-      
-      await userService.updateUser(selectedUser.id, userData);
+      await usersApi.update(selectedUser.id, userData);
       toast.success('อัพเดทผู้ใช้สำเร็จ!');
       setShowEditModal(false);
       resetForm();
@@ -301,7 +294,7 @@ export default function AdminDashboard() {
     if (!selectedUser) return;
     
     try {
-      await userService.deleteUser(selectedUser.id);
+      await usersApi.delete(selectedUser.id);
       toast.success('ลบผู้ใช้สำเร็จ!');
       setShowDeleteModal(false);
       setSelectedUser(null);
@@ -344,7 +337,7 @@ export default function AdminDashboard() {
 
   const toggleUserStatus = async (userId: string) => {
     try {
-      await userService.toggleUserStatus(userId);
+      await usersApi.toggleStatus(userId);
       toast.success('เปลี่ยนสถานะผู้ใช้สำเร็จ!');
       fetchUsers(); // Refresh list
     } catch (err: any) {
@@ -506,10 +499,10 @@ export default function AdminDashboard() {
                       </td>
                       <td>
                         <button
-                          className={`status-badge ${(user.status || 'ACTIVE').toLowerCase()}`}
+                          className={`status-badge ${user.isActive ? 'active' : 'inactive'}`}
                           onClick={() => toggleUserStatus(user.id)}
                         >
-                          {user.status || 'ACTIVE'}
+                          {user.isActive ? 'ACTIVE' : 'INACTIVE'}
                         </button>
                       </td>
                       <td>{user.phone || '-'}</td>
