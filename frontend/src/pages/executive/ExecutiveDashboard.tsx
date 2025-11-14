@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
+import HeatmapVisualization from '../../components/HeatmapVisualization';
 
 export default function ExecutiveDashboard() {
   const navigate = useNavigate();
@@ -447,36 +448,8 @@ export default function ExecutiveDashboard() {
             </div>
           </div>
 
-          {/* Heatmap Placeholder */}
-          <div style={{
-            background: 'white',
-            padding: '30px',
-            borderRadius: '16px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-            border: '1px solid #e2e8f0'
-          }}>
-            <h3 style={{ margin: '0 0 20px 0', fontSize: '20px', color: '#1a202c' }}>
-              🗺️ แผนที่ความหนาแน่น
-            </h3>
-            <div style={{
-              width: '100%',
-              height: '280px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: '16px',
-              fontWeight: '500'
-            }}>
-              🗺️ Heatmap Visualization
-              <br />
-              <span style={{ fontSize: '14px', opacity: 0.8 }}>
-                (Integration with mapping library)
-              </span>
-            </div>
-          </div>
+          {/* Interactive Heatmap */}
+          <HeatmapVisualization height="400px" />
         </div>
       </div>
     </div>
