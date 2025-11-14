@@ -4,7 +4,7 @@
  * Phase 2 - Compressed Integration
  */
 
-import api from './api';
+import { apiClient as api } from './client';
 
 export interface TaskPayload {
   title: string;

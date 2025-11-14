@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-// import { authApi } from '../api/auth';
-import { mockAuthApi as authApi } from '../api/mockAuth'; // Use mock API temporarily
+import { authService } from '../services/authService';
 import toast from 'react-hot-toast';
 import './LoginPage.css';
 
@@ -18,17 +17,44 @@ export function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await authApi.login(email, password);
-      console.log('[Login] Response:', response);
-      console.log('[Login] User Role:', response.user.role);
-      setAuth(response.user, response.accessToken, response.refreshToken);
-      console.log('[Login] Auth set, navigating to /dashboard');
+      const response = await authService.login({ email, password });
+      
+      localStorage.setItem('access_token', response.access_token);
+      localStorage.setItem('refresh_token', response.refresh_token);
+      
+      setAuth(response.user as any, response.access_token, response.refresh_token);
+      
       toast.success(`ยินดีต้อนรับ ${response.user.firstName} ${response.user.lastName}!`);
-      navigate('/dashboard');
+      
+      const redirectPath = getRoleRedirectPath(response.user.role);
+      navigate(redirectPath);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'เข้าสู่ระบบไม่สำเร็จ');
+      if (error.response?.status === 401) {
+        toast.error('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+      } else if (error.response?.status === 403) {
+        toast.error('บัญชีของคุณถูกระงับการใช้งาน');
+      } else {
+        toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getRoleRedirectPath = (role: string): string => {
+    switch (role) {
+      case 'FIELD_OFFICER':
+        return '/tasks/my-tasks';
+      case 'SUPERVISOR':
+        return '/supervisor';
+      case 'EXECUTIVE':
+        return '/executive-dashboard';
+      case 'ADMIN':
+        return '/admin/dashboard';
+      case 'DEVELOPER':
+        return '/developer';
+      default:
+        return '/dashboard';
     }
   };
 

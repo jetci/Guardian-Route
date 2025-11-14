@@ -3,18 +3,31 @@
  * จัดการผู้ใช้งาน
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import usersApi, { type User } from '../../services/userService';
+import toast from 'react-hot-toast';
 
 export default function ManageUsersPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const users = [
-    { id: 1, username: 'admin01', name: 'ผู้ดูแลระบบ', role: 'ADMIN', status: 'active' },
-    { id: 2, username: 'supervisor01', name: 'หัวหน้างาน 1', role: 'SUPERVISOR', status: 'active' },
-    { id: 3, username: 'field01', name: 'เจ้าหน้าที่ภาคสนาม 1', role: 'FIELD_OFFICER', status: 'active' },
-    { id: 4, username: 'executive01', name: 'ผู้บริหาร', role: 'EXECUTIVE', status: 'active' },
-  ];
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true);
+      const data = await usersApi.getAll();
+      setUsers(data);
+    } catch (error) {
+      toast.error('โหลดข้อมูลผู้ใช้ไม่สำเร็จ');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="admin-dashboard">
@@ -69,9 +82,9 @@ export default function ManageUsersPage() {
                 <tr key={user.id}>
                   <td>{user.id}</td>
                   <td>{user.username}</td>
-                  <td>{user.name}</td>
+                  <td>{`${user.firstName} ${user.lastName}`}</td>
                   <td><span className={`role-badge ${user.role.toLowerCase()}`}>{user.role}</span></td>
-                  <td><span className={`status-badge ${user.status}`}>✅ {user.status}</span></td>
+                  <td><span className={`status-badge ${user.isActive ? 'ACTIVE' : 'INACTIVE'}`}>✅ {user.isActive ? 'ACTIVE' : 'INACTIVE'}</span></td>
                   <td>
                     <button className="btn-edit">✏️ แก้ไข</button>
                     <button className="btn-delete">🗑️ ลบ</button>

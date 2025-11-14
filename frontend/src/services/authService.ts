@@ -1,59 +1,44 @@
-/**
- * Auth Service - Authentication API calls
- * Guardian Route Project
- * Phase 2 - Compressed Integration
- */
+import { apiClient } from './client';
 
-import api from './api';
-
-export interface LoginPayload {
+export interface LoginRequest {
   email: string;
   password: string;
 }
 
 export interface LoginResponse {
+  access_token: string;
+  refresh_token: string;
   user: {
     id: string;
     email: string;
     username: string;
-    role: string;
     firstName: string;
     lastName: string;
+    role: string;
+    isActive: boolean;
   };
-  access_token: string;
-  refresh_token: string;
 }
 
 export const authService = {
-  /**
-   * Login user
-   */
-  login: async (data: LoginPayload): Promise<LoginResponse> => {
-    const response = await api.post('/auth/login', data);
+  login: async (credentials: LoginRequest): Promise<LoginResponse> => {
+    const response = await apiClient.post('/api/auth/login', credentials);
     return response.data;
   },
 
-  /**
-   * Logout user
-   */
+  me: async () => {
+    const response = await apiClient.get('/api/auth/me');
+    return response.data;
+  },
+
+  refresh: async (refreshToken: string) => {
+    const response = await apiClient.post('/api/auth/refresh', {
+      refresh_token: refreshToken,
+    });
+    return response.data;
+  },
+
   logout: async () => {
-    const response = await api.post('/auth/logout');
-    return response.data;
-  },
-
-  /**
-   * Refresh access token
-   */
-  refreshToken: async (refreshToken: string) => {
-    const response = await api.post('/auth/refresh', { refreshToken });
-    return response.data;
-  },
-
-  /**
-   * Get current user profile
-   */
-  getMe: async () => {
-    const response = await api.get('/users/me');
+    const response = await apiClient.post('/api/auth/logout');
     return response.data;
   },
 };

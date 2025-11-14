@@ -8,16 +8,17 @@ import axios from 'axios';
 import { useAuthStore } from '../stores/authStore';
 import toast from 'react-hot-toast';
 
-// Create axios instance with base configuration
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001',
+  baseURL: API_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor - Add token to every request
+// Add token to requests
 api.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().accessToken;
@@ -26,17 +27,35 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor - Handle errors globally
+// Handle token refresh
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      const refreshToken = useAuthStore.getState().refreshToken;
+      if (refreshToken) {
+        try {
+          const response = await axios.post(`${API_URL}/api/auth/refresh`, {
+            refresh_token: refreshToken,
+          });
+          
+          useAuthStore.getState().updateTokens(response.data.access_token, refreshToken);
+          originalRequest.headers.Authorization = `Bearer ${response.data.access_token}`;
+          return api(originalRequest);
+        } catch {
+          useAuthStore.getState().logout();
+          window.location.href = '/login';
+        }
+      }
+    }
+
     // Only handle 401 if we have a valid response (not network error)
     // This prevents logout when backend is not running
     if (error.response?.status === 401) {
