@@ -22,7 +22,8 @@ export default function ExecutiveAnalytics() {
   const menuItems = [
     { id: 'dashboard', icon: '📈', label: 'แดชบอร์ดสรุป', path: '/dashboard/executive' },
     { id: 'analytics', icon: '📊', label: 'รายงานและสถิติ', path: '/executive/analytics' },
-    { id: 'survey', icon: '🗺️', label: 'วิเคราะห์ข้อมูลสำรวจ', path: '/executive/survey-analysis' },
+    { id: 'budget', icon: '💰', label: 'งบประมาณและทรัพยากร', path: '/executive/budget-resources' },
+    { id: 'geospatial', icon: '🗺️', label: 'วิเคราะห์เชิงพื้นที่', path: '/executive/geospatial-analysis' },
   ];
 
   const handleMenuClick = (item: any) => {
@@ -32,6 +33,14 @@ export default function ExecutiveAnalytics() {
     }
     if (item.path === '/dashboard/executive') {
       navigate('/dashboard/executive');
+      return;
+    }
+    if (item.path === '/executive/budget-resources') {
+      navigate('/executive/budget-resources');
+      return;
+    }
+    if (item.path === '/executive/geospatial-analysis') {
+      navigate('/executive/geospatial-analysis');
       return;
     }
     toast.success(`🚀 ${item.label} - Coming soon!`);

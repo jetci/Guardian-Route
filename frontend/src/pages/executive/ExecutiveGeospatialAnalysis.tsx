@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
 
-export default function ExecutiveSurveyAnalysis() {
+export default function ExecutiveGeospatialAnalysis() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
-  const [activeMenu, setActiveMenu] = useState('survey');
+  const [activeMenu, setActiveMenu] = useState('geospatial');
   const [dateFilter, setDateFilter] = useState('2025-11-01');
   const [selectedSurveys, setSelectedSurveys] = useState<number[]>([1, 2]);
 
@@ -18,12 +18,13 @@ export default function ExecutiveSurveyAnalysis() {
   const menuItems = [
     { id: 'dashboard', icon: '📈', label: 'แดชบอร์ดสรุป', path: '/dashboard/executive' },
     { id: 'analytics', icon: '📊', label: 'รายงานและสถิติ', path: '/executive/analytics' },
-    { id: 'survey', icon: '🗺️', label: 'วิเคราะห์ข้อมูลสำรวจ', path: '/executive/survey-analysis' },
+    { id: 'budget', icon: '💰', label: 'งบประมาณและทรัพยากร', path: '/executive/budget-resources' },
+    { id: 'geospatial', icon: '🗺️', label: 'วิเคราะห์เชิงพื้นที่', path: '/executive/geospatial-analysis' },
   ];
 
   const handleMenuClick = (item: any) => {
     setActiveMenu(item.id);
-    if (item.path === '/executive/survey-analysis') {
+    if (item.path === '/executive/geospatial-analysis') {
       return;
     }
     if (item.path === '/dashboard/executive') {
@@ -32,6 +33,10 @@ export default function ExecutiveSurveyAnalysis() {
     }
     if (item.path === '/executive/analytics') {
       navigate('/executive/analytics');
+      return;
+    }
+    if (item.path === '/executive/budget-resources') {
+      navigate('/executive/budget-resources');
       return;
     }
     toast.success(`🚀 ${item.label} - Coming soon!`);
@@ -197,10 +202,10 @@ export default function ExecutiveSurveyAnalysis() {
           overflowY: 'auto'
         }}>
           <h1 style={{ margin: '0 0 10px 0', fontSize: '28px', color: '#1a202c' }}>
-            🗺️ วิเคราะห์ข้อมูลสำรวจ
+            🗺️ วิเคราะห์เชิงพื้นที่
           </h1>
           <p style={{ margin: '0 0 30px 0', color: '#718096', fontSize: '14px' }}>
-            เปรียบเทียบขอบเขตพื้นที่ประสบภัยจากเหตุการณ์ต่างๆ
+            ภาพรวมพื้นที่เสี่ยงซ้ำซ้อนและการวางแผนระยะยาว
           </p>
 
           {/* Date Filter */}

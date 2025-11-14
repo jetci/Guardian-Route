@@ -10,7 +10,8 @@ import { ExecutiveDashboard } from './pages/dashboards/ExecutiveDashboard';
 import ExecutiveDashboardV2 from './pages/executive/ExecutiveDashboardV2';
 import ExecutiveDashboardNew from './pages/executive/ExecutiveDashboard';
 import ExecutiveAnalytics from './pages/executive/ExecutiveAnalytics';
-import ExecutiveSurveyAnalysis from './pages/executive/ExecutiveSurveyAnalysis';
+import ExecutiveBudgetResources from './pages/executive/ExecutiveBudgetResources';
+import ExecutiveGeospatialAnalysis from './pages/executive/ExecutiveGeospatialAnalysis';
 import { UsersPage } from './pages/UsersPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TeamsPage } from './pages/TeamsPage';
@@ -141,8 +142,12 @@ function App() {
             element={<ExecutiveAnalytics />}
           />
           <Route
-            path="/executive/survey-analysis"
-            element={<ExecutiveSurveyAnalysis />}
+            path="/executive/budget-resources"
+            element={<ExecutiveBudgetResources />}
+          />
+          <Route
+            path="/executive/geospatial-analysis"
+            element={<ExecutiveGeospatialAnalysis />}
           />
           {/* Admin Routes */}
           <Route

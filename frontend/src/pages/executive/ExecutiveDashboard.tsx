@@ -16,7 +16,8 @@ export default function ExecutiveDashboard() {
   const menuItems = [
     { id: 'dashboard', icon: '📈', label: 'แดชบอร์ดสรุป', path: '/dashboard/executive' },
     { id: 'analytics', icon: '📊', label: 'รายงานและสถิติ', path: '/executive/analytics' },
-    { id: 'survey', icon: '🗺️', label: 'วิเคราะห์ข้อมูลสำรวจ', path: '/executive/survey-analysis' },
+    { id: 'budget', icon: '💰', label: 'งบประมาณและทรัพยากร', path: '/executive/budget-resources' },
+    { id: 'geospatial', icon: '🗺️', label: 'วิเคราะห์เชิงพื้นที่', path: '/executive/geospatial-analysis' },
   ];
 
   const handleMenuClick = (item: any) => {
@@ -24,15 +25,33 @@ export default function ExecutiveDashboard() {
     if (item.path === '/dashboard/executive') {
       return;
     }
+    if (item.path === '/executive/analytics') {
+      navigate('/executive/analytics');
+      return;
+    }
+    if (item.path === '/executive/budget-resources') {
+      navigate('/executive/budget-resources');
+      return;
+    }
+    if (item.path === '/executive/geospatial-analysis') {
+      navigate('/executive/geospatial-analysis');
+      return;
+    }
     toast.success(`🚀 ${item.label} - Coming soon!`);
   };
 
-  // Mock data
+  // Mock data with comparisons
   const kpiData = {
     monthlyIncidents: 24,
+    monthlyChange: '-5%',
+    monthlyChangePositive: false,
     avgResponseTime: '2.5 ชม.',
+    responseTimeChange: 'ดีขึ้น 0.3 ชม.',
+    responseTimePositive: true,
     topArea: 'บ้านหนองบัว',
-    trend: '+12%'
+    topAreaIncidents: 8,
+    trend: '+12%',
+    trendPositive: true
   };
 
   const monthlyTrend = [
@@ -211,7 +230,14 @@ export default function ExecutiveDashboard() {
             <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1a202c', marginBottom: '8px' }}>
               {kpiData.monthlyIncidents}
             </div>
-            <div style={{ color: '#718096', fontSize: '14px' }}>เหตุการณ์เดือนนี้</div>
+            <div style={{ color: '#718096', fontSize: '14px', marginBottom: '8px' }}>เหตุการณ์เดือนนี้</div>
+            <div style={{ 
+              fontSize: '13px', 
+              color: kpiData.monthlyChangePositive ? '#10b981' : '#ef4444',
+              fontWeight: '600'
+            }}>
+              {kpiData.monthlyChange} จากเดือนที่แล้ว
+            </div>
           </div>
 
           <div style={{
@@ -225,7 +251,14 @@ export default function ExecutiveDashboard() {
             <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1a202c', marginBottom: '8px' }}>
               {kpiData.avgResponseTime}
             </div>
-            <div style={{ color: '#718096', fontSize: '14px' }}>เวลาตอบสนองเฉลี่ย</div>
+            <div style={{ color: '#718096', fontSize: '14px', marginBottom: '8px' }}>เวลาตอบสนองเฉลี่ย</div>
+            <div style={{ 
+              fontSize: '13px', 
+              color: '#10b981',
+              fontWeight: '600'
+            }}>
+              {kpiData.responseTimeChange}
+            </div>
           </div>
 
           <div style={{
@@ -239,7 +272,14 @@ export default function ExecutiveDashboard() {
             <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#1a202c', marginBottom: '8px' }}>
               {kpiData.topArea}
             </div>
-            <div style={{ color: '#718096', fontSize: '14px' }}>พื้นที่เกิดเหตุบ่อยสุด</div>
+            <div style={{ color: '#718096', fontSize: '14px', marginBottom: '8px' }}>พื้นที่เกิดเหตุบ่อยสุด</div>
+            <div style={{ 
+              fontSize: '13px', 
+              color: '#3b82f6',
+              fontWeight: '600'
+            }}>
+              {kpiData.topAreaIncidents} เหตุการณ์
+            </div>
           </div>
 
           <div style={{
@@ -253,7 +293,14 @@ export default function ExecutiveDashboard() {
             <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#10b981', marginBottom: '8px' }}>
               {kpiData.trend}
             </div>
-            <div style={{ color: '#718096', fontSize: '14px' }}>แนวโน้มเทียบเดือนก่อน</div>
+            <div style={{ color: '#718096', fontSize: '14px', marginBottom: '8px' }}>แนวโน้มเทียบเดือนก่อน</div>
+            <div style={{ 
+              fontSize: '13px', 
+              color: '#10b981',
+              fontWeight: '600'
+            }}>
+              เพิ่มขึ้นจากปีที่แล้ว
+            </div>
           </div>
         </div>
 
