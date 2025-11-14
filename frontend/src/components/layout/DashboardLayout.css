@@ -9,6 +9,9 @@
   margin-left: 260px;
   padding: 32px;
   overflow-y: auto;
+  min-height: 100vh;
+  width: calc(100% - 260px);
+  position: relative;
 }
 
 /* Responsive */
