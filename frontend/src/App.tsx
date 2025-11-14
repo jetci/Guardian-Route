@@ -9,6 +9,8 @@ import { FieldOfficerDashboard } from './pages/dashboards/FieldOfficerDashboard'
 import { ExecutiveDashboard } from './pages/dashboards/ExecutiveDashboard';
 import ExecutiveDashboardV2 from './pages/executive/ExecutiveDashboardV2';
 import ExecutiveDashboardNew from './pages/executive/ExecutiveDashboard';
+import ExecutiveAnalytics from './pages/executive/ExecutiveAnalytics';
+import ExecutiveSurveyAnalysis from './pages/executive/ExecutiveSurveyAnalysis';
 import { UsersPage } from './pages/UsersPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TeamsPage } from './pages/TeamsPage';
@@ -133,6 +135,14 @@ function App() {
           <Route
             path="/dashboard/executive"
             element={<ExecutiveDashboardNew />}
+          />
+          <Route
+            path="/executive/analytics"
+            element={<ExecutiveAnalytics />}
+          />
+          <Route
+            path="/executive/survey-analysis"
+            element={<ExecutiveSurveyAnalysis />}
           />
           {/* Admin Routes */}
           <Route
