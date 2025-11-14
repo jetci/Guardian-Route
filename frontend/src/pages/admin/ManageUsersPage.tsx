@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import usersApi, { type User } from '../../services/userService';
 import toast from 'react-hot-toast';
 
@@ -30,7 +31,8 @@ export default function ManageUsersPage() {
   };
 
   return (
-    <div className="admin-dashboard">
+    <DashboardLayout>
+      <div className="admin-dashboard">
       <div className="dashboard-header">
         <h1>👤 จัดการผู้ใช้ (Manage Users)</h1>
         <p className="subtitle">จัดการบัญชีผู้ใช้งานทั้งหมดในระบบ</p>
@@ -102,5 +104,6 @@ export default function ManageUsersPage() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }
