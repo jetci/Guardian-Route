@@ -23,6 +23,7 @@ import { CreateIncidentReportPage } from './pages/field-officer/CreateIncidentRe
 import { SupervisorDashboard } from './pages/supervisor/SupervisorDashboard';
 import SupervisorDashboardV2 from './pages/supervisor/SupervisorDashboardV2';
 import SupervisorDashboardStandalone from './pages/supervisor/SupervisorDashboardStandalone';
+import SupervisorDashboardSimple from './pages/supervisor/SupervisorDashboardSimple';
 import { MapView } from './pages/supervisor/MapView';
 import { TasksPage } from './pages/supervisor/TasksPage';
 import SurveyTemplateList from './pages/supervisor/SurveyTemplateList';
@@ -118,7 +119,7 @@ function App() {
           />
           <Route
             path="/dashboard/supervisor"
-            element={<SupervisorDashboard />}
+            element={<SupervisorDashboardSimple />}
           />
           <Route
             path="/dashboard/officer"
