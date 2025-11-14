@@ -199,9 +199,9 @@ export default function DeveloperDashboard() {
       ]);
 
       setStats({
-        totalUsers: users.length,
-        activeIncidents: incidentStats.byStatus.IN_PROGRESS + incidentStats.byStatus.PENDING,
-        pendingReports: reportStats.pending,
+        totalUsers: users.length || 0,
+        activeIncidents: (incidentStats.byStatus?.IN_PROGRESS || 0) + (incidentStats.byStatus?.PENDING || 0),
+        pendingReports: reportStats.pending || 0,
         systemHealth: 98 // TODO: Get from health endpoint
       });
     } catch (err) {

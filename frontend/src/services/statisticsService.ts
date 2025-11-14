@@ -81,8 +81,57 @@ export const getActivityLogs = async (params?: {
   action?: string;
   userId?: string;
 }): Promise<{ data: ActivityLog[]; total: number }> => {
-  const response = await api.get('/activity-logs', { params });
-  return response.data;
+  // Mock data until backend endpoint is ready
+  const mockLogs: ActivityLog[] = [
+    {
+      id: '1',
+      action: 'LOGIN',
+      userId: 'user-1',
+      user: {
+        email: 'admin@obtwiang.go.th',
+        fullName: 'Admin User',
+      },
+      timestamp: new Date().toISOString(),
+      status: 'SUCCESS',
+      metadata: { details: 'User logged in successfully' },
+    },
+    {
+      id: '2',
+      action: 'CREATE_USER',
+      userId: 'user-1',
+      user: {
+        email: 'admin@obtwiang.go.th',
+        fullName: 'Admin User',
+      },
+      timestamp: new Date(Date.now() - 3600000).toISOString(),
+      status: 'SUCCESS',
+      target: 'Field Officer',
+      targetType: 'USER',
+    },
+    {
+      id: '3',
+      action: 'UPDATE_INCIDENT',
+      userId: 'user-2',
+      user: {
+        email: 'supervisor@obtwiang.go.th',
+        fullName: 'Supervisor User',
+      },
+      timestamp: new Date(Date.now() - 7200000).toISOString(),
+      status: 'SUCCESS',
+      targetType: 'INCIDENT',
+      metadata: { status: 'IN_PROGRESS' },
+    },
+  ];
+
+  const limit = params?.limit || 20;
+  return {
+    data: mockLogs.slice(0, limit),
+    total: mockLogs.length,
+  };
+  
+  // Real API call (commented out until backend ready)
+  // const response = await api.get('/activity-logs', { params });
+  // return response.data;
 };
 
 export default {
