@@ -34,36 +34,36 @@ export interface User {
 
 export const usersApi = {
   getAll: async (): Promise<User[]> => {
-    const response = await apiClient.get('/api/users');
+    const response = await apiClient.get('/users');
     return response.data;
   },
 
   getById: async (id: string): Promise<User> => {
-    const response = await apiClient.get(`/api/users/${id}`);
+    const response = await apiClient.get(`/users/${id}`);
     return response.data;
   },
 
   create: async (data: CreateUserDto): Promise<User> => {
-    const response = await apiClient.post('/api/users', data);
+    const response = await apiClient.post('/users', data);
     return response.data;
   },
 
   update: async (id: string, data: UpdateUserDto): Promise<User> => {
-    const response = await apiClient.patch(`/api/users/${id}`, data);
+    const response = await apiClient.patch(`/users/${id}`, data);
     return response.data;
   },
 
   delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/api/users/${id}`);
+    await apiClient.delete(`/users/${id}`);
   },
 
   toggleStatus: async (id: string): Promise<User> => {
-    const response = await apiClient.patch(`/api/users/${id}/toggle-status`);
+    const response = await apiClient.patch(`/users/${id}/toggle-status`);
     return response.data;
   },
 
   resetPassword: async (id: string, newPassword: string): Promise<void> => {
-    await apiClient.patch(`/api/users/${id}/reset-password`, {
+    await apiClient.patch(`/users/${id}/reset-password`, {
       newPassword,
     });
   },

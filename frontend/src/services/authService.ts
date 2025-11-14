@@ -21,24 +21,24 @@ export interface LoginResponse {
 
 export const authService = {
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    const response = await apiClient.post('/api/auth/login', credentials);
+    const response = await apiClient.post('/auth/login', credentials);
     return response.data;
   },
 
   me: async () => {
-    const response = await apiClient.get('/api/auth/me');
+    const response = await apiClient.get('/auth/me');
     return response.data;
   },
 
   refresh: async (refreshToken: string) => {
-    const response = await apiClient.post('/api/auth/refresh', {
+    const response = await apiClient.post('/auth/refresh', {
       refresh_token: refreshToken,
     });
     return response.data;
   },
 
   logout: async () => {
-    const response = await apiClient.post('/api/auth/logout');
+    const response = await apiClient.post('/auth/logout');
     return response.data;
   },
 };

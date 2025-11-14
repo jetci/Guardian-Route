@@ -26,10 +26,10 @@ export const dashboardService = {
   getStats: async (): Promise<DashboardStats> => {
     // Fetch data from multiple endpoints
     const [incidents, tasks, users, reports] = await Promise.all([
-      apiClient.get('/api/incidents'),
-      apiClient.get('/api/tasks'),
-      apiClient.get('/api/users'),
-      apiClient.get('/api/reports'),
+      apiClient.get('/incidents'),
+      apiClient.get('/tasks'),
+      apiClient.get('/users'),
+      apiClient.get('/reports'),
     ]);
 
     const incidentsData = incidents.data;
@@ -51,7 +51,7 @@ export const dashboardService = {
   },
 
   getIncidentsByType: async (): Promise<IncidentByType[]> => {
-    const response = await apiClient.get('/api/incidents');
+    const response = await apiClient.get('/incidents');
     const incidents = response.data;
     
     const typeCount: Record<string, number> = {};
@@ -67,7 +67,7 @@ export const dashboardService = {
   },
 
   getIncidentsBySeverity: async (): Promise<IncidentBySeverity[]> => {
-    const response = await apiClient.get('/api/incidents');
+    const response = await apiClient.get('/incidents');
     const incidents = response.data;
     
     const severityCount: Record<string, number> = {};
@@ -83,14 +83,14 @@ export const dashboardService = {
   },
 
   getRecentIncidents: async (limit = 5) => {
-    const response = await apiClient.get('/api/incidents', {
+    const response = await apiClient.get('/incidents', {
       params: { limit, sort: 'createdAt:desc' },
     });
     return response.data;
   },
 
   getMyTasks: async (limit = 5) => {
-    const response = await apiClient.get('/api/tasks/my', {
+    const response = await apiClient.get('/tasks/my', {
       params: { limit },
     });
     return response.data;
