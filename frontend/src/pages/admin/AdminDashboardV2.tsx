@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import toast from 'react-hot-toast';
-import userService, { type User, type CreateUserDto, type UpdateUserDto } from '../../services/userService';
+import usersApi, { type User, type CreateUserDto, type UpdateUserDto } from '../../services/userService';
 import statisticsService from '../../services/statisticsService';
 import './AdminDashboard.css';
 
@@ -175,8 +175,8 @@ export default function AdminDashboard() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await userService.getUsers();
-      setUsers(response.data);
+      const data = await usersApi.getAll();
+      setUsers(data);
       setError(null);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch users');

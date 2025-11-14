@@ -4,7 +4,7 @@
  * Phase A - Admin Dashboard Integration
  */
 
-import api from './api';
+import { apiClient as api } from './client';
 
 export interface IncidentStatistics {
   total: number;
