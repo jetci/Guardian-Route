@@ -7,10 +7,29 @@ export default function SupervisorDashboardSimple() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'urgent' | 'normal'>('urgent');
+  const [activeMenu, setActiveMenu] = useState('dashboard');
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const menuItems = [
+    { id: 'dashboard', icon: '🖥️', label: 'แดชบอร์ดบัญชาการ', path: '/dashboard/supervisor' },
+    { id: 'incidents', icon: '⚠️', label: 'จัดการเหตุการณ์', path: '/manage-incidents' },
+    { id: 'team', icon: '👥', label: 'ภาพรวมทีม', path: '/team-overview' },
+    { id: 'reports', icon: '📄', label: 'รายงานการปฏิบัติงาน', path: '/operational-reports' },
+    { id: 'survey', icon: '📊', label: 'วิเคราะห์ข้อมูลสำรวจ', path: '/survey-analysis' },
+  ];
+
+  const handleMenuClick = (item: any) => {
+    setActiveMenu(item.id);
+    if (item.path === '/dashboard/supervisor') {
+      // Stay on current page
+      return;
+    }
+    toast.success(`🚀 ${item.label} - Coming soon!`);
+    // navigate(item.path); // Uncomment when pages are ready
   };
 
   // Mock data
@@ -63,6 +82,46 @@ export default function SupervisorDashboardSimple() {
             {user?.role}
           </div>
         </div>
+
+        {/* Menu Items */}
+        <nav style={{ marginBottom: '30px' }}>
+          {menuItems.map(item => (
+            <button
+              key={item.id}
+              onClick={() => handleMenuClick(item)}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                background: activeMenu === item.id ? 'rgba(255,255,255,0.25)' : 'transparent',
+                border: 'none',
+                borderRadius: '10px',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: activeMenu === item.id ? '600' : '500',
+                marginBottom: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                textAlign: 'left',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                if (activeMenu !== item.id) {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeMenu !== item.id) {
+                  e.currentTarget.style.background = 'transparent';
+                }
+              }}
+            >
+              <span style={{ fontSize: '18px' }}>{item.icon}</span>
+              <span style={{ flex: 1 }}>{item.label}</span>
+            </button>
+          ))}
+        </nav>
 
         <button onClick={handleLogout} style={{
           width: '100%',
