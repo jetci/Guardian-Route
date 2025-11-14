@@ -19,10 +19,10 @@ export function LoginPage() {
     try {
       const response = await authService.login({ email, password });
       
-      localStorage.setItem('access_token', response.access_token);
-      localStorage.setItem('refresh_token', response.refresh_token);
+      localStorage.setItem('access_token', response.accessToken);
+      localStorage.setItem('refresh_token', response.refreshToken);
       
-      setAuth(response.user as any, response.access_token, response.refresh_token);
+      setAuth(response.user as any, response.accessToken, response.refreshToken);
       
       toast.success(`ยินดีต้อนรับ ${response.user.firstName} ${response.user.lastName}!`);
       
@@ -73,10 +73,10 @@ export function LoginPage() {
     try {
       const response = await authService.login({ email: cred.email, password: cred.password });
       
-      localStorage.setItem('access_token', response.access_token);
-      localStorage.setItem('refresh_token', response.refresh_token);
+      localStorage.setItem('access_token', response.accessToken);
+      localStorage.setItem('refresh_token', response.refreshToken);
       
-      setAuth(response.user as any, response.access_token, response.refresh_token);
+      setAuth(response.user as any, response.accessToken, response.refreshToken);
       
       toast.success(`ยินดีต้อนรับ ${response.user.firstName} ${response.user.lastName}!`);
       
