@@ -90,10 +90,22 @@ export const dashboardService = {
   },
 
   getMyTasks: async (limit = 5) => {
-    const response = await apiClient.get('/tasks/my', {
-      params: { limit },
-    });
-    return response.data;
+    // Mock data until backend endpoint is ready
+    return [
+      {
+        id: '1',
+        title: 'ตรวจสอบพื้นที่เสี่ยงภัย',
+        status: 'ASSIGNED',
+        priority: 'HIGH',
+        dueDate: new Date(Date.now() + 86400000).toISOString(),
+      }
+    ].slice(0, limit);
+    
+    // Real API call (commented out until backend ready)
+    // const response = await apiClient.get('/tasks/my', {
+    //   params: { limit },
+    // });
+    // return response.data;
   },
 };
 

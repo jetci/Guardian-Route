@@ -17,10 +17,36 @@ export interface TaskPayload {
 export const taskService = {
   /**
    * Get my assigned tasks
+   * TODO: Backend endpoint /tasks/my not ready yet - using mock data
    */
   getMyTasks: async () => {
-    const response = await api.get('/tasks/assigned');
-    return response.data;
+    // Mock data until backend endpoint is ready
+    return [
+      {
+        id: '1',
+        title: 'ตรวจสอบพื้นที่เสี่ยงภัย หมู่ 5',
+        description: 'ตรวจสอบพื้นที่เสี่ยงน้ำท่วมบริเวณหมู่ 5',
+        status: 'ASSIGNED',
+        priority: 'HIGH',
+        dueDate: new Date(Date.now() + 86400000).toISOString(),
+        assignedBy: 'Supervisor',
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '2',
+        title: 'รายงานสถานการณ์ดินถลม่ม',
+        description: 'สำรวจและรายงานพื้นที่เสี่ยงดินถล่ม',
+        status: 'IN_PROGRESS',
+        priority: 'MEDIUM',
+        dueDate: new Date(Date.now() + 172800000).toISOString(),
+        assignedBy: 'Supervisor',
+        createdAt: new Date(Date.now() - 86400000).toISOString(),
+      }
+    ];
+    
+    // Real API call (commented out until backend ready)
+    // const response = await api.get('/tasks/my');
+    // return response.data;
   },
 
   /**
