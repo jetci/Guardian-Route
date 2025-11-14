@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
 import './SupervisorDashboard.css';
+import './SupervisorDashboardStandalone.css';
 
 // Mock data - จะเปลี่ยนเป็น real API ทีหลัง
 const mockPendingReports = [
@@ -158,45 +159,21 @@ export default function SupervisorDashboardStandalone() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f7fafc' }}>
-      {/* Simple Sidebar */}
-      <div style={{
-        width: '260px',
-        background: 'linear-gradient(180deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        padding: '20px',
-        position: 'fixed',
-        height: '100vh',
-        overflowY: 'auto'
-      }}>
-        <h2 style={{ margin: '0 0 20px 0' }}>🛡️ Guardian Route</h2>
-        <div style={{ 
-          background: 'rgba(255,255,255,0.1)', 
-          padding: '15px', 
-          borderRadius: '10px',
-          marginBottom: '20px'
-        }}>
-          <div style={{ fontWeight: 'bold' }}>{user?.firstName} {user?.lastName}</div>
-          <div style={{ fontSize: '12px', opacity: 0.8 }}>{user?.role}</div>
+    <div className="standalone-container">
+      {/* Sidebar */}
+      <div className="standalone-sidebar">
+        <h2>🛡️ Guardian Route</h2>
+        <div className="standalone-user-info">
+          <div>{user?.firstName} {user?.lastName}</div>
+          <div>{user?.role}</div>
         </div>
-        <button 
-          onClick={handleLogout}
-          style={{
-            width: '100%',
-            padding: '10px',
-            background: 'rgba(255,255,255,0.2)',
-            border: 'none',
-            borderRadius: '8px',
-            color: 'white',
-            cursor: 'pointer'
-          }}
-        >
+        <button onClick={handleLogout} className="standalone-logout">
           🚪 Logout
         </button>
       </div>
 
       {/* Main Content */}
-      <div style={{ marginLeft: '260px', flex: 1, padding: '32px' }}>
+      <div className="standalone-main">
         <div className="supervisor-dashboard">
           <header>
             <h2>📊 Supervisor Dashboard</h2>
