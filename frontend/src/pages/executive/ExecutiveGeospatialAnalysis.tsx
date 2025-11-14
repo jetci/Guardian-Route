@@ -1,14 +1,55 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+// Village data from ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
+interface Village {
+  id: number;
+  name: string;
+  lat: number;
+  lng: number;
+  riskLevel: 'สูง' | 'กลาง' | 'ต่ำ';
+  incidents: number;
+  population: number;
+  lastIncident: string;
+}
+
+const VILLAGES: Village[] = [
+  { id: 1, name: 'หนองตุ้ม', lat: 20.02, lng: 99.25, riskLevel: 'สูง', incidents: 8, population: 450, lastIncident: '2025-11-12' },
+  { id: 2, name: 'ป่าบง', lat: 19.95, lng: 99.28, riskLevel: 'สูง', incidents: 7, population: 520, lastIncident: '2025-11-11' },
+  { id: 3, name: 'ริมฝาง (สันป่าไหน่)', lat: 19.96, lng: 99.12, riskLevel: 'สูง', incidents: 6, population: 380, lastIncident: '2025-11-10' },
+  { id: 4, name: 'โป่งถืบ', lat: 19.94, lng: 99.25, riskLevel: 'กลาง', incidents: 5, population: 410, lastIncident: '2025-11-08' },
+  { id: 5, name: 'แม่ใจใต้', lat: 19.93, lng: 99.20, riskLevel: 'กลาง', incidents: 5, population: 390, lastIncident: '2025-11-07' },
+  { id: 6, name: 'เต๋าดิน (เวียงสุทโธ)', lat: 19.92, lng: 99.30, riskLevel: 'กลาง', incidents: 4, population: 360, lastIncident: '2025-11-05' },
+  { id: 7, name: 'ท่าสะแล', lat: 19.82, lng: 99.22, riskLevel: 'กลาง', incidents: 4, population: 340, lastIncident: '2025-11-04' },
+  { id: 8, name: 'แม่ใจเหนือ', lat: 19.98, lng: 99.18, riskLevel: 'ต่ำ', incidents: 3, population: 320, lastIncident: '2025-11-02' },
+  { id: 9, name: 'สวนดอก', lat: 19.88, lng: 99.32, riskLevel: 'ต่ำ', incidents: 3, population: 300, lastIncident: '2025-10-30' },
+  { id: 10, name: 'ต้นหนุน', lat: 19.90, lng: 99.35, riskLevel: 'ต่ำ', incidents: 3, population: 280, lastIncident: '2025-10-28' },
+  { id: 11, name: 'สันทรายคองน้อย', lat: 19.85, lng: 99.28, riskLevel: 'ต่ำ', incidents: 2, population: 260, lastIncident: '2025-10-25' },
+  { id: 12, name: 'ห้วยเฮี่ยน (สันป่ายางยาง)', lat: 19.87, lng: 99.15, riskLevel: 'ต่ำ', incidents: 2, population: 240, lastIncident: '2025-10-22' },
+  { id: 13, name: 'ห้วยบอน', lat: 19.86, lng: 99.25, riskLevel: 'ต่ำ', incidents: 2, population: 220, lastIncident: '2025-10-20' },
+  { id: 14, name: 'เสาหิน', lat: 19.80, lng: 99.30, riskLevel: 'ต่ำ', incidents: 2, population: 200, lastIncident: '2025-10-18' },
+  { id: 15, name: 'โป่งถืบใน', lat: 19.91, lng: 99.23, riskLevel: 'ต่ำ', incidents: 2, population: 180, lastIncident: '2025-10-15' },
+  { id: 16, name: 'ปางผึ้ง', lat: 19.89, lng: 99.36, riskLevel: 'ต่ำ', incidents: 1, population: 160, lastIncident: '2025-10-12' },
+  { id: 17, name: 'ใหม่คองน้อย', lat: 19.84, lng: 99.26, riskLevel: 'ต่ำ', incidents: 1, population: 140, lastIncident: '2025-10-10' },
+  { id: 18, name: 'ศรีดอนชัย', lat: 19.81, lng: 99.28, riskLevel: 'ต่ำ', incidents: 1, population: 120, lastIncident: '2025-10-08' },
+  { id: 19, name: 'ใหม่ชยาราม', lat: 19.88, lng: 99.24, riskLevel: 'ต่ำ', incidents: 1, population: 100, lastIncident: '2025-10-05' },
+  { id: 20, name: 'สระนิคม', lat: 19.79, lng: 99.25, riskLevel: 'ต่ำ', incidents: 1, population: 80, lastIncident: '2025-10-02' },
+];
 
 export default function ExecutiveGeospatialAnalysis() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const [activeMenu, setActiveMenu] = useState('geospatial');
-  const [dateFilter, setDateFilter] = useState('2025-11-01');
-  const [selectedSurveys, setSelectedSurveys] = useState<number[]>([1, 2]);
+  const [selectedRiskLevels, setSelectedRiskLevels] = useState<string[]>(['สูง', 'กลาง', 'ต่ำ']);
+  const [selectedVillages, setSelectedVillages] = useState<number[]>([]);
+  const [timeRange, setTimeRange] = useState('3months');
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<L.Marker[]>([]);
 
   const handleLogout = () => {
     logout();
@@ -24,73 +65,128 @@ export default function ExecutiveGeospatialAnalysis() {
 
   const handleMenuClick = (item: any) => {
     setActiveMenu(item.id);
-    if (item.path === '/executive/geospatial-analysis') {
-      return;
-    }
-    if (item.path === '/dashboard/executive') {
-      navigate('/dashboard/executive');
-      return;
-    }
-    if (item.path === '/executive/analytics') {
-      navigate('/executive/analytics');
-      return;
-    }
-    if (item.path === '/executive/budget-resources') {
-      navigate('/executive/budget-resources');
-      return;
-    }
-    toast.success(`🚀 ${item.label} - Coming soon!`);
+    if (item.path === '/executive/geospatial-analysis') return;
+    navigate(item.path);
   };
 
-  // Mock survey data
-  const surveys = [
-    { 
-      id: 1, 
-      title: 'น้ำท่วม - บ้านหนองบัว', 
-      date: '2025-11-12', 
-      type: 'อุทกภัย',
-      color: '#3b82f6',
-      area: '2.5 ตร.กม.',
-      households: 45
-    },
-    { 
-      id: 2, 
-      title: 'ดินถล่ม - เขาใหญ่', 
-      date: '2025-11-10', 
-      type: 'ดินถล่ม',
-      color: '#ef4444',
-      area: '0.8 ตร.กม.',
-      households: 12
-    },
-    { 
-      id: 3, 
-      title: 'พายุ - บ้านป่าไม้', 
-      date: '2025-11-08', 
-      type: 'วาตภัย',
-      color: '#f59e0b',
-      area: '1.2 ตร.กม.',
-      households: 28
-    },
-    { 
-      id: 4, 
-      title: 'ไฟป่า - บ้านแม่ริม', 
-      date: '2025-11-05', 
-      type: 'ไฟป่า',
-      color: '#dc2626',
-      area: '3.5 ตร.กม.',
-      households: 8
-    },
-  ];
+  const toggleRiskLevel = (level: string) => {
+    setSelectedRiskLevels(prev =>
+      prev.includes(level) ? prev.filter(l => l !== level) : [...prev, level]
+    );
+  };
 
-  const toggleSurvey = (id: number) => {
-    if (selectedSurveys.includes(id)) {
-      setSelectedSurveys(selectedSurveys.filter(s => s !== id));
-    } else {
-      setSelectedSurveys([...selectedSurveys, id]);
+  const toggleVillage = (id: number) => {
+    setSelectedVillages(prev =>
+      prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id]
+    );
+  };
+
+  const getRiskColor = (level: string) => {
+    switch (level) {
+      case 'สูง': return '#ef4444';
+      case 'กลาง': return '#f59e0b';
+      case 'ต่ำ': return '#10b981';
+      default: return '#6b7280';
     }
   };
 
-  const selectedSurveyData = surveys.filter(s => selectedSurveys.includes(s.id));
+  // Initialize map
+  useEffect(() => {
+    if (!mapRef.current || mapInstanceRef.current) return;
+
+    const map = L.map(mapRef.current).setView([19.9167, 99.2333], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18,
+    }).addTo(map);
+
+    mapInstanceRef.current = map;
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update markers based on filters
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+
+    // Clear existing markers
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+
+    // Filter villages
+    const filteredVillages = VILLAGES.filter(village =>
+      selectedRiskLevels.includes(village.riskLevel) &&
+      (selectedVillages.length === 0 || selectedVillages.includes(village.id))
+    );
+
+    // Add markers
+    filteredVillages.forEach(village => {
+      const color = getRiskColor(village.riskLevel);
+      
+      const marker = L.marker([village.lat, village.lng], {
+        icon: L.divIcon({
+          className: 'custom-risk-marker',
+          html: `
+            <div style="
+              background: ${color};
+              color: white;
+              border: 3px solid white;
+              border-radius: 50%;
+              width: 40px;
+              height: 40px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-weight: bold;
+              font-size: 14px;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            ">
+              ${village.incidents}
+            </div>
+          `,
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+        })
+      }).addTo(mapInstanceRef.current!);
+
+      marker.bindPopup(`
+        <div style="font-family: system-ui, sans-serif; min-width: 200px;">
+          <strong style="font-size: 16px; color: #1a202c;">${village.name}</strong><br/>
+          <div style="margin-top: 8px; font-size: 13px;">
+            <div style="margin: 4px 0;">
+              <span style="color: #718096;">ระดับความเสี่ยง:</span>
+              <strong style="color: ${color};">${village.riskLevel}</strong>
+            </div>
+            <div style="margin: 4px 0;">
+              <span style="color: #718096;">จำนวนเหตุการณ์:</span>
+              <strong>${village.incidents}</strong>
+            </div>
+            <div style="margin: 4px 0;">
+              <span style="color: #718096;">ประชากร:</span>
+              <strong>${village.population}</strong> คน
+            </div>
+            <div style="margin: 4px 0;">
+              <span style="color: #718096;">เหตุการณ์ล่าสุด:</span>
+              <strong>${village.lastIncident}</strong>
+            </div>
+          </div>
+        </div>
+      `);
+
+      markersRef.current.push(marker);
+    });
+  }, [selectedRiskLevels, selectedVillages]);
+
+  const filteredVillages = VILLAGES.filter(v => selectedRiskLevels.includes(v.riskLevel));
+  const totalIncidents = filteredVillages.reduce((sum, v) => sum + v.incidents, 0);
+  const totalPopulation = filteredVillages.reduce((sum, v) => sum + v.population, 0);
+  const highRiskCount = filteredVillages.filter(v => v.riskLevel === 'สูง').length;
 
   return (
     <div style={{
@@ -153,16 +249,6 @@ export default function ExecutiveGeospatialAnalysis() {
                 textAlign: 'left',
                 transition: 'all 0.2s'
               }}
-              onMouseEnter={(e) => {
-                if (activeMenu !== item.id) {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeMenu !== item.id) {
-                  e.currentTarget.style.background = 'transparent';
-                }
-              }}
             >
               <span style={{ fontSize: '18px' }}>{item.icon}</span>
               <span style={{ flex: 1 }}>{item.label}</span>
@@ -185,17 +271,17 @@ export default function ExecutiveGeospatialAnalysis() {
         </button>
       </div>
 
-      {/* Main Content - Two Panel Layout */}
+      {/* Main Content */}
       <div style={{
         marginLeft: '260px',
         flex: 1,
         display: 'flex',
         minHeight: '100vh'
       }}>
-        {/* Left Panel - Control Panel */}
+        {/* Left Panel - Controls & Statistics */}
         <div style={{
-          width: '380px',
-          minWidth: '380px',
+          width: '400px',
+          minWidth: '400px',
           background: 'white',
           borderRight: '1px solid #e2e8f0',
           padding: '40px 30px',
@@ -208,125 +294,181 @@ export default function ExecutiveGeospatialAnalysis() {
             ภาพรวมพื้นที่เสี่ยงซ้ำซ้อนและการวางแผนระยะยาว
           </p>
 
-          {/* Date Filter */}
+          {/* Summary Stats */}
+          <div style={{
+            background: '#f7fafc',
+            padding: '20px',
+            borderRadius: '12px',
+            marginBottom: '30px',
+            border: '1px solid #e2e8f0'
+          }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#1a202c' }}>
+              📊 สรุปข้อมูล
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#718096', fontSize: '14px' }}>หมู่บ้านที่แสดง:</span>
+                <strong style={{ color: '#1a202c', fontSize: '14px' }}>{filteredVillages.length}/20</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#718096', fontSize: '14px' }}>เหตุการณ์ทั้งหมด:</span>
+                <strong style={{ color: '#1a202c', fontSize: '14px' }}>{totalIncidents}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#718096', fontSize: '14px' }}>ประชากรรวม:</span>
+                <strong style={{ color: '#1a202c', fontSize: '14px' }}>{totalPopulation.toLocaleString()}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#718096', fontSize: '14px' }}>พื้นที่เสี่ยงสูง:</span>
+                <strong style={{ color: '#ef4444', fontSize: '14px' }}>{highRiskCount}</strong>
+              </div>
+            </div>
+          </div>
+
+          {/* Risk Level Filter */}
           <div style={{ marginBottom: '30px' }}>
-            <label style={{ 
-              display: 'block', 
-              marginBottom: '10px', 
-              fontSize: '14px', 
-              fontWeight: '600', 
-              color: '#1a202c' 
-            }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#1a202c' }}>
+              🎯 กรองตามระดับความเสี่ยง
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {['สูง', 'กลาง', 'ต่ำ'].map(level => (
+                <label
+                  key={level}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '12px',
+                    background: selectedRiskLevels.includes(level) ? '#f0f9ff' : '#f7fafc',
+                    border: `2px solid ${selectedRiskLevels.includes(level) ? getRiskColor(level) : '#e2e8f0'}`,
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedRiskLevels.includes(level)}
+                    onChange={() => toggleRiskLevel(level)}
+                    style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  />
+                  <div style={{
+                    width: '16px',
+                    height: '16px',
+                    background: getRiskColor(level),
+                    borderRadius: '50%'
+                  }} />
+                  <span style={{ flex: 1, fontWeight: '500', color: '#1a202c' }}>
+                    ความเสี่ยง{level}
+                  </span>
+                  <span style={{ color: '#718096', fontSize: '13px' }}>
+                    {VILLAGES.filter(v => v.riskLevel === level).length} หมู่
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Time Range Filter */}
+          <div style={{ marginBottom: '30px' }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#1a202c' }}>
               📅 ช่วงเวลา
-            </label>
-            <input
-              type="date"
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
+            </h3>
+            <select
+              value={timeRange}
+              onChange={(e) => setTimeRange(e.target.value)}
               style={{
                 width: '100%',
                 padding: '12px',
                 border: '2px solid #e2e8f0',
                 borderRadius: '10px',
-                fontSize: '14px'
+                fontSize: '14px',
+                background: 'white',
+                cursor: 'pointer'
               }}
-            />
+            >
+              <option value="1month">1 เดือนล่าสุด</option>
+              <option value="3months">3 เดือนล่าสุด</option>
+              <option value="6months">6 เดือนล่าสุด</option>
+              <option value="1year">1 ปีล่าสุด</option>
+            </select>
           </div>
 
-          {/* Survey List */}
+          {/* Village List */}
           <div>
-            <h3 style={{ 
-              margin: '0 0 16px 0', 
-              fontSize: '16px', 
-              fontWeight: '600', 
-              color: '#1a202c' 
-            }}>
-              📋 รายการผลสำรวจ ({surveys.length})
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#1a202c' }}>
+              📍 รายการหมู่บ้าน ({filteredVillages.length})
             </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {surveys.map(survey => (
-                <div
-                  key={survey.id}
-                  onClick={() => toggleSurvey(survey.id)}
-                  style={{
-                    padding: '16px',
-                    background: selectedSurveys.includes(survey.id) ? '#f0f9ff' : '#f7fafc',
-                    border: `2px solid ${selectedSurveys.includes(survey.id) ? survey.color : '#e2e8f0'}`,
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'start', gap: '12px', marginBottom: '12px' }}>
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      border: `2px solid ${survey.color}`,
-                      borderRadius: '4px',
-                      background: selectedSurveys.includes(survey.id) ? survey.color : 'white',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      marginTop: '2px'
-                    }}>
-                      {selectedSurveys.includes(survey.id) && (
-                        <span style={{ color: 'white', fontSize: '14px' }}>✓</span>
-                      )}
+            <div style={{
+              maxHeight: '400px',
+              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
+            }}>
+              {filteredVillages
+                .sort((a, b) => b.incidents - a.incidents)
+                .map(village => (
+                  <div
+                    key={village.id}
+                    onClick={() => toggleVillage(village.id)}
+                    style={{
+                      padding: '12px',
+                      background: selectedVillages.includes(village.id) ? '#f0f9ff' : 'white',
+                      border: `2px solid ${selectedVillages.includes(village.id) ? '#3b82f6' : '#e2e8f0'}`,
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                      <div style={{
+                        width: '12px',
+                        height: '12px',
+                        background: getRiskColor(village.riskLevel),
+                        borderRadius: '50%'
+                      }} />
+                      <strong style={{ flex: 1, fontSize: '14px', color: '#1a202c' }}>
+                        {village.name}
+                      </strong>
+                      <span style={{
+                        padding: '2px 8px',
+                        background: getRiskColor(village.riskLevel),
+                        color: 'white',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: '600'
+                      }}>
+                        {village.incidents}
+                      </span>
                     </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ 
-                        fontWeight: '600', 
-                        color: '#1a202c', 
-                        fontSize: '14px',
-                        marginBottom: '6px'
-                      }}>
-                        {survey.title}
-                      </div>
-                      <div style={{ 
-                        fontSize: '13px', 
-                        color: '#718096',
-                        marginBottom: '8px'
-                      }}>
-                        📅 {survey.date} • {survey.type}
-                      </div>
-                      <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#4a5568' }}>
-                        <span>📏 {survey.area}</span>
-                        <span>🏠 {survey.households} ครัวเรือน</span>
-                      </div>
+                    <div style={{ fontSize: '12px', color: '#718096', paddingLeft: '22px' }}>
+                      ประชากร: {village.population} • {village.lastIncident}
                     </div>
                   </div>
-                  <div style={{
-                    height: '4px',
-                    background: survey.color,
-                    borderRadius: '2px',
-                    opacity: selectedSurveys.includes(survey.id) ? 1 : 0.3
-                  }} />
-                </div>
-              ))}
+                ))}
             </div>
           </div>
 
-          {/* Summary */}
-          {selectedSurveys.length > 0 && (
-            <div style={{
+          {/* Export Button */}
+          <button
+            onClick={() => toast.success('📥 กำลังสร้างรายงาน...')}
+            style={{
+              width: '100%',
+              padding: '14px',
+              background: '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '10px',
+              fontSize: '15px',
+              fontWeight: '600',
+              cursor: 'pointer',
               marginTop: '30px',
-              padding: '20px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              borderRadius: '12px',
-              color: 'white'
-            }}>
-              <div style={{ fontSize: '14px', opacity: 0.9, marginBottom: '8px' }}>
-                เลือกแล้ว
-              </div>
-              <div style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '4px' }}>
-                {selectedSurveys.length}
-              </div>
-              <div style={{ fontSize: '14px', opacity: 0.9 }}>
-                ผลสำรวจ
-              </div>
-            </div>
-          )}
+              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)'
+            }}
+          >
+            📄 ส่งออกรายงาน PDF
+          </button>
         </div>
 
         {/* Right Panel - Map */}
@@ -336,134 +478,56 @@ export default function ExecutiveGeospatialAnalysis() {
           display: 'flex',
           flexDirection: 'column'
         }}>
-          <div style={{ marginBottom: '20px' }}>
-            <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', color: '#1a202c' }}>
-              🗺️ แผนที่ซ้อนทับพื้นที่ประสบภัย
-            </h2>
-            <p style={{ margin: 0, color: '#718096', fontSize: '14px' }}>
-              เลือกผลสำรวจจากแผงควบคุมด้านซ้ายเพื่อแสดงขอบเขตบนแผนที่
-            </p>
-          </div>
-
-          {/* Map Container */}
           <div style={{
-            flex: 1,
             background: 'white',
             borderRadius: '16px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
             border: '1px solid #e2e8f0',
-            padding: '30px',
+            flex: 1,
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            overflow: 'hidden'
           }}>
-            {/* Map Placeholder */}
+            <div style={{ padding: '24px', borderBottom: '1px solid #e2e8f0' }}>
+              <h2 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#1a202c' }}>
+                🗺️ แผนที่พื้นที่เสี่ยง
+              </h2>
+              <p style={{ margin: 0, fontSize: '13px', color: '#718096' }}>
+                ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่ • คลิกที่หมู่บ้านเพื่อดูรายละเอียด
+              </p>
+            </div>
+            <div
+              ref={mapRef}
+              style={{
+                flex: 1,
+                minHeight: '600px'
+              }}
+            />
+            {/* Legend */}
             <div style={{
-              flex: 1,
-              background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
-              borderRadius: '12px',
+              padding: '20px 24px',
+              borderTop: '1px solid #e2e8f0',
               display: 'flex',
+              gap: '24px',
               alignItems: 'center',
-              justifyContent: 'center',
-              flexDirection: 'column',
-              gap: '20px',
-              minHeight: '500px',
-              position: 'relative',
-              overflow: 'hidden'
+              background: '#f7fafc'
             }}>
-              {/* Base Map */}
-              <div style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '80%',
-                height: '80%',
-                border: '3px dashed #6366f1',
-                borderRadius: '12px',
-                opacity: 0.3
-              }} />
-
-              {/* Selected Survey Overlays */}
-              {selectedSurveyData.map((survey, idx) => (
-                <div
-                  key={survey.id}
-                  style={{
-                    position: 'absolute',
-                    top: `${20 + idx * 15}%`,
-                    left: `${15 + idx * 10}%`,
-                    width: `${30 + idx * 5}%`,
-                    height: `${25 + idx * 5}%`,
-                    background: survey.color,
-                    opacity: 0.3,
-                    borderRadius: '50%',
-                    border: `3px solid ${survey.color}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: survey.color,
-                    fontWeight: 'bold',
-                    fontSize: '12px'
-                  }}
-                >
-                  {survey.title.split(' - ')[1]}
+              <strong style={{ fontSize: '14px', color: '#1a202c' }}>คำอธิบาย:</strong>
+              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '20px', height: '20px', background: '#ef4444', borderRadius: '50%' }} />
+                  <span style={{ fontSize: '13px', color: '#718096' }}>ความเสี่ยงสูง</span>
                 </div>
-              ))}
-
-              {/* Center Text */}
-              <div style={{ 
-                textAlign: 'center', 
-                color: '#4f46e5',
-                zIndex: 10,
-                background: 'rgba(255,255,255,0.9)',
-                padding: '20px 30px',
-                borderRadius: '12px'
-              }}>
-                <div style={{ fontSize: '48px', marginBottom: '12px' }}>🗺️</div>
-                <div style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>
-                  Interactive Map Visualization
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '20px', height: '20px', background: '#f59e0b', borderRadius: '50%' }} />
+                  <span style={{ fontSize: '13px', color: '#718096' }}>ความเสี่ยงกลาง</span>
                 </div>
-                <div style={{ fontSize: '14px', opacity: 0.8 }}>
-                  Integration with Leaflet/Mapbox
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ width: '20px', height: '20px', background: '#10b981', borderRadius: '50%' }} />
+                  <span style={{ fontSize: '13px', color: '#718096' }}>ความเสี่ยงต่ำ</span>
                 </div>
-                {selectedSurveys.length > 0 && (
-                  <div style={{ 
-                    marginTop: '16px', 
-                    padding: '8px 16px',
-                    background: '#4f46e5',
-                    color: 'white',
-                    borderRadius: '8px',
-                    fontSize: '13px'
-                  }}>
-                    แสดง {selectedSurveys.length} เลเยอร์
-                  </div>
-                )}
               </div>
             </div>
-
-            {/* Legend */}
-            {selectedSurveys.length > 0 && (
-              <div style={{ marginTop: '20px' }}>
-                <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: '600', color: '#1a202c' }}>
-                  📌 คำอธิบายสัญลักษณ์
-                </h4>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-                  {selectedSurveyData.map(survey => (
-                    <div key={survey.id} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <div style={{
-                        width: '20px',
-                        height: '20px',
-                        background: survey.color,
-                        borderRadius: '4px',
-                        opacity: 0.6
-                      }} />
-                      <span style={{ fontSize: '13px', color: '#4a5568' }}>
-                        {survey.title}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
