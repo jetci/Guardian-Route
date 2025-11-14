@@ -66,6 +66,14 @@ function App() {
           
           {/* Developer Routes */}
           <Route
+            path="/developer"
+            element={
+              <ProtectedRoute allowedRoles={['DEVELOPER']}>
+                <DeveloperDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/developer/api-docs"
             element={
               <ProtectedRoute allowedRoles={['DEVELOPER']}>
