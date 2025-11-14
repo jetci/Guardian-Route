@@ -191,15 +191,28 @@ export default function AdminDashboard() {
     try {
       setStatsLoading(true);
       const users = await usersApi.getAll();
-      const [incidentStats, reportStats] = await Promise.all([
-        statisticsService.getIncidentStatistics(),
-        statisticsService.getReportStatistics()
-      ]);
+      
+      let activeIncidents = 0;
+      let pendingReports = 0;
+      
+      try {
+        const incidentStats = await statisticsService.getIncidentStatistics();
+        activeIncidents = (incidentStats.byStatus?.IN_PROGRESS || 0) + (incidentStats.byStatus?.PENDING || 0);
+      } catch (err) {
+        console.error('Failed to fetch incident statistics:', err);
+      }
+      
+      try {
+        const reportStats = await statisticsService.getReportStatistics();
+        pendingReports = reportStats.pending || 0;
+      } catch (err) {
+        console.error('Failed to fetch report statistics:', err);
+      }
 
       setStats({
         totalUsers: users.length,
-        activeIncidents: incidentStats.byStatus.IN_PROGRESS + incidentStats.byStatus.PENDING,
-        pendingReports: reportStats.pending,
+        activeIncidents,
+        pendingReports,
         systemHealth: 98 // TODO: Get from health endpoint
       });
     } catch (err) {
