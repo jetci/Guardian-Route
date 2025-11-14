@@ -44,7 +44,7 @@ export function LoginPage() {
   const getRoleRedirectPath = (role: string): string => {
     switch (role) {
       case 'FIELD_OFFICER':
-        return '/dashboard/officer';
+        return '/field-officer/dashboard';
       case 'SUPERVISOR':
         return '/supervisor';
       case 'EXECUTIVE':
