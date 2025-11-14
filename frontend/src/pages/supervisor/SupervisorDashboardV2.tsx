@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import toast from 'react-hot-toast';
 import './SupervisorDashboard.css';
 
 // Mock data - จะเปลี่ยนเป็น real API ทีหลัง
@@ -135,13 +136,14 @@ export default function SupervisorDashboard() {
 
   const handleAssignTask = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement task assignment
-    alert('Task assigned successfully!');
+    // TODO: Implement real API call
+    toast.success('✅ Task assigned successfully!');
     setShowAssignModal(false);
   };
 
   const handleApprove = (reportId: number) => {
-    alert(`Report ${reportId} approved!`);
+    // TODO: Implement real API call
+    toast.success(`✅ Report #${reportId} approved successfully!`);
   };
 
   const handleRequestRevision = (report: any) => {
@@ -385,7 +387,12 @@ export default function SupervisorDashboard() {
                 <p><strong>Submitted:</strong> {selectedReport.submittedDate}</p>
               </div>
 
-              <form onSubmit={(e) => { e.preventDefault(); alert('Revision requested!'); setShowReviewModal(false); }}>
+              <form onSubmit={(e) => { 
+                e.preventDefault(); 
+                // TODO: Implement real API call
+                toast.success('📤 Revision request sent successfully!');
+                setShowReviewModal(false); 
+              }}>
                 <div className="form-group">
                   <label>Revision Comments *</label>
                   <textarea 
