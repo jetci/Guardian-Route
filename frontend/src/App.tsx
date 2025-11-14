@@ -22,6 +22,7 @@ import { CreateIncidentReportPage } from './pages/field-officer/CreateIncidentRe
 // import { DashboardPage } from './pages/DashboardPage';
 import { SupervisorDashboard } from './pages/supervisor/SupervisorDashboard';
 import SupervisorDashboardV2 from './pages/supervisor/SupervisorDashboardV2';
+import SupervisorDashboardStandalone from './pages/supervisor/SupervisorDashboardStandalone';
 import { MapView } from './pages/supervisor/MapView';
 import { TasksPage } from './pages/supervisor/TasksPage';
 import SurveyTemplateList from './pages/supervisor/SurveyTemplateList';
@@ -119,7 +120,7 @@ function App() {
             path="/dashboard/supervisor"
             element={
               <ProtectedRoute allowedRoles={['SUPERVISOR']}>
-                <SupervisorDashboardV2 />
+                <SupervisorDashboardStandalone />
               </ProtectedRoute>
             }
           />
