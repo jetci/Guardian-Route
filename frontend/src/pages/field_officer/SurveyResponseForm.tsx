@@ -24,6 +24,7 @@ import {
 import { apiClient } from "../../api/client";
 import type { Survey, SurveyTemplate } from '../../types/Survey';
 import type { FormField } from '../../types/FormBuilder';
+import ThaiDatePicker from '../../components/ThaiDatePicker';
 
 // --- Field Renderer Components ---
 
@@ -71,7 +72,16 @@ const FieldRenderer: React.FC<FieldRendererProps> = ({ field, value, onChange, e
       case 'textarea':
         return <Textarea value={value || ''} onChange={handleInputChange} {...inputProps} />;
       case 'date':
-        return <Input type="date" value={value || ''} onChange={handleInputChange} {...inputProps} />;
+        return (
+          <div style={{ marginTop: '4px' }}>
+            <ThaiDatePicker
+              id={`field-${name}`}
+              value={value ? new Date(value) : null}
+              onChange={(date) => onChange(name, date ? date.toISOString().split('T')[0] : '')}
+              placeholder="เลือกวันที่"
+            />
+          </div>
+        );
       case 'time':
         return <Input type="time" value={value || ''} onChange={handleInputChange} {...inputProps} />;
       case 'select':

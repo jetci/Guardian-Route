@@ -7,6 +7,7 @@ import 'leaflet-draw';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { incidentService } from '../../services/incidentService';
+import ThaiDatePicker from '../../components/ThaiDatePicker';
 import './InitialSurveyPage.css';
 
 // Fix Leaflet default marker icon issue
@@ -30,7 +31,7 @@ export function CreateIncidentReportPage() {
   const currentMarkerRef = useRef<L.Marker | null>(null);
 
   // Form state
-  const [incidentDate, setIncidentDate] = useState('');
+  const [incidentDate, setIncidentDate] = useState<Date | null>(new Date());
   const [disasterType, setDisasterType] = useState('น้ำท่วม');
   const [village, setVillage] = useState('');
   const [estimatedHouseholds, setEstimatedHouseholds] = useState('');
@@ -283,11 +284,11 @@ export function CreateIncidentReportPage() {
               
               <div className="form-group">
                 <label>วันที่เกิดเหตุ *</label>
-                <input 
-                  type="date" 
+                <ThaiDatePicker
+                  id="incident-date"
                   value={incidentDate}
-                  onChange={(e) => setIncidentDate(e.target.value)}
-                  required 
+                  onChange={setIncidentDate}
+                  placeholder="เลือกวันที่เกิดเหตุ"
                 />
               </div>
 

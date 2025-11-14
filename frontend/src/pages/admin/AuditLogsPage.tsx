@@ -23,6 +23,7 @@ import {
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import api from '../../api/client';
+import ThaiDatePicker from '../../components/ThaiDatePicker';
 
 interface ActivityLog {
   id: string;
@@ -49,7 +50,7 @@ const AuditLogsPage = () => {
   const [loading, setLoading] = useState(true);
   const [actionFilter, setActionFilter] = useState('');
   const [userFilter, setUserFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState<Date | null>(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -87,7 +88,7 @@ const AuditLogsPage = () => {
   const handleReset = () => {
     setActionFilter('');
     setUserFilter('');
-    setDateFilter('');
+    setDateFilter(null);
     fetchLogs();
   };
 
@@ -178,11 +179,14 @@ const AuditLogsPage = () => {
               <Text mb={2} fontWeight="medium">
                 วันที่
               </Text>
-              <Input
-                type="date"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-              />
+              <div style={{ marginTop: '4px' }}>
+                <ThaiDatePicker
+                  id="audit-date-filter"
+                  value={dateFilter}
+                  onChange={setDateFilter}
+                  placeholder="เลือกวันที่"
+                />
+              </div>
             </Box>
           </HStack>
 

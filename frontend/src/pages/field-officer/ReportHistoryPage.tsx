@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { reportService } from '../../services/reportService';
+import ThaiDatePicker from '../../components/ThaiDatePicker';
 import './ReportHistoryPage.css';
 
 type ReportStatus = 'ALL' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'REVISION_REQUIRED';
@@ -17,8 +18,8 @@ const statusLabels: Record<string, string> = {
 
 export function ReportHistoryPage() {
   const [statusFilter, setStatusFilter] = useState<ReportStatus>('ALL');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom, setDateFrom] = useState<Date | null>(null);
+  const [dateTo, setDateTo] = useState<Date | null>(null);
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -99,19 +100,21 @@ export function ReportHistoryPage() {
 
           <div className="filter-group">
             <label>จากวันที่:</label>
-            <input 
-              type="date"
+            <ThaiDatePicker
+              id="date-from"
               value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
+              onChange={setDateFrom}
+              placeholder="เลือกวันเริ่มต้น"
             />
           </div>
 
           <div className="filter-group">
             <label>ถึงวันที่:</label>
-            <input 
-              type="date"
+            <ThaiDatePicker
+              id="date-to"
               value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
+              onChange={setDateTo}
+              placeholder="เลือกวันสิ้นสุด"
             />
           </div>
 

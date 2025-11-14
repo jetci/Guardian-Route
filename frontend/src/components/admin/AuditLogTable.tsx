@@ -22,6 +22,7 @@ import {
 import { FiDownload, FiEye } from 'react-icons/fi';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import ThaiDatePicker from '../ThaiDatePicker';
 
 interface AuditLog {
   id: string;
@@ -39,8 +40,8 @@ const AuditLogTable: React.FC = () => {
   const [page, setPage] = useState(1);
   const [actionFilter, setActionFilter] = useState('');
   const [targetTypeFilter, setTargetTypeFilter] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const toast = useToast();
 
   // Fetch audit logs
@@ -52,8 +53,8 @@ const AuditLogTable: React.FC = () => {
       params.append('limit', '50');
       if (actionFilter) params.append('action', actionFilter);
       if (targetTypeFilter) params.append('targetType', targetTypeFilter);
-      if (startDate) params.append('startDate', startDate);
-      if (endDate) params.append('endDate', endDate);
+      if (startDate) params.append('startDate', startDate.toISOString().split('T')[0]);
+      if (endDate) params.append('endDate', endDate.toISOString().split('T')[0]);
 
       const { data } = await axios.get(`/api/admin/audit-logs?${params}`);
       return data;
@@ -65,8 +66,8 @@ const AuditLogTable: React.FC = () => {
       const params = new URLSearchParams();
       if (actionFilter) params.append('action', actionFilter);
       if (targetTypeFilter) params.append('targetType', targetTypeFilter);
-      if (startDate) params.append('startDate', startDate);
-      if (endDate) params.append('endDate', endDate);
+      if (startDate) params.append('startDate', startDate.toISOString().split('T')[0]);
+      if (endDate) params.append('endDate', endDate.toISOString().split('T')[0]);
 
       const response = await axios.get(`/api/admin/audit-logs/export/csv?${params}`, {
         responseType: 'blob',
@@ -177,24 +178,28 @@ const AuditLogTable: React.FC = () => {
           <Text fontSize="sm" mb={1} fontWeight="medium">
             วันที่เริ่มต้น
           </Text>
-          <Input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            size="sm"
-          />
+          <div style={{ marginTop: '4px' }}>
+            <ThaiDatePicker
+              id="audit-start-date"
+              value={startDate}
+              onChange={setStartDate}
+              placeholder="เลือกวันเริ่มต้น"
+            />
+          </div>
         </Box>
 
         <Box minW="150px">
           <Text fontSize="sm" mb={1} fontWeight="medium">
             วันที่สิ้นสุด
           </Text>
-          <Input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            size="sm"
-          />
+          <div style={{ marginTop: '4px' }}>
+            <ThaiDatePicker
+              id="audit-end-date"
+              value={endDate}
+              onChange={setEndDate}
+              placeholder="เลือกวันสิ้นสุด"
+            />
+          </div>
         </Box>
 
         <Button

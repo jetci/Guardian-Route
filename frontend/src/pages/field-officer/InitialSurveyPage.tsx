@@ -6,6 +6,7 @@ import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { mockTasks } from '../../mocks/dashboardData';
+import ThaiDatePicker from '../../components/ThaiDatePicker';
 import './InitialSurveyPage.css';
 
 // Fix Leaflet default marker icon issue
@@ -32,7 +33,7 @@ export function InitialSurveyPage() {
   const task = mockTasks.find(t => t.id === Number(taskId));
 
   // Form state
-  const [incidentDate, setIncidentDate] = useState('');
+  const [incidentDate, setIncidentDate] = useState<Date | null>(new Date());
   const [disasterType, setDisasterType] = useState('น้ำท่วม');
   const [village, setVillage] = useState('');
   const [estimatedHouseholds, setEstimatedHouseholds] = useState('');
@@ -339,11 +340,11 @@ export function InitialSurveyPage() {
               
               <div className="form-group">
                 <label>วันที่เกิดเหตุ *</label>
-                <input 
-                  type="date" 
+                <ThaiDatePicker
+                  id="incident-date"
                   value={incidentDate}
-                  onChange={(e) => setIncidentDate(e.target.value)}
-                  required 
+                  onChange={setIncidentDate}
+                  placeholder="เลือกวันที่เกิดเหตุ"
                 />
               </div>
 
