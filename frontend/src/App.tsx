@@ -8,6 +8,7 @@ import { SupervisorDashboard as SupervisorDashboardNew } from './pages/dashboard
 import { FieldOfficerDashboard } from './pages/dashboards/FieldOfficerDashboard';
 import { ExecutiveDashboard } from './pages/dashboards/ExecutiveDashboard';
 import ExecutiveDashboardV2 from './pages/executive/ExecutiveDashboardV2';
+import ExecutiveDashboardNew from './pages/executive/ExecutiveDashboard';
 import { UsersPage } from './pages/UsersPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { TeamsPage } from './pages/TeamsPage';
@@ -131,11 +132,7 @@ function App() {
           />
           <Route
             path="/dashboard/executive"
-            element={
-              <ProtectedRoute allowedRoles={['EXECUTIVE']}>
-                <ExecutiveDashboardV2 />
-              </ProtectedRoute>
-            }
+            element={<ExecutiveDashboardNew />}
           />
           {/* Admin Routes */}
           <Route
