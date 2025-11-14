@@ -118,11 +118,7 @@ function App() {
           />
           <Route
             path="/dashboard/supervisor"
-            element={
-              <ProtectedRoute allowedRoles={['SUPERVISOR']}>
-                <SupervisorDashboardStandalone />
-              </ProtectedRoute>
-            }
+            element={<SupervisorDashboard />}
           />
           <Route
             path="/dashboard/officer"
