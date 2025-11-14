@@ -41,7 +41,7 @@ export default function ExecutiveDashboard() {
     toast.success(`🚀 ${item.label} - Coming soon!`);
   };
 
-  // Mock data with comparisons
+  // Mock data with comparisons (ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่)
   const kpiData = {
     monthlyIncidents: 24,
     monthlyChange: '-5%',
@@ -49,7 +49,7 @@ export default function ExecutiveDashboard() {
     avgResponseTime: '2.5 ชม.',
     responseTimeChange: 'ดีขึ้น 0.3 ชม.',
     responseTimePositive: true,
-    topArea: 'บ้านหนองบัว',
+    topArea: 'หนองตุ้ม',
     topAreaIncidents: 8,
     trend: '+12%',
     trendPositive: true
@@ -72,9 +72,9 @@ export default function ExecutiveDashboard() {
   ];
 
   const recentIncidents = [
-    { id: 1, title: 'น้ำท่วมฉับพลัน - หมู่ 5', severity: 'สูง', date: '2025-11-12', area: 'บ้านหนองบัว' },
-    { id: 2, title: 'ดินถล่ม - เขาใหญ่', severity: 'สูง', date: '2025-11-11', area: 'บ้านเขาใหญ่' },
-    { id: 3, title: 'พายุฝนฟ้าคะนอง', severity: 'สูง', date: '2025-11-10', area: 'บ้านป่าไม้' }
+    { id: 1, title: 'น้ำท่วมฉับพลัน - หมู่ 5', severity: 'สูง', date: '2025-11-12', area: 'หนองตุ้ม' },
+    { id: 2, title: 'ดินถล่ม - พื้นที่เสี่ยง', severity: 'สูง', date: '2025-11-11', area: 'ป่าบง' },
+    { id: 3, title: 'พายุฝนฟ้าคะนอง', severity: 'สูง', date: '2025-11-10', area: 'ริมฝาง (สันป่าไหน่)' }
   ];
 
   const maxCount = Math.max(...monthlyTrend.map(m => m.count));
