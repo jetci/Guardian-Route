@@ -371,7 +371,7 @@ export default function AdminDashboard() {
           <div className="kpi-card purple">
             <div className="kpi-icon">👥</div>
             <div className="kpi-content">
-              <h3>{stats.totalUsers}</h3>
+              <h3>{statsLoading ? '...' : (stats.totalUsers || 0)}</h3>
               <p>Total Users</p>
             </div>
           </div>
@@ -379,7 +379,7 @@ export default function AdminDashboard() {
           <div className="kpi-card blue">
             <div className="kpi-icon">🚨</div>
             <div className="kpi-content">
-              <h3>{stats.activeIncidents}</h3>
+              <h3>{statsLoading ? '...' : (stats.activeIncidents || 0)}</h3>
               <p>Active Incidents</p>
             </div>
           </div>
@@ -387,7 +387,7 @@ export default function AdminDashboard() {
           <div className="kpi-card orange">
             <div className="kpi-icon">📋</div>
             <div className="kpi-content">
-              <h3>{stats.pendingReports}</h3>
+              <h3>{statsLoading ? '...' : (stats.pendingReports || 0)}</h3>
               <p>Pending Reports</p>
             </div>
           </div>
@@ -395,7 +395,7 @@ export default function AdminDashboard() {
           <div className="kpi-card green">
             <div className="kpi-icon">💚</div>
             <div className="kpi-content">
-              <h3>{stats.systemHealth}%</h3>
+              <h3>{statsLoading ? '...' : `${stats.systemHealth || 0}%`}</h3>
               <p>System Health</p>
             </div>
           </div>
