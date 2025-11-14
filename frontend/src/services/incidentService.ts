@@ -65,7 +65,7 @@ export const incidentService = {
    * Get my incidents
    */
   getMyIncidents: async () => {
-    const response = await api.get('/api/incidents/my');
+    const response = await api.get('/incidents/my');
     return response.data;
   },
 };

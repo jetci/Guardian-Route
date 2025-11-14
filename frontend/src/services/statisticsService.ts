@@ -58,19 +58,19 @@ export interface ActivityLog {
 
 // Get incident statistics
 export const getIncidentStatistics = async (): Promise<IncidentStatistics> => {
-  const response = await api.get('/api/incidents/statistics');
+  const response = await api.get('/incidents/statistics');
   return response.data;
 };
 
 // Get report statistics
 export const getReportStatistics = async (): Promise<ReportStatistics> => {
-  const response = await api.get('/api/reports/statistics');
+  const response = await api.get('/reports/statistics');
   return response.data;
 };
 
 // Get system health
 export const getSystemHealth = async (): Promise<SystemHealth> => {
-  const response = await api.get('/api/health');
+  const response = await api.get('/health');
   return response.data;
 };
 
@@ -81,7 +81,7 @@ export const getActivityLogs = async (params?: {
   action?: string;
   userId?: string;
 }): Promise<{ data: ActivityLog[]; total: number }> => {
-  const response = await api.get('/api/activity-logs', { params });
+  const response = await api.get('/activity-logs', { params });
   return response.data;
 };
 
