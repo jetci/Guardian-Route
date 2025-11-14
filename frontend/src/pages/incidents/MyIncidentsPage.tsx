@@ -15,8 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { AddIcon } from '@chakra-ui/icons';
-import { incidentsApi } from '../../api/incidents';
-import type { Incident } from '../../types';
+import { incidentService } from '../../services/incidentService';
 
 const priorityColors: Record<string, string> = {
   LOW: 'green',
@@ -59,7 +58,7 @@ const disasterTypeLabels: Record<string, string> = {
 export const MyIncidentsPage: React.FC = () => {
   const navigate = useNavigate();
   const toast = useToast();
-  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const [incidents, setIncidents] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -69,7 +68,7 @@ export const MyIncidentsPage: React.FC = () => {
   const loadIncidents = async () => {
     try {
       setIsLoading(true);
-      const data = await incidentsApi.getMy();
+      const data = await incidentService.getMyIncidents();
       setIncidents(data);
     } catch (error: any) {
       console.error('Error loading incidents:', error);

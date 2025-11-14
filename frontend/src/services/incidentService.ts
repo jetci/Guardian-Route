@@ -60,4 +60,12 @@ export const incidentService = {
     const response = await api.delete(`/incidents/${id}`);
     return response.data;
   },
+
+  /**
+   * Get my incidents
+   */
+  getMyIncidents: async () => {
+    const response = await api.get('/api/incidents/my');
+    return response.data;
+  },
 };
