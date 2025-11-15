@@ -23,7 +23,7 @@ interface VillageBoundaryMapProps {
 export default function VillageBoundaryMap({
   onBoundaryDrawn,
   existingBoundaries = [],
-  center = [19.9074, 99.8325], // Wiang, Chiang Rai
+  center = [19.9167, 99.9333], // ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
   zoom = 13,
 }: VillageBoundaryMapProps) {
   const mapRef = useRef<L.Map | null>(null);
