@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import VillageBoundaryMap from '../../components/VillageBoundaryMap';
 import GeoJSONUploader from '../../components/GeoJSONUploader';
-import boundariesService, { type VillageBoundary, type CreateBoundaryDto } from '../../services/boundariesService';
+import boundariesService, { type VillageBoundary, type CreateBoundaryDto, type UpdateBoundaryDto } from '../../services/boundariesService';
 import toast from 'react-hot-toast';
 import './VillageBoundariesPage.css';
 
@@ -18,6 +18,7 @@ export default function VillageBoundariesPage() {
   const [drawnBoundary, setDrawnBoundary] = useState<any>(null);
   const [boundaryName, setBoundaryName] = useState('');
   const [selectedVillageNo, setSelectedVillageNo] = useState<number | ''>('');
+  const [editingBoundaryId, setEditingBoundaryId] = useState<string | null>(null);
 
   // Load village boundaries
   useEffect(() => {
@@ -54,26 +55,40 @@ export default function VillageBoundariesPage() {
     }
 
     try {
-      const data: CreateBoundaryDto = {
-        name: boundaryName,
-        type: selectedVillageNo ? 'village' : 'custom',
-        geojson: drawnBoundary,
-        villageId: undefined, // Will be linked by villageNo if needed
-      };
+      if (editingBoundaryId) {
+        // Update existing boundary
+        const data: UpdateBoundaryDto = {
+          name: boundaryName,
+          type: selectedVillageNo ? 'village' : 'custom',
+          geojson: drawnBoundary,
+        };
 
-      await boundariesService.saveDrawnBoundary(data);
-      toast.success('บันทึกขอบเขตสำเร็จ');
+        await boundariesService.updateBoundary(editingBoundaryId, data);
+        toast.success('แก้ไขขอบเขตสำเร็จ');
+      } else {
+        // Create new boundary
+        const data: CreateBoundaryDto = {
+          name: boundaryName,
+          type: selectedVillageNo ? 'village' : 'custom',
+          geojson: drawnBoundary,
+          villageId: undefined,
+        };
+
+        await boundariesService.saveDrawnBoundary(data);
+        toast.success('บันทึกขอบเขตสำเร็จ');
+      }
       
       // Reset form
       setDrawnBoundary(null);
       setBoundaryName('');
       setSelectedVillageNo('');
+      setEditingBoundaryId(null);
       
       // Reload boundaries
       loadBoundaries();
     } catch (error: any) {
       console.error('Error saving boundary:', error);
-      toast.error('ไม่สามารถบันทึกขอบเขตได้');
+      toast.error(editingBoundaryId ? 'ไม่สามารถแก้ไขขอบเขตได้' : 'ไม่สามารถบันทึกขอบเขตได้');
     }
   };
 
@@ -92,6 +107,29 @@ export default function VillageBoundariesPage() {
       console.error('Error uploading GeoJSON:', error);
       toast.error('ไม่สามารถอัปโหลด GeoJSON ได้');
     }
+  };
+
+  const handleEditBoundary = async (villageId: string, villageName: string, villageNo: number) => {
+    try {
+      // In real app, fetch the full boundary data
+      // For now, we'll set edit mode and let user redraw
+      setEditingBoundaryId(villageId);
+      setBoundaryName(villageName);
+      setSelectedVillageNo(villageNo);
+      setActiveTab('map');
+      toast('กรุณาวาดขอบเขตใหม่เพื่อแก้ไข', { icon: 'ℹ️' });
+    } catch (error) {
+      console.error('Error loading boundary for edit:', error);
+      toast.error('ไม่สามารถโหลดข้อมูลขอบเขตได้');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingBoundaryId(null);
+    setDrawnBoundary(null);
+    setBoundaryName('');
+    setSelectedVillageNo('');
+    toast('ยกเลิกการแก้ไข', { icon: 'ℹ️' });
   };
 
   const handleExportGeoJSON = () => {
@@ -187,9 +225,16 @@ export default function VillageBoundariesPage() {
                       ))}
                     </select>
                   </div>
-                  <button className="btn-save" onClick={handleSaveDrawnBoundary}>
-                    💾 บันทึกขอบเขต
-                  </button>
+                  <div className="button-group">
+                    <button className="btn-save" onClick={handleSaveDrawnBoundary}>
+                      {editingBoundaryId ? '✏️ บันทึกการแก้ไข' : '💾 บันทึกขอบเขต'}
+                    </button>
+                    {editingBoundaryId && (
+                      <button className="btn-cancel" onClick={handleCancelEdit}>
+                        ❌ ยกเลิก
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -229,6 +274,14 @@ export default function VillageBoundariesPage() {
                     <span className="badge">✅ มีขอบเขต</span>
                   </div>
                   <p className="village-name">{boundary.name}</p>
+                  <div className="card-actions">
+                    <button 
+                      className="btn-edit-small"
+                      onClick={() => handleEditBoundary(boundary.id, boundary.name, boundary.villageNo)}
+                    >
+                      ✏️ แก้ไข
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
