@@ -297,6 +297,111 @@
   background: #c53030;
 }
 
+/* Georeference Panel */
+.georeference-panel {
+  background: #ffffff;
+  border: 2px solid #4299e1;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.georeference-panel h3 {
+  margin: 0 0 8px 0;
+  color: #2d3748;
+  font-size: 18px;
+}
+
+.tool-description {
+  color: #718096;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.upload-area {
+  text-align: center;
+  padding: 20px;
+}
+
+.upload-button {
+  display: inline-block;
+  padding: 12px 24px;
+  background: #4299e1;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.upload-button:hover {
+  background: #3182ce;
+}
+
+.georeference-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-group label {
+  font-size: 14px;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.control-group input[type="range"] {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e2e8f0;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.control-group input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #4299e1;
+  cursor: pointer;
+}
+
+.control-group input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #4299e1;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-remove {
+  padding: 10px 20px;
+  background: #e53e3e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+  margin-top: 8px;
+}
+
+.btn-remove:hover {
+  background: #c53030;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .map-section {

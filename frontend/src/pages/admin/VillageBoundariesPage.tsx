@@ -19,6 +19,17 @@ export default function VillageBoundariesPage() {
   const [boundaryName, setBoundaryName] = useState('');
   const [selectedVillageNo, setSelectedVillageNo] = useState<number | ''>('');
   const [editingBoundaryId, setEditingBoundaryId] = useState<string | null>(null);
+  
+  // Georeference overlay state
+  const [georeferenceImage, setGeoreferenceImage] = useState<{
+    url: string;
+    opacity: number;
+    scale: number;
+    rotation: number;
+    position: [number, number];
+    naturalWidth: number;
+    naturalHeight: number;
+  } | null>(null);
 
   // Load village boundaries
   useEffect(() => {
@@ -132,6 +143,59 @@ export default function VillageBoundariesPage() {
     toast('ยกเลิกการแก้ไข', { icon: 'ℹ️' });
   };
 
+  // Georeference image handlers
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('กรุณาเลือกไฟล์ภาพ (JPG, PNG)');
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    
+    // Load image to get natural dimensions
+    const img = new Image();
+    img.onload = () => {
+      setGeoreferenceImage({
+        url,
+        opacity: 0.7,
+        scale: 1.0,
+        rotation: 0,
+        position: [19.9169, 99.2145], // Default to Fang center
+        naturalWidth: img.naturalWidth,
+        naturalHeight: img.naturalHeight,
+      });
+      toast.success('โหลดภาพสำเร็จ - ลากเพื่อวางตำแหน่ง');
+    };
+    img.src = url;
+  };
+
+  const handleRemoveGeoreferenceImage = () => {
+    if (georeferenceImage) {
+      URL.revokeObjectURL(georeferenceImage.url);
+      setGeoreferenceImage(null);
+      toast.success('ลบภาพอ้างอิงแล้ว');
+    }
+  };
+
+  const updateGeoreferenceProperty = (property: string, value: number) => {
+    if (!georeferenceImage) return;
+    setGeoreferenceImage({
+      ...georeferenceImage,
+      [property]: value,
+    });
+  };
+
+  const updateGeoreferencePosition = (position: [number, number]) => {
+    if (!georeferenceImage) return;
+    setGeoreferenceImage({
+      ...georeferenceImage,
+      position,
+    });
+  };
+
   const handleExportGeoJSON = () => {
     if (villageBoundaries.length === 0) {
       toast.error('ไม่มีข้อมูลขอบเขตให้ส่งออก');
@@ -198,6 +262,8 @@ export default function VillageBoundariesPage() {
                 <VillageBoundaryMap
                   onBoundaryDrawn={handleBoundaryDrawn}
                   existingBoundaries={villageBoundaries}
+                  georeferenceOverlay={georeferenceImage}
+                  onGeoreferencePositionChange={updateGeoreferencePosition}
                 />
               </div>
 
@@ -237,6 +303,77 @@ export default function VillageBoundariesPage() {
                   </div>
                 </div>
               )}
+
+              {/* Georeference Image Tool */}
+              <div className="georeference-panel">
+                <h3>🗺️ Georeference Image Tool</h3>
+                <p className="tool-description">
+                  นำเข้าภาพแผนที่/ภาพถ่ายทางอากาศเพื่อทาบบนแผนที่ดิจิทัล
+                </p>
+                
+                {!georeferenceImage ? (
+                  <div className="upload-area">
+                    <input
+                      type="file"
+                      id="georeference-upload"
+                      accept="image/jpeg,image/png,image/jpg"
+                      onChange={handleImageUpload}
+                      style={{ display: 'none' }}
+                    />
+                    <label htmlFor="georeference-upload" className="upload-button">
+                      📷 เลือกภาพ (JPG, PNG)
+                    </label>
+                  </div>
+                ) : (
+                  <div className="georeference-controls">
+                    <div className="control-group">
+                      <label>
+                        ความโปร่งใส (Opacity): {(georeferenceImage.opacity * 100).toFixed(0)}%
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={georeferenceImage.opacity}
+                        onChange={(e) => updateGeoreferenceProperty('opacity', parseFloat(e.target.value))}
+                      />
+                    </div>
+
+                    <div className="control-group">
+                      <label>
+                        ขนาด (Scale): {georeferenceImage.scale.toFixed(2)}x
+                      </label>
+                      <input
+                        type="range"
+                        min="0.1"
+                        max="5"
+                        step="0.1"
+                        value={georeferenceImage.scale}
+                        onChange={(e) => updateGeoreferenceProperty('scale', parseFloat(e.target.value))}
+                      />
+                    </div>
+
+                    <div className="control-group">
+                      <label>
+                        การหมุน (Rotation): {georeferenceImage.rotation}°
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="360"
+                        step="1"
+                        value={georeferenceImage.rotation}
+                        onChange={(e) => updateGeoreferenceProperty('rotation', parseFloat(e.target.value))}
+                      />
+                    </div>
+
+                    <button className="btn-remove" onClick={handleRemoveGeoreferenceImage}>
+                      🗑️ ลบภาพอ้างอิง
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
