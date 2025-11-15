@@ -24,19 +24,35 @@
 }
 
 .btn-export {
-  padding: 10px 20px;
+  padding: 12px 24px;
   background: #4299e1;
   color: white;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
   transition: background 0.2s;
 }
 
 .btn-export:hover {
   background: #3182ce;
+}
+
+.btn-edit-tambon {
+  padding: 12px 24px;
+  background: #e53e3e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-edit-tambon:hover {
+  background: #c53030;
 }
 
 .tabs {
@@ -222,6 +238,18 @@
 .boundary-card:hover {
   border-color: #4299e1;
   box-shadow: 0 2px 8px rgba(66, 153, 225, 0.15);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
 }
 
 .card-header {

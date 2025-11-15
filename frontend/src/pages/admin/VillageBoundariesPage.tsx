@@ -135,6 +135,18 @@ export default function VillageBoundariesPage() {
     }
   };
 
+  const handleEditTambonBoundary = () => {
+    // Load tambon boundary for editing
+    setEditingBoundaryId('tambon-wiang');
+    setBoundaryName('ตำบลเวียง');
+    setSelectedVillageNo('tambon' as any);
+    setActiveTab('map');
+    toast('โหมดแก้ไขขอบเขตตำบล - วาดขอบเขตใหม่บนแผนที่', { 
+      icon: '🏛️',
+      duration: 4000 
+    });
+  };
+
   const handleCancelEdit = () => {
     setEditingBoundaryId(null);
     setDrawnBoundary(null);
@@ -235,9 +247,14 @@ export default function VillageBoundariesPage() {
             <h1>🌐 กำหนดขอบเขตหมู่บ้าน</h1>
             <p className="subtitle">เครื่องมือเชิงแผนที่สำหรับวาดและแก้ไขขอบเขตหมู่บ้าน</p>
           </div>
-          <button className="btn-export" onClick={handleExportGeoJSON}>
-            📥 ส่งออก GeoJSON
-          </button>
+          <div className="header-actions">
+            <button className="btn-edit-tambon" onClick={handleEditTambonBoundary}>
+              🏛️ แก้ไขขอบเขตตำบล
+            </button>
+            <button className="btn-export" onClick={handleExportGeoJSON}>
+              📥 ส่งออก GeoJSON
+            </button>
+          </div>
         </div>
 
         <div className="tabs">
