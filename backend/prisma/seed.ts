@@ -1,6 +1,6 @@
 import { PrismaClient, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { villagesData } from './villages-seed-data';
+import { villagesWithGeoJSONData } from './villages-with-geojson-seed';
 
 const prisma = new PrismaClient();
 
@@ -12,10 +12,13 @@ async function main() {
   // ========================================
   console.log('📍 Seeding Villages...');
   
-  for (const villageData of villagesData) {
+  for (const villageData of villagesWithGeoJSONData) {
     const village = await prisma.village.upsert({
       where: { villageNo: villageData.villageNo },
-      update: {},
+      update: {
+        centerPoint: villageData.centerPoint,
+        boundary: villageData.boundary,
+      },
       create: {
         villageNo: villageData.villageNo,
         name: villageData.name,
@@ -24,12 +27,14 @@ async function main() {
         population: villageData.population,
         area: villageData.area,
         description: villageData.description,
+        centerPoint: villageData.centerPoint,
+        boundary: villageData.boundary,
       },
     });
-    console.log(`  ✅ หมู่ ${village.villageNo}: ${village.name}`);
+    console.log(`  ✅ หมู่ ${village.villageNo}: ${village.name} (📍 ${villageData.centerPoint ? 'มีพิกัด' : 'ไม่มีพิกัด'})`);
   }
   
-  console.log(`\n✅ Created ${villagesData.length} villages\n`);
+  console.log(`\n✅ Created ${villagesWithGeoJSONData.length} villages with GeoJSON data\n`);
 
   // ========================================
   // 2. SEED USERS (4 roles)
@@ -117,7 +122,7 @@ async function main() {
   console.log('\n✅ Seed completed!\n');
   
   console.log('📊 Summary:');
-  console.log(`  • Villages: ${villagesData.length}`);
+  console.log(`  • Villages: ${villagesWithGeoJSONData.length}`);
   console.log(`  • Users: 4`);
   
   console.log('\n📝 Test Users:');
@@ -134,7 +139,7 @@ async function main() {
   console.log('┌────┬──────────────────────┬──────────┬──────────┐');
   console.log('│ หมู่│ ชื่อหมู่บ้าน         │ ครัวเรือน│ ประชากร │');
   console.log('├────┼──────────────────────┼──────────┼──────────┤');
-  villagesData.forEach((v) => {
+  villagesWithGeoJSONData.forEach((v) => {
     const namePadded = v.name.padEnd(20, ' ');
     const householdsPadded = v.households.toString().padStart(8, ' ');
     const populationPadded = v.population.toString().padStart(8, ' ');
