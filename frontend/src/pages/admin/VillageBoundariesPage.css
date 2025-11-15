@@ -555,8 +555,10 @@
     width: 100%;
   }
 
-  .boundaries-grid {
-    grid-template-columns: 1fr;
+  /* Old grid responsive removed - using table now */
+  
+  .boundaries-table {
+    overflow-x: auto;
   }
 }
 
