@@ -23,7 +23,7 @@ interface VillageBoundaryMapProps {
 export default function VillageBoundaryMap({
   onBoundaryDrawn,
   existingBoundaries = [],
-  center = [19.9167, 99.9333], // ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
+  center = [19.9169, 99.2145], // ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่ (Fang District)
   zoom = 13,
 }: VillageBoundaryMapProps) {
   const mapRef = useRef<L.Map | null>(null);

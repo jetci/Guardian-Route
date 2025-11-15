@@ -12,7 +12,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านหนองตุ้ม ตั้งอยู่ทางทิศเหนือของตำบล',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9333, 19.9300], // [lng, lat]
+      coordinates: [99.2145, 19.9300], // [lng, lat] - Fang District
     },
     boundary: {
       type: 'Polygon',
@@ -37,7 +37,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านป่าบง พื้นที่เกษตรกรรม',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9400, 19.9200],
+      coordinates: [99.2400, 19.9200],
     },
     boundary: {
       type: 'Polygon',
@@ -62,7 +62,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านเต๋าดิน มีชื่อเรียกอีกชื่อว่า เวียงสุทโธ',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9500, 19.9167],
+      coordinates: [99.2500, 19.9167],
     },
     boundary: {
       type: 'Polygon',
@@ -87,7 +87,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านสวนดอก พื้นที่ทำสวนดอกไม้',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9250, 19.9100],
+      coordinates: [99.2250, 19.9100],
     },
     boundary: {
       type: 'Polygon',
@@ -112,7 +112,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านต้นหนุน',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9150, 19.9200],
+      coordinates: [99.2150, 19.9200],
     },
     boundary: {
       type: 'Polygon',
@@ -137,7 +137,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านสันทรายคองน้อย',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9600, 19.9250],
+      coordinates: [99.2600, 19.9250],
     },
     boundary: {
       type: 'Polygon',
@@ -162,7 +162,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านแม่ใจใต้ ตั้งอยู่ริมแม่น้ำแม่ใจ',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9200, 19.9000],
+      coordinates: [99.2200, 19.9000],
     },
     boundary: {
       type: 'Polygon',
@@ -187,7 +187,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านแม่ใจเหนือ ตั้งอยู่ริมแม่น้ำแม่ใจ',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9300, 19.9050],
+      coordinates: [99.2300, 19.9050],
     },
     boundary: {
       type: 'Polygon',
@@ -212,7 +212,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านริมฝาง มีชื่อเรียกอีกชื่อว่า สันป่าไหน่',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9450, 19.9300],
+      coordinates: [99.2450, 19.9300],
     },
     boundary: {
       type: 'Polygon',
@@ -237,7 +237,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านห้วยเฮี่ยน มีชื่อเรียกอีกชื่อว่า สันป่ายางยาง',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9100, 19.9300],
+      coordinates: [99.2100, 19.9300],
     },
     boundary: {
       type: 'Polygon',
@@ -262,7 +262,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านท่าสะแล',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9350, 19.8950],
+      coordinates: [99.2350, 19.8950],
     },
     boundary: {
       type: 'Polygon',
@@ -287,7 +287,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านโป่งถืบ',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9550, 19.9100],
+      coordinates: [99.2550, 19.9100],
     },
     boundary: {
       type: 'Polygon',
@@ -312,7 +312,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านห้วยบอน',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9050, 19.9100],
+      coordinates: [99.2050, 19.9100],
     },
     boundary: {
       type: 'Polygon',
@@ -337,7 +337,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านเสาหิน',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9400, 19.9000],
+      coordinates: [99.2400, 19.9000],
     },
     boundary: {
       type: 'Polygon',
@@ -362,7 +362,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านโป่งถืบใน',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9650, 19.9050],
+      coordinates: [99.2650, 19.9050],
     },
     boundary: {
       type: 'Polygon',
@@ -387,7 +387,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านปางผึ้ง',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9500, 19.8900],
+      coordinates: [99.2500, 19.8900],
     },
     boundary: {
       type: 'Polygon',
@@ -412,7 +412,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านใหม่คองน้อย',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9700, 19.9200],
+      coordinates: [99.2700, 19.9200],
     },
     boundary: {
       type: 'Polygon',
@@ -437,7 +437,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านศรีดอนชัย',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9150, 19.8900],
+      coordinates: [99.2150, 19.8900],
     },
     boundary: {
       type: 'Polygon',
@@ -462,7 +462,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านใหม่ชยาราม',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9250, 19.8850],
+      coordinates: [99.2250, 19.8850],
     },
     boundary: {
       type: 'Polygon',
@@ -487,7 +487,7 @@ export const villagesWithGeoJSONData = [
     description: 'หมู่บ้านสระนิคม',
     centerPoint: {
       type: 'Point',
-      coordinates: [99.9600, 19.8950],
+      coordinates: [99.2600, 19.8950],
     },
     boundary: {
       type: 'Polygon',
