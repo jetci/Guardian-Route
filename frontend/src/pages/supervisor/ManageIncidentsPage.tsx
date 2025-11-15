@@ -4,13 +4,15 @@
  */
 
 import { useState } from 'react';
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import './SupervisorDashboard.css';
 
 export default function ManageIncidentsPage() {
   const [activeTab, setActiveTab] = useState<'all' | 'new' | 'ongoing' | 'closed'>('all');
 
   return (
-    <div className="supervisor-dashboard">
+    <DashboardLayout>
+      <div className="supervisor-dashboard">
       <div className="dashboard-header">
         <h1>⚠️ จัดการเหตุการณ์ (Manage Incidents)</h1>
         <p className="subtitle">ศูนย์กลางการจัดการเหตุการณ์ภัยพิบัติทั้งหมด</p>
@@ -62,5 +64,6 @@ export default function ManageIncidentsPage() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

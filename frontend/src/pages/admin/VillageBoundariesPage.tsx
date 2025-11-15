@@ -3,9 +3,12 @@
  * กำหนดขอบเขตหมู่บ้าน
  */
 
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+
 export default function VillageBoundariesPage() {
   return (
-    <div className="admin-dashboard">
+    <DashboardLayout>
+      <div className="admin-dashboard">
       <div className="dashboard-header">
         <h1>🌐 กำหนดขอบเขตหมู่บ้าน (Define Village Boundaries)</h1>
         <p className="subtitle">เครื่องมือเชิงแผนที่สำหรับวาดและแก้ไขขอบเขตหมู่บ้าน</p>
@@ -44,5 +47,6 @@ export default function VillageBoundariesPage() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

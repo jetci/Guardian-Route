@@ -3,6 +3,7 @@
  * ภาพรวมทีมงาน
  */
 
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import './SupervisorDashboard.css';
 
 export default function TeamOverviewPage() {
@@ -14,7 +15,8 @@ export default function TeamOverviewPage() {
   ];
 
   return (
-    <div className="supervisor-dashboard">
+    <DashboardLayout>
+      <div className="supervisor-dashboard">
       <div className="dashboard-header">
         <h1>👥 ภาพรวมทีม (Team Overview)</h1>
         <p className="subtitle">สถานะและงานของเจ้าหน้าที่ภาคสนามทั้งหมด</p>
@@ -77,5 +79,6 @@ export default function TeamOverviewPage() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

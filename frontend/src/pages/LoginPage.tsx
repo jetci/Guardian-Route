@@ -71,7 +71,9 @@ export function LoginPage() {
     // Auto-submit after filling
     setLoading(true);
     try {
+      console.log('🔐 Quick Login attempt:', { role, email: cred.email });
       const response = await authService.login({ email: cred.email, password: cred.password });
+      console.log('✅ Login successful:', response);
       
       localStorage.setItem('access_token', response.accessToken);
       localStorage.setItem('refresh_token', response.refreshToken);
@@ -83,12 +85,22 @@ export function LoginPage() {
       const redirectPath = getRoleRedirectPath(response.user.role);
       navigate(redirectPath);
     } catch (error: any) {
+      console.error('❌ Login error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: error.config,
+      });
+      
       if (error.response?.status === 401) {
         toast.error('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
       } else if (error.response?.status === 403) {
         toast.error('บัญชีของคุณถูกระงับการใช้งาน');
+      } else if (error.code === 'ERR_NETWORK') {
+        toast.error('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้ กรุณาตรวจสอบว่า Backend กำลังทำงานอยู่');
       } else {
-        toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+        toast.error(`เกิดข้อผิดพลาด: ${error.message || 'กรุณาลองใหม่อีกครั้ง'}`);
       }
     } finally {
       setLoading(false);

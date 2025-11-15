@@ -3,9 +3,12 @@
  * จัดการข้อมูล
  */
 
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+
 export default function ManageDataPage() {
   return (
-    <div className="admin-dashboard">
+    <DashboardLayout>
+      <div className="admin-dashboard">
       <div className="dashboard-header">
         <h1>💾 จัดการข้อมูล (Manage Data)</h1>
         <p className="subtitle">อัปโหลดและอัปเดตข้อมูลหลักของระบบ</p>
@@ -61,5 +64,6 @@ export default function ManageDataPage() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }
