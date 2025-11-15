@@ -1,0 +1,22 @@
+/* Georeference Marker Styles */
+.georeference-marker {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.georeference-marker img {
+  display: block;
+  cursor: move;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
+.georeference-marker:hover img {
+  cursor: grab;
+}
+
+.georeference-marker:active img {
+  cursor: grabbing;
+}

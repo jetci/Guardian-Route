@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
 import toast from 'react-hot-toast';
+import './VillageBoundaryMap.css';
 
 // Fix Leaflet default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -13,11 +14,23 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+interface GeoreferenceOverlay {
+  url: string;
+  opacity: number;
+  scale: number;
+  rotation: number;
+  position: [number, number];
+  naturalWidth: number;
+  naturalHeight: number;
+}
+
 interface VillageBoundaryMapProps {
   onBoundaryDrawn?: (geojson: any) => void;
   existingBoundaries?: any[];
   center?: [number, number];
   zoom?: number;
+  georeferenceOverlay?: GeoreferenceOverlay | null;
+  onGeoreferencePositionChange?: (position: [number, number]) => void;
 }
 
 export default function VillageBoundaryMap({
@@ -25,10 +38,14 @@ export default function VillageBoundaryMap({
   existingBoundaries = [],
   center = [19.9169, 99.2145], // ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่ (Fang District)
   zoom = 13,
+  georeferenceOverlay,
+  onGeoreferencePositionChange,
 }: VillageBoundaryMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
+  const georeferenceMarkerRef = useRef<L.Marker | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const [currentZoom, setCurrentZoom] = useState(zoom);
 
   useEffect(() => {
     // Initialize map
@@ -146,14 +163,97 @@ export default function VillageBoundaryMap({
     }
   }, [isReady, existingBoundaries]);
 
+  // Georeference overlay effect
+  useEffect(() => {
+    if (!mapRef.current || !georeferenceOverlay) {
+      // Remove marker if overlay is removed
+      if (georeferenceMarkerRef.current && mapRef.current) {
+        mapRef.current.removeLayer(georeferenceMarkerRef.current);
+        georeferenceMarkerRef.current = null;
+      }
+      return;
+    }
+
+    const map = mapRef.current;
+
+    // Calculate pixel size based on zoom and scale
+    const calculatePixelSize = (zoom: number) => {
+      const baseSize = 200; // Base size at zoom 13
+      const zoomDiff = zoom - 13;
+      return baseSize * Math.pow(2, zoomDiff) * georeferenceOverlay.scale;
+    };
+
+    const pixelSize = calculatePixelSize(currentZoom);
+    const aspectRatio = georeferenceOverlay.naturalHeight / georeferenceOverlay.naturalWidth;
+    const pixelHeight = pixelSize * aspectRatio;
+
+    // Create custom icon with image
+    const customIcon = L.divIcon({
+      className: 'georeference-marker',
+      html: `
+        <img 
+          src="${georeferenceOverlay.url}" 
+          style="
+            width: ${pixelSize}px;
+            height: ${pixelHeight}px;
+            opacity: ${georeferenceOverlay.opacity};
+            transform: rotate(${georeferenceOverlay.rotation}deg);
+            pointer-events: none;
+            display: block;
+          "
+          alt="Georeference overlay"
+        />
+      `,
+      iconSize: [pixelSize, pixelHeight],
+      iconAnchor: [pixelSize / 2, pixelHeight / 2],
+    });
+
+    // Remove existing marker
+    if (georeferenceMarkerRef.current) {
+      map.removeLayer(georeferenceMarkerRef.current);
+    }
+
+    // Create draggable marker
+    const marker = L.marker(georeferenceOverlay.position, {
+      icon: customIcon,
+      draggable: true,
+    }).addTo(map);
+
+    // Handle drag end
+    marker.on('dragend', () => {
+      const pos = marker.getLatLng();
+      if (onGeoreferencePositionChange) {
+        onGeoreferencePositionChange([pos.lat, pos.lng]);
+      }
+    });
+
+    georeferenceMarkerRef.current = marker;
+
+    // Update on zoom
+    const handleZoom = () => {
+      const newZoom = map.getZoom();
+      setCurrentZoom(newZoom);
+    };
+
+    map.on('zoom', handleZoom);
+
+    return () => {
+      map.off('zoom', handleZoom);
+      if (georeferenceMarkerRef.current) {
+        map.removeLayer(georeferenceMarkerRef.current);
+        georeferenceMarkerRef.current = null;
+      }
+    };
+  }, [georeferenceOverlay, currentZoom, onGeoreferencePositionChange]);
+
   return (
     <div
       id="village-boundary-map"
       style={{
-        height: '600px',
         width: '100%',
+        height: '600px',
         borderRadius: '8px',
-        border: '1px solid #e2e8f0',
+        overflow: 'hidden',
       }}
     />
   );
