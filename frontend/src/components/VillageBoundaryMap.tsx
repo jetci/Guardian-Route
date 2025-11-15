@@ -5,6 +5,7 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
 import toast from 'react-hot-toast';
 import './VillageBoundaryMap.css';
+import { tambonWiangBoundary, tambonBoundaryStyle } from '../data/mapData';
 
 // Fix Leaflet default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -44,6 +45,7 @@ export default function VillageBoundaryMap({
   const mapRef = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
   const georeferenceMarkerRef = useRef<L.Marker | null>(null);
+  const tambonLayerRef = useRef<L.GeoJSON | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(zoom);
 
@@ -127,6 +129,46 @@ export default function VillageBoundaryMap({
       }
     };
   }, []);
+
+  // Add Tambon Wiang boundary layer
+  useEffect(() => {
+    if (!isReady || !mapRef.current) return;
+
+    const map = mapRef.current;
+
+    // Add tambon boundary layer
+    const tambonLayer = L.geoJSON(tambonWiangBoundary as any, {
+      style: tambonBoundaryStyle,
+    }).addTo(map);
+
+    // Add popup with tambon info
+    tambonLayer.bindPopup(`
+      <div style="font-family: sans-serif;">
+        <strong style="font-size: 16px; color: #e53e3e;">
+          ${tambonWiangBoundary.properties.name}
+        </strong><br>
+        <span style="font-size: 14px; color: #4a5568;">
+          ${tambonWiangBoundary.properties.district}<br>
+          ${tambonWiangBoundary.properties.province}
+        </span><br>
+        <hr style="margin: 8px 0; border: none; border-top: 1px solid #e2e8f0;">
+        <span style="font-size: 13px; color: #718096;">
+          📍 พื้นที่: ${tambonWiangBoundary.properties.area} ตร.กม.<br>
+          👥 ประชากร: ~${tambonWiangBoundary.properties.population?.toLocaleString()} คน<br>
+          🏘️ หมู่บ้าน: ${tambonWiangBoundary.properties.villages} หมู่
+        </span>
+      </div>
+    `);
+
+    tambonLayerRef.current = tambonLayer;
+
+    return () => {
+      if (tambonLayerRef.current && mapRef.current) {
+        mapRef.current.removeLayer(tambonLayerRef.current);
+        tambonLayerRef.current = null;
+      }
+    };
+  }, [isReady]);
 
   // Load existing boundaries
   useEffect(() => {

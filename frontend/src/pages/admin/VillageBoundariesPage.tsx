@@ -280,15 +280,18 @@ export default function VillageBoundariesPage() {
                     />
                   </div>
                   <div className="form-group">
-                    <label>หมู่บ้าน (ถ้ามี)</label>
+                    <label>ประเภทขอบเขต</label>
                     <select
                       value={selectedVillageNo}
                       onChange={(e) => setSelectedVillageNo(e.target.value ? Number(e.target.value) : '')}
                     >
-                      <option value="">-- เลือกหมู่บ้าน --</option>
-                      {Array.from({ length: 20 }, (_, i) => i + 1).map(num => (
-                        <option key={num} value={num}>หมู่ {num}</option>
-                      ))}
+                      <option value="">-- เลือกพื้นที่ --</option>
+                      <option value="tambon">🏛️ ขอบเขตตำบลเวียง</option>
+                      <optgroup label="หมู่บ้าน">
+                        {Array.from({ length: 20 }, (_, i) => i + 1).map(num => (
+                          <option key={num} value={num}>หมู่ {num}</option>
+                        ))}
+                      </optgroup>
                     </select>
                   </div>
                   <div className="button-group">
