@@ -90,6 +90,67 @@ export default function VillageBoundaryMap({
         collapsed: false,
       }).addTo(map);
 
+      // Add fullscreen control
+      const fullscreenControl = L.Control.extend({
+        options: {
+          position: 'topleft',
+        },
+        onAdd: function () {
+          const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-fullscreen');
+          const button = L.DomUtil.create('a', 'leaflet-control-fullscreen-button', container);
+          button.href = '#';
+          button.title = 'ขยายเต็มหน้าจอ (Fullscreen)';
+          button.innerHTML = '⛶';
+          button.style.fontSize = '20px';
+          button.style.lineHeight = '30px';
+          button.style.width = '30px';
+          button.style.height = '30px';
+          button.style.display = 'flex';
+          button.style.alignItems = 'center';
+          button.style.justifyContent = 'center';
+
+          L.DomEvent.on(button, 'click', function (e) {
+            L.DomEvent.preventDefault(e);
+            const mapContainer = map.getContainer();
+            
+            if (!document.fullscreenElement) {
+              // Enter fullscreen
+              if (mapContainer.requestFullscreen) {
+                mapContainer.requestFullscreen();
+              } else if ((mapContainer as any).webkitRequestFullscreen) {
+                (mapContainer as any).webkitRequestFullscreen();
+              } else if ((mapContainer as any).msRequestFullscreen) {
+                (mapContainer as any).msRequestFullscreen();
+              }
+              button.innerHTML = '⛶';
+              button.title = 'ออกจากเต็มหน้าจอ (Exit Fullscreen)';
+            } else {
+              // Exit fullscreen
+              if (document.exitFullscreen) {
+                document.exitFullscreen();
+              } else if ((document as any).webkitExitFullscreen) {
+                (document as any).webkitExitFullscreen();
+              } else if ((document as any).msExitFullscreen) {
+                (document as any).msExitFullscreen();
+              }
+              button.innerHTML = '⛶';
+              button.title = 'ขยายเต็มหน้าจอ (Fullscreen)';
+            }
+          });
+
+          // Listen for fullscreen change events
+          document.addEventListener('fullscreenchange', () => {
+            setTimeout(() => {
+              map.invalidateSize();
+            }, 100);
+          });
+
+          return container;
+        },
+      });
+
+      map.addControl(new fullscreenControl());
+
       // Initialize FeatureGroup for drawn items
       const drawnItems = new L.FeatureGroup();
       map.addLayer(drawnItems);

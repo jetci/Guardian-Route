@@ -61,3 +61,49 @@
   border-top: 1px solid #e2e8f0;
   margin: 8px 0;
 }
+
+/* Fullscreen Control */
+.leaflet-control-fullscreen {
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-control-fullscreen-button {
+  background: white;
+  color: #2d3748;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.leaflet-control-fullscreen-button:hover {
+  background: #4299e1;
+  color: white;
+}
+
+/* Fullscreen mode styles */
+.leaflet-container:-webkit-full-screen {
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 99999;
+}
+
+.leaflet-container:-moz-full-screen {
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 99999;
+}
+
+.leaflet-container:fullscreen {
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 99999;
+}
+
+/* Adjust controls in fullscreen */
+.leaflet-container:fullscreen .leaflet-control-zoom,
+.leaflet-container:fullscreen .leaflet-control-layers,
+.leaflet-container:fullscreen .leaflet-control-fullscreen {
+  margin: 10px;
+}
