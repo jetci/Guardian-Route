@@ -4,13 +4,15 @@
  */
 
 import { useState } from 'react';
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import './SupervisorDashboard.css';
 
 export default function OperationalReportsPage() {
   const [reportType, setReportType] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
 
   return (
-    <div className="supervisor-dashboard">
+    <DashboardLayout>
+      <div className="supervisor-dashboard">
       <div className="dashboard-header">
         <h1>📄 รายงานการปฏิบัติงาน (Operational Reports)</h1>
         <p className="subtitle">สร้างและดาวน์โหลดรายงานสรุปการปฏิบัติงาน</p>
@@ -69,5 +71,6 @@ export default function OperationalReportsPage() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

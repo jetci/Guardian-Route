@@ -3,9 +3,12 @@
  * สำรวจพื้นที่
  */
 
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+
 export default function SurveyAreaPage() {
   return (
-    <div className="field-officer-dashboard">
+    <DashboardLayout>
+      <div className="field-officer-dashboard">
       <div className="dashboard-header">
         <h1>🔍 สำรวจพื้นที่ (Survey Area)</h1>
         <p className="subtitle">เครื่องมือหลักในการลงพื้นที่สำรวจและบันทึกข้อมูล</p>
@@ -65,5 +68,6 @@ export default function SurveyAreaPage() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

@@ -4,12 +4,14 @@
  */
 
 import { useState } from 'react';
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
 
 export default function ReportsStatisticsPage() {
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'quarter' | 'year'>('month');
 
   return (
-    <div className="executive-dashboard">
+    <DashboardLayout>
+      <div className="executive-dashboard">
       <div className="dashboard-header">
         <h1>📊 รายงานและสถิติ (Reports & Statistics)</h1>
         <p className="subtitle">ข้อมูลเหตุการณ์ย้อนหลังในรูปแบบตารางและกราฟเชิงลึก</p>
@@ -89,5 +91,6 @@ export default function ReportsStatisticsPage() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

@@ -3,9 +3,12 @@
  * วิเคราะห์ข้อมูลสำรวจ
  */
 
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
+
 export default function SurveyAnalysisPage() {
   return (
-    <div className="analysis-dashboard">
+    <DashboardLayout>
+      <div className="analysis-dashboard">
       <div className="dashboard-header">
         <h1>📊 วิเคราะห์ข้อมูลสำรวจ (Survey Analysis)</h1>
         <p className="subtitle">แสดงข้อมูลผลการสำรวจเชิงพื้นที่ทั้งหมด</p>
@@ -87,5 +90,6 @@ export default function SurveyAnalysisPage() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }
