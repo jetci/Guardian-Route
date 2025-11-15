@@ -1,19 +1,298 @@
-// This is your Prisma schema file for Guardian Route Dashboard
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider   = "postgresql"
-  url        = env("DATABASE_URL")
-  // extensions = [postgis]  // Disabled temporarily - PostGIS not available in PostgreSQL 18
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// ========================================
-// ENUMS
-// ========================================
+model User {
+  id                 String           @id @default(uuid())
+  username           String           @unique
+  email              String           @unique
+  password           String
+  fullName           String           @map("full_name")
+  firstName          String?          @map("first_name")
+  lastName           String?          @map("last_name")
+  department         String?
+  phone              String?
+  role               Role             @default(FIELD_OFFICER)
+  isActive           Boolean          @default(true) @map("is_active")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  activityLogs       ActivityLog[]
+  assignedIncidents  Incident[]       @relation("AssignedIncidents")
+  createdIncidents   Incident[]       @relation("CreatedBy")
+  reviewedIncidents  Incident[]       @relation("ReviewedIncidents")
+  reports            Report[]         @relation("ReportAuthor")
+  reviewedReports    Report[]         @relation("ReviewedBy")
+  submittedResponses SurveyResponse[] @relation("SubmittedResponses")
+  createdSurveys     Survey[]         @relation("CreatedSurveys")
+  assignedTasks      Task[]           @relation("AssignedTo")
+  createdTasks       Task[]           @relation("TaskCreator")
+
+  @@map("users")
+}
+
+model Village {
+  id             String     @id @default(uuid())
+  villageNo      Int        @unique @map("village_no")
+  name           String
+  alternateNames String[]   @map("alternate_names")
+  centerPoint    Json?      @map("center_point")
+  boundary       Json?
+  households     Int?
+  population     Int?
+  area           Decimal?   @db.Decimal(10, 2)
+  description    String?
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  incidents      Incident[]
+  surveys        Survey[]
+  tasks          Task[]
+
+  @@index([villageNo])
+  @@map("villages")
+}
+
+model Incident {
+  id           String         @id @default(uuid())
+  title        String
+  description  String?
+  status       IncidentStatus @default(PENDING)
+  priority     Priority       @default(MEDIUM)
+  location     Json
+  address      String?
+  images       String[]       @default([])
+  villageId    String?        @map("village_id")
+  disasterType DisasterType
+  reportedAt   DateTime       @default(now()) @map("reported_at")
+  resolvedAt   DateTime?      @map("resolved_at")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+  assignedToId String?        @map("assigned_to_id")
+  assignedAt   DateTime?      @map("assigned_at")
+  reviewNotes  String?        @map("review_notes")
+  reviewedAt   DateTime?      @map("reviewed_at")
+  reviewedById String?        @map("reviewed_by_id")
+  createdById  String         @map("created_by_id")
+  assignedTo   User?          @relation("AssignedIncidents", fields: [assignedToId], references: [id])
+  createdBy    User           @relation("CreatedBy", fields: [createdById], references: [id])
+  reviewedBy   User?          @relation("ReviewedIncidents", fields: [reviewedById], references: [id])
+  village      Village?       @relation(fields: [villageId], references: [id])
+  reports      Report[]
+  surveys      Survey[]
+  tasks        Task[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([disasterType])
+  @@index([villageId])
+  @@index([createdAt])
+  @@map("incidents")
+}
+
+model Task {
+  id             String       @id @default(uuid())
+  title          String
+  description    String?
+  status         TaskStatus   @default(PENDING)
+  priority       TaskPriority @default(MEDIUM)
+  dueDate        DateTime?    @map("due_date")
+  completedAt    DateTime?    @map("completed_at")
+  surveyedAt     DateTime?    @map("surveyed_at")
+  surveyLocation String?      @map("survey_location")
+  surveyArea     String?      @map("survey_area")
+  surveyNotes    String?      @map("survey_notes")
+  surveyPhotos   String[]     @default([]) @map("survey_photos")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  incidentId     String       @map("incident_id")
+  assignedToId   String?      @map("assigned_to_id")
+  createdById    String       @map("created_by_id")
+  villageId      String?      @map("village_id")
+  assignedTo     User?        @relation("AssignedTo", fields: [assignedToId], references: [id])
+  createdBy      User         @relation("TaskCreator", fields: [createdById], references: [id])
+  incident       Incident     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  village        Village?     @relation(fields: [villageId], references: [id])
+
+  @@index([status])
+  @@index([priority])
+  @@index([assignedToId])
+  @@index([createdById])
+  @@index([incidentId])
+  @@index([villageId])
+  @@map("tasks")
+}
+
+model SurveyTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  fields      Json
+  isActive    Boolean  @default(true)
+  surveys     Survey[]
+
+  @@map("survey_templates")
+}
+
+model Survey {
+  id          String           @id @default(uuid())
+  incidentId  String?          @map("incident_id")
+  villageId   String?          @map("village_id")
+  templateId  String           @map("template_id")
+  status      SurveyStatus     @default(PENDING)
+  completedAt DateTime?        @map("completed_at")
+  polygon     Json?
+  createdById String           @map("created_by_id")
+  responses   SurveyResponse[]
+  createdBy   User             @relation("CreatedSurveys", fields: [createdById], references: [id])
+  incident    Incident?        @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  template    SurveyTemplate   @relation(fields: [templateId], references: [id])
+  village     Village?         @relation(fields: [villageId], references: [id])
+
+  @@index([incidentId])
+  @@index([villageId])
+  @@index([templateId])
+  @@index([createdById])
+  @@map("surveys")
+}
+
+model SurveyResponse {
+  id            String   @id @default(uuid())
+  surveyId      String   @map("survey_id")
+  data          Json
+  submittedAt   DateTime @default(now()) @map("submitted_at")
+  submittedById String   @map("submitted_by_id")
+  submittedBy   User     @relation("SubmittedResponses", fields: [submittedById], references: [id])
+  survey        Survey   @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+
+  @@index([surveyId])
+  @@index([submittedById])
+  @@map("survey_responses")
+}
+
+model Report {
+  id                  String       @id @default(uuid())
+  type                ReportType   @default(INCIDENT)
+  status              ReportStatus @default(DRAFT)
+  title               String
+  summary             String?
+  content             Json?
+  details             Json?
+  totalDamageEstimate Decimal?     @map("total_damage_estimate") @db.Decimal(15, 2)
+  affectedHouseholds  Int?         @map("affected_households")
+  affectedPersons     Int?         @map("affected_persons")
+  aiAnalysis          Json?        @map("ai_analysis")
+  photoUrls           String[]     @map("photo_urls")
+  templateId          String?      @map("template_id")
+  periodStart         DateTime?    @map("period_start")
+  periodEnd           DateTime?    @map("period_end")
+  metadata            Json?
+  pdfUrl              String?      @map("pdf_url")
+  pdfGeneratedAt      DateTime?    @map("pdf_generated_at")
+  reviewNotes         String?      @map("review_notes")
+  reviewedAt          DateTime?    @map("reviewed_at")
+  submittedAt         DateTime?    @map("submitted_at")
+  approvedAt          DateTime?    @map("approved_at")
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+  taskIds             String[]     @default([]) @map("task_ids")
+  surveyIds           String[]     @default([]) @map("survey_ids")
+  incidentId          String?      @map("incident_id")
+  authorId            String       @map("author_id")
+  reviewedById        String?      @map("reviewed_by_id")
+  author              User         @relation("ReportAuthor", fields: [authorId], references: [id])
+  incident            Incident?    @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  reviewedBy          User?        @relation("ReviewedBy", fields: [reviewedById], references: [id])
+
+  @@index([type])
+  @@index([status])
+  @@index([authorId])
+  @@index([incidentId])
+  @@index([periodStart])
+  @@index([createdAt])
+  @@map("reports")
+}
+
+model ReportTemplate {
+  id          String     @id @default(uuid())
+  name        String
+  type        ReportType
+  description String?
+  structure   Json
+  isActive    Boolean    @default(true) @map("is_active")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@index([isActive])
+  @@map("report_templates")
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  action    String
+  entity    String?
+  entityId  String?  @map("entity_id")
+  details   Json?
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("activity_logs")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  username   String
+  action     String
+  targetType String?  @map("target_type")
+  targetId   String?  @map("target_id")
+  details    Json?
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([action])
+  @@index([targetType])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model GeoBoundary {
+  id         String   @id @default(uuid())
+  name       String
+  type       String
+  geojson    Json
+  properties Json?
+  villageId  String?  @map("village_id")
+  uploadedBy String   @map("uploaded_by")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@index([type])
+  @@index([villageId])
+  @@map("geo_boundaries")
+}
+
+model SystemConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_config")
+}
 
 enum Role {
   FIELD_OFFICER
@@ -78,122 +357,6 @@ enum DisasterType {
   OTHER
 }
 
-// ========================================
-// MODELS
-// ========================================
-
-model User {
-  id        String   @id @default(uuid())
-  username  String   @unique
-  email     String   @unique
-  password  String   // bcrypt hashed
-  fullName  String   @map("full_name")
-  firstName String?  @map("first_name")
-  lastName  String?  @map("last_name")
-  department String?
-  phone     String?
-  role      Role     @default(FIELD_OFFICER)
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  createdIncidents  Incident[] @relation("CreatedBy")
-  assignedIncidents Incident[] @relation("AssignedIncidents")
-  reviewedIncidents Incident[] @relation("ReviewedIncidents")
-  assignedTasks     Task[]     @relation("AssignedTo")
-  createdTasks     Task[]        @relation("TaskCreator")
-  reports          Report[]      @relation("ReportAuthor")
-  reviewedReports  Report[]      @relation("ReviewedBy")
-  activityLogs     ActivityLog[]
-  createdSurveys   Survey[]      @relation("CreatedSurveys")
-  submittedResponses SurveyResponse[] @relation("SubmittedResponses")
-
-  @@map("users")
-}
-
-model Village {
-  id          String  @id @default(uuid())
-  villageNo   Int     @unique @map("village_no") // หมู่ที่ 1-20
-  name        String  // ชื่อหมู่บ้าน เช่น "หนองตุ้ม"
-  alternateNames String[] @map("alternate_names") // ชื่อเรียกอื่น เช่น ["เวียงสุทโธ"] สำหรับหมู่ 3
-  
-  // GeoJSON Point - ตำแหน่งศูนย์กลางหมู่บ้าน
-  centerPoint Json? @map("center_point") // { type: "Point", coordinates: [lng, lat] }
-  
-  // GeoJSON Polygon - ขอบเขตหมู่บ้าน (optional)
-  boundary Json? // { type: "Polygon", coordinates: [...] }
-  
-  // Statistics
-  households Int? // จำนวนครัวเรือน
-  population Int? // จำนวนประชากร
-  area       Decimal? @db.Decimal(10, 2) // พื้นที่ (ตร.กม.)
-  
-  description String? // รายละเอียดเพิ่มเติม
-  
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  
-  // Relations
-  incidents Incident[]
-  tasks     Task[]
-  surveys   Survey[]
-  
-  @@index([villageNo])
-  @@map("villages")
-}
-
-model Incident {
-  id          String         @id @default(uuid())
-  title       String
-  description String?
-  status      IncidentStatus @default(PENDING)
-  priority    Priority       @default(MEDIUM)
-
-  // GeoJSON Point - stored as JSON
-  location Json // { type: "Point", coordinates: [lng, lat] }
-  address  String?
-  
-  // Images (array of URLs)
-  images String[] @default([])
-  
-  // Village relation (แทน village String?)
-  villageId String? @map("village_id")
-
-  disasterType DisasterType
-
-  reportedAt DateTime  @default(now()) @map("reported_at")
-  resolvedAt DateTime? @map("resolved_at")
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @updatedAt @map("updated_at")
-
-  // Assignment and Review
-  assignedToId String?   @map("assigned_to_id")
-  assignedAt   DateTime? @map("assigned_at")
-  reviewNotes  String?   @map("review_notes")
-  reviewedAt   DateTime? @map("reviewed_at")
-  reviewedById String?   @map("reviewed_by_id")
-
-  // Foreign Keys
-  createdById String @map("created_by_id")
-
-  // Relations
-  createdBy  User  @relation("CreatedBy", fields: [createdById], references: [id])
-  assignedTo User? @relation("AssignedIncidents", fields: [assignedToId], references: [id])
-  reviewedBy User? @relation("ReviewedIncidents", fields: [reviewedById], references: [id])
-  village   Village? @relation(fields: [villageId], references: [id])
-  tasks     Task[]
-  surveys   Survey[]
-  reports   Report[]
-
-  @@index([status])
-  @@index([priority])
-  @@index([disasterType])
-  @@index([villageId])
-  @@index([createdAt])
-  @@map("incidents")
-}
-
 enum TaskPriority {
   LOW
   MEDIUM
@@ -206,248 +369,4 @@ enum SurveyStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
-}
-
-model Task {
-  id          String       @id @default(uuid())
-  title       String
-  description String?
-  status      TaskStatus   @default(PENDING)
-  priority    TaskPriority @default(MEDIUM)
-  dueDate     DateTime?    @map("due_date")
-  completedAt DateTime?    @map("completed_at")
-  
-  // Field Survey Data
-  surveyedAt      DateTime?              @map("surveyed_at")
-  surveyLocation  String?                @map("survey_location") // GeoJSON Point format
-  surveyArea      String?                @map("survey_area")     // GeoJSON Polygon format
-  surveyNotes     String?                @map("survey_notes")
-  surveyPhotos    String[]               @default([]) @map("survey_photos")
-  
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
-
-  // Foreign Keys
-  incidentId   String  @map("incident_id")
-  assignedToId String? @map("assigned_to_id")
-  createdById  String  @map("created_by_id")
-  villageId    String? @map("village_id")
-
-  // Relations
-  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  assignedTo User?    @relation("AssignedTo", fields: [assignedToId], references: [id])
-  createdBy  User     @relation("TaskCreator", fields: [createdById], references: [id])
-  village    Village? @relation(fields: [villageId], references: [id])
-
-  @@index([status])
-  @@index([priority])
-  @@index([assignedToId])
-  @@index([createdById])
-  @@index([incidentId])
-  @@index([villageId])
-  @@map("tasks")
-}
-
-model SurveyTemplate {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  fields      Json     // Dynamic field definitions
-  isActive    Boolean  @default(true)
-
-  surveys     Survey[]
-
-  @@map("survey_templates")
-}
-
-model Survey {
-  id          String   @id @default(uuid())
-  incidentId  String?  @map("incident_id")
-  villageId   String?  @map("village_id")
-  templateId  String   @map("template_id")
-  status      SurveyStatus @default(PENDING)
-  completedAt DateTime? @map("completed_at")
-  polygon     Json?     // GeoJSON for survey area (optional)
-
-  // Foreign Keys
-  createdById String @map("created_by_id")
-
-  // Relations
-  incident    Incident? @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  village     Village? @relation(fields: [villageId], references: [id])
-  template    SurveyTemplate @relation(fields: [templateId], references: [id])
-  responses   SurveyResponse[]
-  createdBy   User @relation("CreatedSurveys", fields: [createdById], references: [id])
-
-  @@index([incidentId])
-  @@index([villageId])
-  @@index([templateId])
-  @@index([createdById])
-  @@map("surveys")
-}
-
-model SurveyResponse {
-  id          String   @id @default(uuid())
-  surveyId    String   @map("survey_id")
-  data        Json     // Actual survey response data (key-value pairs)
-  submittedAt DateTime @default(now()) @map("submitted_at")
-
-  // Foreign Keys
-  submittedById String @map("submitted_by_id")
-
-  // Relations
-  survey      Survey @relation(fields: [surveyId], references: [id], onDelete: Cascade)
-  submittedBy User @relation("SubmittedResponses", fields: [submittedById], references: [id])
-
-  @@index([surveyId])
-  @@index([submittedById])
-  @@map("survey_responses")
-}
-
-model Report {
-  id     String       @id @default(uuid())
-  type   ReportType   @default(INCIDENT)
-  status ReportStatus @default(DRAFT)
-
-  // Report content
-  title   String
-  summary String?
-  content Json? // Main report content (JSON)
-  details Json? // Structured report data (legacy)
-
-  // Damage assessment
-  totalDamageEstimate Decimal? @map("total_damage_estimate") @db.Decimal(15, 2)
-  affectedHouseholds  Int?     @map("affected_households")
-  affectedPersons     Int?     @map("affected_persons")
-
-  // AI Analysis
-  aiAnalysis Json? @map("ai_analysis") // Gemini API results
-
-  // Photos
-  photoUrls String[] @map("photo_urls")
-
-  // Template and Period (for Monthly/Custom reports)
-  templateId  String?   @map("template_id")
-  periodStart DateTime? @map("period_start")
-  periodEnd   DateTime? @map("period_end")
-  metadata    Json?     // Additional metadata for report generation
-
-  // PDF Generation
-  pdfUrl         String?   @map("pdf_url")
-  pdfGeneratedAt DateTime? @map("pdf_generated_at")
-
-  // Review
-  reviewNotes String?   @map("review_notes")
-  reviewedAt  DateTime? @map("reviewed_at")
-
-  submittedAt DateTime? @map("submitted_at")
-  approvedAt  DateTime? @map("approved_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  // Related entities
-  taskIds   String[] @default([]) @map("task_ids")
-  surveyIds String[] @default([]) @map("survey_ids")
-
-  // Foreign Keys
-  incidentId   String? @map("incident_id")
-  authorId     String  @map("author_id")
-  reviewedById String? @map("reviewed_by_id")
-
-  // Relations
-  incident   Incident? @relation(fields: [incidentId], references: [id], onDelete: Cascade)
-  author     User      @relation("ReportAuthor", fields: [authorId], references: [id])
-  reviewedBy User?     @relation("ReviewedBy", fields: [reviewedById], references: [id])
-
-  @@index([type])
-  @@index([status])
-  @@index([authorId])
-  @@index([incidentId])
-  @@index([periodStart])
-  @@index([createdAt])
-  @@map("reports")
-}
-
-model ReportTemplate {
-  id          String     @id @default(uuid())
-  name        String
-  type        ReportType
-  description String?
-  structure   Json       // Template structure (JSON)
-  isActive    Boolean    @default(true) @map("is_active")
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
-
-  @@index([type])
-  @@index([isActive])
-  @@map("report_templates")
-}
-
-model ActivityLog {
-  id        String   @id @default(uuid())
-  action    String   // "LOGIN", "CREATE_INCIDENT", "APPROVE_REPORT", etc.
-  entity    String?  // "User", "Incident", "Report"
-  entityId  String?  @map("entity_id")
-  details   Json?    // Additional context
-  ipAddress String?  @map("ip_address")
-  userAgent String?  @map("user_agent")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // Foreign Keys
-  userId String @map("user_id")
-
-  // Relations
-  user User @relation(fields: [userId], references: [id])
-
-  @@index([userId])
-  @@index([action])
-  @@index([createdAt])
-  @@map("activity_logs")
-}
-
-// Admin Audit Logs - สำหรับติดตาม Admin Actions
-model AuditLog {
-  id         String   @id @default(uuid())
-  userId     String   @map("user_id")
-  username   String
-  action     String   // 'CREATE_USER', 'SUSPEND_USER', 'DELETE_USER', 'CHANGE_ROLE', 'UPLOAD_GEOJSON', 'EDIT_POLYGON', 'UPDATE_SETTINGS'
-  targetType String?  @map("target_type") // 'USER', 'GEOJSON', 'POLYGON', 'SETTINGS'
-  targetId   String?  @map("target_id")
-  details    Json?    // Additional details
-  ipAddress  String?  @map("ip_address")
-  userAgent  String?  @map("user_agent")
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  @@index([userId])
-  @@index([action])
-  @@index([targetType])
-  @@index([createdAt])
-  @@map("audit_logs")
-}
-
-// GeoJSON Boundaries - สำหรับจัดการขอบเขตภูมิศาสตร์
-model GeoBoundary {
-  id          String   @id @default(uuid())
-  name        String   // ชื่อขอบเขต
-  type        String   // 'village', 'district', 'province', 'custom'
-  geojson     Json     // GeoJSON data
-  properties  Json?    // Additional properties
-  villageId   String?  @map("village_id")
-  uploadedBy  String   @map("uploaded_by")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  @@index([type])
-  @@index([villageId])
-  @@map("geo_boundaries")
-}
-
-// System configuration and settings
-model SystemConfig {
-  id        String   @id @default(uuid())
-  key       String   @unique
-  value     Json
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("system_config")
 }
