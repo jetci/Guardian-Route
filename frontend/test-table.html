@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ทดสอบตาราง</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: #f7fafc;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #2d3748;
+        }
+
+        .list-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .search-input {
+            padding: 8px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        .sort-select {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .boundaries-table {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f7fafc;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 14px;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        td {
+            padding: 12px 16px;
+            font-size: 14px;
+            color: #4a5568;
+        }
+
+        .village-no {
+            text-align: center;
+            width: 80px;
+        }
+
+        .badge-number {
+            display: inline-block;
+            background: #4299e1;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .badge-success {
+            display: inline-block;
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .btn-action {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 2px;
+            transition: all 0.2s;
+        }
+
+        .btn-view {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .btn-edit {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .btn-delete {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .coordinates {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .coord-text {
+            background: #f7fafc;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="list-header">
+            <h2>📋 รายการขอบเขตที่บันทึกแล้ว (20)</h2>
+            <div class="list-controls">
+                <input type="text" class="search-input" placeholder="🔍 ค้นหาหมู่บ้าน...">
+                <select class="sort-select">
+                    <option value="no">เรียงตามหมู่</option>
+                    <option value="name">เรียงตามชื่อ</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="boundaries-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>หมู่</th>
+                        <th>ชื่อหมู่บ้าน</th>
+                        <th>พิกัดกลาง</th>
+                        <th>สถานะ</th>
+                        <th>จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="village-no">
+                            <span class="badge-number">1</span>
+                        </td>
+                        <td><strong>หนองตุ้ม</strong></td>
+                        <td class="coordinates">
+                            <span class="coord-text">19.9350, 99.2130</span>
+                        </td>
+                        <td>
+                            <span class="badge-success">✅ มีขอบเขต</span>
+                        </td>
+                        <td>
+                            <button class="btn-action btn-view">🗺️</button>
+                            <button class="btn-action btn-edit">✏️</button>
+                            <button class="btn-action btn-delete">🗑️</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="village-no">
+                            <span class="badge-number">2</span>
+                        </td>
+                        <td><strong>ป่าบง</strong></td>
+                        <td class="coordinates">
+                            <span class="coord-text">19.9280, 99.2200</span>
+                        </td>
+                        <td>
+                            <span class="badge-success">✅ มีขอบเขต</span>
+                        </td>
+                        <td>
+                            <button class="btn-action btn-view">🗺️</button>
+                            <button class="btn-action btn-edit">✏️</button>
+                            <button class="btn-action btn-delete">🗑️</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="village-no">
+                            <span class="badge-number">3</span>
+                        </td>
+                        <td><strong>เต๋าดิน</strong></td>
+                        <td class="coordinates">
+                            <span class="coord-text">19.9310, 99.2300</span>
+                        </td>
+                        <td>
+                            <span class="badge-success">✅ มีขอบเขต</span>
+                        </td>
+                        <td>
+                            <button class="btn-action btn-view">🗺️</button>
+                            <button class="btn-action btn-edit">✏️</button>
+                            <button class="btn-action btn-delete">🗑️</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 40px; padding: 20px; background: #fff5f5; border-left: 4px solid #fc8181; border-radius: 4px;">
+            <h3 style="color: #c53030; margin-bottom: 10px;">⚠️ นี่คือหน้าทดสอบ</h3>
+            <p style="color: #742a2a; line-height: 1.6;">
+                ถ้าคุณเห็นตารางแบบนี้ แสดงว่า CSS ทำงานถูกต้อง<br>
+                ปัญหาคือ Browser Cache ใน React App<br><br>
+                <strong>วิธีแก้:</strong><br>
+                1. เปิด http://localhost:5174 (ไม่ใช่ 5173)<br>
+                2. กด Ctrl + Shift + Delete → Clear cache<br>
+                3. กด Ctrl + Shift + R<br>
+                4. หรือใช้ Incognito Mode (Ctrl + Shift + N)
+            </p>
+        </div>
+    </div>
+</body>
+</html>
