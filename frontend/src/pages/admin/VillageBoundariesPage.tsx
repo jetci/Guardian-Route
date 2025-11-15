@@ -414,7 +414,29 @@ export default function VillageBoundariesPage() {
         </div>
 
         <div className="boundaries-list">
-          <h2>📋 รายการขอบเขตที่บันทึกแล้ว ({villageBoundaries.length})</h2>
+          <div className="list-header">
+            <h2>📋 รายการขอบเขตที่บันทึกแล้ว ({villageBoundaries.length})</h2>
+            <div className="list-controls">
+              <input
+                type="text"
+                className="search-input"
+                placeholder="🔍 ค้นหาหมู่บ้าน..."
+                onChange={(e) => {
+                  const search = e.target.value.toLowerCase();
+                  const filtered = villageBoundaries.filter(b => 
+                    b.name.toLowerCase().includes(search) || 
+                    b.villageNo.toString().includes(search)
+                  );
+                  // Update filtered list (implement state if needed)
+                }}
+              />
+              <select className="sort-select">
+                <option value="no">เรียงตามหมู่</option>
+                <option value="name">เรียงตามชื่อ</option>
+              </select>
+            </div>
+          </div>
+
           {loading ? (
             <div className="loading">กำลังโหลด...</div>
           ) : villageBoundaries.length === 0 ? (
@@ -423,24 +445,75 @@ export default function VillageBoundariesPage() {
               <p className="hint">เริ่มต้นด้วยการวาดขอบเขตบนแผนที่ หรืออัปโหลดไฟล์ GeoJSON</p>
             </div>
           ) : (
-            <div className="boundaries-grid">
-              {villageBoundaries.map((boundary) => (
-                <div key={boundary.id} className="boundary-card">
-                  <div className="card-header">
-                    <h4>หมู่ {boundary.villageNo}</h4>
-                    <span className="badge">✅ มีขอบเขต</span>
-                  </div>
-                  <p className="village-name">{boundary.name}</p>
-                  <div className="card-actions">
-                    <button 
-                      className="btn-edit-small"
-                      onClick={() => handleEditBoundary(boundary.id, boundary.name, boundary.villageNo)}
-                    >
-                      ✏️ แก้ไข
-                    </button>
-                  </div>
-                </div>
-              ))}
+            <div className="boundaries-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>หมู่</th>
+                    <th>ชื่อหมู่บ้าน</th>
+                    <th>พิกัดกลาง</th>
+                    <th>สถานะ</th>
+                    <th>จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {villageBoundaries.map((boundary) => (
+                    <tr key={boundary.id}>
+                      <td className="village-no">
+                        <span className="badge-number">{boundary.villageNo}</span>
+                      </td>
+                      <td className="village-name-cell">
+                        <strong>{boundary.name}</strong>
+                      </td>
+                      <td className="coordinates">
+                        {boundary.centerPoint ? (
+                          <span className="coord-text">
+                            {boundary.centerPoint.coordinates[1].toFixed(4)}, {boundary.centerPoint.coordinates[0].toFixed(4)}
+                          </span>
+                        ) : (
+                          <span className="no-data">-</span>
+                        )}
+                      </td>
+                      <td className="status">
+                        <span className="badge-success">✅ มีขอบเขต</span>
+                      </td>
+                      <td className="actions">
+                        <button 
+                          className="btn-action btn-view"
+                          onClick={() => {
+                            // Center map on this village
+                            if (boundary.centerPoint) {
+                              setActiveTab('map');
+                              toast('📍 แสดงตำแหน่งหมู่ ' + boundary.villageNo, { icon: '🗺️' });
+                            }
+                          }}
+                          title="ดูบนแผนที่"
+                        >
+                          🗺️
+                        </button>
+                        <button 
+                          className="btn-action btn-edit"
+                          onClick={() => handleEditBoundary(boundary.id, boundary.name, boundary.villageNo)}
+                          title="แก้ไข"
+                        >
+                          ✏️
+                        </button>
+                        <button 
+                          className="btn-action btn-delete"
+                          onClick={() => {
+                            if (confirm(`ต้องการลบขอบเขต ${boundary.name} หรือไม่?`)) {
+                              toast.error('ฟังก์ชันลบยังไม่เปิดใช้งาน');
+                            }
+                          }}
+                          title="ลบ"
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

@@ -192,10 +192,180 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.boundaries-list h2 {
-  margin: 0 0 20px 0;
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.list-header h2 {
+  margin: 0;
   font-size: 20px;
   color: #2d3748;
+}
+
+.list-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.search-input {
+  padding: 8px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 200px;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #4299e1;
+}
+
+.sort-select {
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+  cursor: pointer;
+}
+
+.boundaries-table {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.boundaries-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.boundaries-table thead {
+  background: #f7fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.boundaries-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 14px;
+}
+
+.boundaries-table tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+  transition: background 0.2s;
+}
+
+.boundaries-table tbody tr:hover {
+  background: #f7fafc;
+}
+
+.boundaries-table td {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.village-no {
+  text-align: center;
+  width: 80px;
+}
+
+.badge-number {
+  display: inline-block;
+  background: #4299e1;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.village-name-cell strong {
+  color: #2d3748;
+  font-size: 15px;
+}
+
+.coordinates {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #718096;
+}
+
+.coord-text {
+  background: #f7fafc;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.no-data {
+  color: #cbd5e0;
+}
+
+.status {
+  width: 120px;
+}
+
+.badge-success {
+  display: inline-block;
+  background: #c6f6d5;
+  color: #22543d;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.actions {
+  width: 140px;
+  text-align: center;
+}
+
+.btn-action {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 0 2px;
+  transition: all 0.2s;
+}
+
+.btn-view {
+  background: #bee3f8;
+  color: #2c5282;
+}
+
+.btn-view:hover {
+  background: #90cdf4;
+}
+
+.btn-edit {
+  background: #feebc8;
+  color: #7c2d12;
+}
+
+.btn-edit:hover {
+  background: #fbd38d;
+}
+
+.btn-delete {
+  background: #fed7d7;
+  color: #742a2a;
+}
+
+.btn-delete:hover {
+  background: #fc8181;
 }
 
 .loading {
