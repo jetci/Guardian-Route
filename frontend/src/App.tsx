@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { LoginPage } from './pages/LoginPage';
+import { UnauthorizedPage } from './pages/auth/UnauthorizedPage';
 import { SimpleDashboard } from './pages/SimpleDashboard';
 import { AdminDashboard } from './pages/dashboards/AdminDashboard';
 import AdminDashboardV2 from './pages/admin/AdminDashboardV2';
@@ -68,6 +69,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
           
           {/* Public Routes */}
           <Route path="/demo/thai-datepicker" element={<ThaiDatePickerDemo />} />
