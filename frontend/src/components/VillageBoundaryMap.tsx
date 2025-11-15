@@ -54,8 +54,8 @@ export default function VillageBoundaryMap({
         draw: {
           polygon: {
             allowIntersection: false,
-            showArea: true,
-            metric: true,
+            showArea: false, // Disable to avoid 'type is not defined' error
+            metric: false,
           },
           polyline: false,
           circle: false,
