@@ -20,3 +20,44 @@
 .georeference-marker:active img {
   cursor: grabbing;
 }
+
+/* Leaflet Layer Control Styling */
+.leaflet-control-layers {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 10px;
+}
+
+.leaflet-control-layers-expanded {
+  padding: 12px;
+}
+
+.leaflet-control-layers-toggle {
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xMSA0SDRhMiAyIDAgMCAwLTIgMnY3Ii8+PHBhdGggZD0iTTExIDIwSDRhMiAyIDAgMCAxLTItMnYtN2EyIDIgMCAwIDEgMi0yaDciLz48cGF0aCBkPSJNMjAgMTN2N2EyIDIgMCAwIDEtMiAyaC03Ii8+PHBhdGggZD0iTTIwIDEzVjZhMiAyIDAgMCAwLTItMmgtNyIvPjwvc3ZnPg==');
+  width: 36px;
+  height: 36px;
+}
+
+.leaflet-control-layers label {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.leaflet-control-layers label:hover {
+  color: #4299e1;
+}
+
+.leaflet-control-layers-base {
+  margin-bottom: 8px;
+}
+
+.leaflet-control-layers-separator {
+  border-top: 1px solid #e2e8f0;
+  margin: 8px 0;
+}

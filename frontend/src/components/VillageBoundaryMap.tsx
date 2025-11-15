@@ -54,10 +54,40 @@ export default function VillageBoundaryMap({
     if (!mapRef.current) {
       const map = L.map('village-boundary-map').setView(center, zoom);
 
-      // Add OpenStreetMap tiles
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      // Base layers
+      const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19,
+      });
+
+      const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        maxZoom: 19,
+      });
+
+      const hybridLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles © Esri',
+        maxZoom: 19,
+      });
+
+      const labelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '',
+        maxZoom: 19,
+      });
+
+      // Add default layer
+      osmLayer.addTo(map);
+
+      // Layer control
+      const baseMaps = {
+        '🗺️ แผนที่ถนน (Street Map)': osmLayer,
+        '🛰️ ภาพดาวเทียม (Satellite)': satelliteLayer,
+        '🌍 ภาพดาวเทียม + ชื่อ (Hybrid)': L.layerGroup([hybridLayer, labelsLayer]),
+      };
+
+      L.control.layers(baseMaps, {}, {
+        position: 'topright',
+        collapsed: false,
       }).addTo(map);
 
       // Initialize FeatureGroup for drawn items
