@@ -40,7 +40,20 @@ export default function VillageBoundariesPage() {
     try {
       setLoading(true);
       const data = await boundariesService.getVillageBoundaries();
-      setVillageBoundaries(data);
+      // Filter out boundaries with incomplete data
+      const validBoundaries = data.filter(boundary => 
+        boundary.name && 
+        boundary.name.trim() !== '' && 
+        boundary.villageNo && 
+        boundary.boundary
+      );
+      setVillageBoundaries(validBoundaries);
+      
+      // Log filtered out boundaries for debugging
+      const filteredCount = data.length - validBoundaries.length;
+      if (filteredCount > 0) {
+        console.log(`Filtered out ${filteredCount} incomplete boundaries`);
+      }
     } catch (error: any) {
       console.error('Error loading boundaries:', error);
       toast.error('ไม่สามารถโหลดข้อมูลขอบเขตได้');
@@ -274,11 +287,16 @@ export default function VillageBoundariesPage() {
 
         <div className="content">
           {activeTab === 'map' && (
-            <div className="map-section">
+            <div className={`map-section ${!drawnBoundary ? 'full-width' : ''}`}>
+              {editingBoundaryId === 'tambon-wiang' && (
+                <div className="edit-mode-banner">
+                  🏛️ โหมดแก้ไขขอบเขตตำบล - ขอบเขตหมู่บ้านถูกซ่อนเพื่อความชัดเจน
+                </div>
+              )}
               <div className="map-wrapper">
                 <VillageBoundaryMap
                   onBoundaryDrawn={handleBoundaryDrawn}
-                  existingBoundaries={villageBoundaries}
+                  existingBoundaries={editingBoundaryId === 'tambon-wiang' ? [] : villageBoundaries}
                   georeferenceOverlay={georeferenceImage}
                   onGeoreferencePositionChange={updateGeoreferencePosition}
                 />

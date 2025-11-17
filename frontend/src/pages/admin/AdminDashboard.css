@@ -43,7 +43,7 @@
 }
 
 .kpi-card.purple { 
-  background: linear-gradient(135deg, #8b5cf6, #a78bfa); 
+  background: linear-gradient(135deg, #3b82f6, #60a5fa); 
   color: white; 
 }
 
@@ -105,22 +105,30 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  background: #f9fafb;
-  border-radius: 12px;
-  border: 2px solid #e5e7eb;
-  transition: all 0.2s;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 16px;
+  border: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  color: white;
 }
 
 .role-card:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+}
+
+.role-card .role-name {
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
 }
 
 .role-count {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1f2937;
+  font-size: 32px;
+  font-weight: 800;
+  color: white;
 }
 
 /* User Management */
@@ -261,7 +269,7 @@
 }
 
 .role-badge.developer {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
 }
 
