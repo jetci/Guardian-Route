@@ -363,13 +363,16 @@ export default function ManageIncidentsPage() {
                     display: 'flex',
                     gap: '8px',
                     paddingTop: '12px',
-                    borderTop: '1px solid #e5e7eb'
+                    borderTop: '1px solid #e5e7eb',
+                    flexWrap: 'wrap',
+                    width: '100%'
                   }}>
                     <button
                       onClick={() => handleViewDetails(incident)}
                       style={{
-                        display: 'flex',
+                        display: 'inline-flex',
                         alignItems: 'center',
+                        justifyContent: 'center',
                         gap: '6px',
                         padding: '8px 16px',
                         background: '#3b82f6',
@@ -379,8 +382,12 @@ export default function ManageIncidentsPage() {
                         fontSize: '13px',
                         fontWeight: '600',
                         cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.2s',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0
                       }}
+                      onMouseOver={(e) => e.currentTarget.style.background = '#2563eb'}
+                      onMouseOut={(e) => e.currentTarget.style.background = '#3b82f6'}
                     >
                       👁️ ดูรายละเอียด
                     </button>
@@ -389,8 +396,9 @@ export default function ManageIncidentsPage() {
                       <button
                         onClick={() => handleAssign(incident)}
                         style={{
-                          display: 'flex',
+                          display: 'inline-flex',
                           alignItems: 'center',
+                          justifyContent: 'center',
                           gap: '6px',
                           padding: '8px 16px',
                           background: '#10b981',
@@ -400,8 +408,12 @@ export default function ManageIncidentsPage() {
                           fontSize: '13px',
                           fontWeight: '600',
                           cursor: 'pointer',
-                          transition: 'all 0.2s'
+                          transition: 'all 0.2s',
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0
                         }}
+                        onMouseOver={(e) => e.currentTarget.style.background = '#059669'}
+                        onMouseOut={(e) => e.currentTarget.style.background = '#10b981'}
                       >
                         🎯 มอบหมายงาน
                       </button>
@@ -411,8 +423,9 @@ export default function ManageIncidentsPage() {
                       <button
                         onClick={() => handleClose(incident)}
                         style={{
-                          display: 'flex',
+                          display: 'inline-flex',
                           alignItems: 'center',
+                          justifyContent: 'center',
                           gap: '6px',
                           padding: '8px 16px',
                           background: '#6b7280',
@@ -422,8 +435,12 @@ export default function ManageIncidentsPage() {
                           fontSize: '13px',
                           fontWeight: '600',
                           cursor: 'pointer',
-                          transition: 'all 0.2s'
+                          transition: 'all 0.2s',
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0
                         }}
+                        onMouseOver={(e) => e.currentTarget.style.background = '#4b5563'}
+                        onMouseOut={(e) => e.currentTarget.style.background = '#6b7280'}
                       >
                         ✅ ปิดงาน
                       </button>
