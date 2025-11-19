@@ -6,6 +6,7 @@ import 'leaflet-draw';
 import toast from 'react-hot-toast';
 import './VillageBoundaryMap.css';
 import { tambonWiangBoundary, tambonBoundaryStyle } from '../data/mapData';
+import boundariesService from '../services/boundariesService';
 
 // Fix Leaflet default marker icons
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -25,6 +26,14 @@ interface GeoreferenceOverlay {
   naturalHeight: number;
 }
 
+interface CoordinateMarker {
+  id: string;
+  lat: number;
+  lng: number;
+  label: string;
+  timestamp: Date;
+}
+
 interface VillageBoundaryMapProps {
   onBoundaryDrawn?: (geojson: any) => void;
   existingBoundaries?: any[];
@@ -32,6 +41,12 @@ interface VillageBoundaryMapProps {
   zoom?: number;
   georeferenceOverlay?: GeoreferenceOverlay | null;
   onGeoreferencePositionChange?: (position: [number, number]) => void;
+  loadTambonFromAPI?: boolean;
+  coordinateMarkers?: CoordinateMarker[];
+  flyToMarker?: CoordinateMarker | null;
+  onFlyToComplete?: () => void;
+  mapLayerType?: 'street' | 'satellite' | 'hybrid';
+  showLegendOnMap?: boolean;
 }
 
 export default function VillageBoundaryMap({
@@ -41,13 +56,21 @@ export default function VillageBoundaryMap({
   zoom = 13,
   georeferenceOverlay,
   onGeoreferencePositionChange,
+  loadTambonFromAPI = true,
+  coordinateMarkers = [],
+  flyToMarker = null,
+  onFlyToComplete,
+  mapLayerType = 'street',
+  showLegendOnMap = true,
 }: VillageBoundaryMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
   const georeferenceMarkerRef = useRef<L.Marker | null>(null);
   const tambonLayerRef = useRef<L.GeoJSON | null>(null);
+  const coordinateMarkersLayerRef = useRef<L.LayerGroup | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(zoom);
+  const [tambonBoundaryData, setTambonBoundaryData] = useState<any>(null);
 
   useEffect(() => {
     // Initialize map
@@ -75,20 +98,23 @@ export default function VillageBoundaryMap({
         maxZoom: 19,
       });
 
-      // Add default layer
-      osmLayer.addTo(map);
-
-      // Layer control
-      const baseMaps = {
-        '🗺️ แผนที่ถนน (Street Map)': osmLayer,
-        '🛰️ ภาพดาวเทียม (Satellite)': satelliteLayer,
-        '🌍 ภาพดาวเทียม + ชื่อ (Hybrid)': L.layerGroup([hybridLayer, labelsLayer]),
+      // Store layers for external control
+      (map as any)._layers = {
+        osmLayer,
+        satelliteLayer,
+        hybridLayer,
+        labelsLayer,
       };
 
-      L.control.layers(baseMaps, {}, {
-        position: 'topright',
-        collapsed: false,
-      }).addTo(map);
+      // Add default layer based on mapLayerType
+      if (mapLayerType === 'street') {
+        osmLayer.addTo(map);
+      } else if (mapLayerType === 'satellite') {
+        satelliteLayer.addTo(map);
+      } else if (mapLayerType === 'hybrid') {
+        hybridLayer.addTo(map);
+        labelsLayer.addTo(map);
+      }
 
       // Add fullscreen control
       const fullscreenControl = L.Control.extend({
@@ -221,32 +247,76 @@ export default function VillageBoundaryMap({
     };
   }, []);
 
-  // Add Tambon Wiang boundary layer
+  // Load tambon boundary from API
   useEffect(() => {
-    if (!isReady || !mapRef.current) return;
+    if (!loadTambonFromAPI) {
+      setTambonBoundaryData(tambonWiangBoundary);
+      return;
+    }
+
+    const loadTambonBoundary = async () => {
+      try {
+        const data = await boundariesService.getTambonBoundary();
+        if (data && data.geojson) {
+          // Convert GeoBoundary to TambonBoundaryFeature format
+          const tambonFeature = {
+            type: 'Feature',
+            properties: {
+              name: data.name || 'ตำบลเวียง',
+              type: 'tambon',
+              ...data.properties,
+            },
+            geometry: data.geojson.geometry || data.geojson,
+          };
+          setTambonBoundaryData(tambonFeature);
+        } else {
+          // Fallback to hardcoded data
+          setTambonBoundaryData(tambonWiangBoundary);
+        }
+      } catch (error) {
+        console.error('Error loading tambon boundary:', error);
+        // Fallback to hardcoded data
+        setTambonBoundaryData(tambonWiangBoundary);
+      }
+    };
+
+    loadTambonBoundary();
+  }, [loadTambonFromAPI]);
+
+  // Add Tambon Wiang boundary layer
+  // ปิดการแสดงชั่วคราว เพื่อให้สามารถวาดและแก้ไขขอบเขตตำบลได้
+  // ขอบเขตตำบลจะแสดงหลังจากวาดและบันทึกลงฐานข้อมูลแล้วเท่านั้น
+  useEffect(() => {
+    // DISABLED: ปิดการแสดงขอบเขตตำบล hardcoded
+    // เหตุผล: ทำให้แก้ไขไม่ได้ เพราะเป็น read-only layer
+    // วิธีใช้: ให้วาดขอบเขตใหม่ด้วยเครื่องมือ Polygon แล้วบันทึก
+    
+    /* COMMENTED OUT - ให้วาดใหม่แทน
+    if (!isReady || !mapRef.current || !tambonBoundaryData) return;
 
     const map = mapRef.current;
 
     // Add tambon boundary layer
-    const tambonLayer = L.geoJSON(tambonWiangBoundary as any, {
+    const tambonLayer = L.geoJSON(tambonBoundaryData as any, {
       style: tambonBoundaryStyle,
     }).addTo(map);
 
     // Add popup with tambon info
+    const properties = tambonBoundaryData.properties || {};
     tambonLayer.bindPopup(`
       <div style="font-family: sans-serif;">
         <strong style="font-size: 16px; color: #e53e3e;">
-          ${tambonWiangBoundary.properties.name}
+          ${properties.name || 'ตำบลเวียง'}
         </strong><br>
         <span style="font-size: 14px; color: #4a5568;">
-          ${tambonWiangBoundary.properties.district}<br>
-          ${tambonWiangBoundary.properties.province}
+          ${properties.district || 'อำเภอฝาง'}<br>
+          ${properties.province || 'จังหวัดเชียงใหม่'}
         </span><br>
         <hr style="margin: 8px 0; border: none; border-top: 1px solid #e2e8f0;">
         <span style="font-size: 13px; color: #718096;">
-          📍 พื้นที่: ${tambonWiangBoundary.properties.area} ตร.กม.<br>
-          👥 ประชากร: ~${tambonWiangBoundary.properties.population?.toLocaleString()} คน<br>
-          🏘️ หมู่บ้าน: ${tambonWiangBoundary.properties.villages} หมู่
+          ${properties.area ? `📍 พื้นที่: ${properties.area} ตร.กม.<br>` : ''}
+          ${properties.population ? `👥 ประชากร: ~${properties.population?.toLocaleString()} คน<br>` : ''}
+          ${properties.villages ? `🏘️ หมู่บ้าน: ${properties.villages} หมู่` : ''}
         </span>
       </div>
     `);
@@ -259,9 +329,37 @@ export default function VillageBoundaryMap({
         tambonLayerRef.current = null;
       }
     };
-  }, [isReady]);
+    */
+  }, [isReady, tambonBoundaryData]);
 
-  // Load existing boundaries
+  // Function to get distinct color for each village (20 colors)
+  const getVillageColor = (villageNo: number): string => {
+    const colors = [
+      '#e74c3c', // 1 - Red
+      '#3498db', // 2 - Blue
+      '#2ecc71', // 3 - Green
+      '#f39c12', // 4 - Orange
+      '#9b59b6', // 5 - Purple
+      '#1abc9c', // 6 - Turquoise
+      '#e67e22', // 7 - Carrot
+      '#34495e', // 8 - Dark Gray
+      '#16a085', // 9 - Green Sea
+      '#c0392b', // 10 - Dark Red
+      '#27ae60', // 11 - Nephritis
+      '#2980b9', // 12 - Belize Hole
+      '#8e44ad', // 13 - Wisteria
+      '#f1c40f', // 14 - Yellow
+      '#d35400', // 15 - Pumpkin
+      '#7f8c8d', // 16 - Asbestos
+      '#e91e63', // 17 - Pink
+      '#00bcd4', // 18 - Cyan
+      '#4caf50', // 19 - Light Green
+      '#ff5722', // 20 - Deep Orange
+    ];
+    return colors[(villageNo - 1) % colors.length];
+  };
+
+  // Load existing boundaries with color-coded villages
   useEffect(() => {
     if (isReady && drawnItemsRef.current && existingBoundaries.length > 0) {
       drawnItemsRef.current.clearLayers();
@@ -269,12 +367,14 @@ export default function VillageBoundaryMap({
       existingBoundaries.forEach((boundary) => {
         if (boundary.boundary || boundary.geojson) {
           const geojson = boundary.boundary || boundary.geojson;
+          const villageColor = boundary.villageNo ? getVillageColor(boundary.villageNo) : '#3388ff';
+          
           const layer = L.geoJSON(geojson, {
             style: {
-              color: '#3388ff',
-              weight: 2,
+              color: villageColor,
+              weight: 3,
               opacity: 0.8,
-              fillOpacity: 0.3,
+              fillOpacity: 0.2,
             },
           });
 
@@ -284,11 +384,16 @@ export default function VillageBoundaryMap({
             });
           }
 
-          // Add popup with village info
+          // Add popup with village info and color indicator
           if (boundary.name) {
             layer.bindPopup(`
-              <strong>${boundary.name}</strong><br>
-              ${boundary.villageNo ? `หมู่ ${boundary.villageNo}` : ''}
+              <div style="font-family: sans-serif;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                  <div style="width: 16px; height: 16px; background: ${villageColor}; border-radius: 3px; border: 2px solid white; box-shadow: 0 0 3px rgba(0,0,0,0.3);"></div>
+                  <strong style="font-size: 16px;">${boundary.name}</strong>
+                </div>
+                ${boundary.villageNo ? `<span style="color: #666; font-size: 14px;">หมู่ ${boundary.villageNo}</span>` : ''}
+              </div>
             `);
           }
         }
@@ -378,6 +483,172 @@ export default function VillageBoundaryMap({
       }
     };
   }, [georeferenceOverlay, currentZoom, onGeoreferencePositionChange]);
+
+  // Add coordinate markers to map
+  useEffect(() => {
+    if (!isReady || !mapRef.current) return;
+
+    const map = mapRef.current;
+
+    // Remove existing markers layer
+    if (coordinateMarkersLayerRef.current) {
+      map.removeLayer(coordinateMarkersLayerRef.current);
+    }
+
+    // Create new markers layer
+    const markersLayer = L.layerGroup();
+
+    // Custom red pin icon
+    const redPinIcon = L.divIcon({
+      className: 'custom-marker-icon',
+      html: `<div style="
+        background: #ef4444;
+        width: 32px;
+        height: 32px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <div style="
+          transform: rotate(45deg);
+          color: white;
+          font-size: 16px;
+          font-weight: bold;
+        ">📍</div>
+      </div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -32],
+    });
+
+    // Add markers
+    coordinateMarkers.forEach((marker) => {
+      const leafletMarker = L.marker([marker.lat, marker.lng], {
+        icon: redPinIcon,
+      });
+
+      leafletMarker.bindPopup(`
+        <div style="font-family: sans-serif; min-width: 200px;">
+          <strong style="font-size: 14px; color: #ef4444;">
+            📍 ${marker.label}
+          </strong><br>
+          <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
+            <strong>Latitude:</strong> ${marker.lat.toFixed(6)}<br>
+            <strong>Longitude:</strong> ${marker.lng.toFixed(6)}
+          </div>
+        </div>
+      `);
+
+      markersLayer.addLayer(leafletMarker);
+    });
+
+    markersLayer.addTo(map);
+    coordinateMarkersLayerRef.current = markersLayer;
+
+    return () => {
+      if (coordinateMarkersLayerRef.current && mapRef.current) {
+        mapRef.current.removeLayer(coordinateMarkersLayerRef.current);
+        coordinateMarkersLayerRef.current = null;
+      }
+    };
+  }, [isReady, coordinateMarkers]);
+
+  // Handle fly to marker
+  useEffect(() => {
+    if (!isReady || !mapRef.current || !flyToMarker) return;
+
+    const map = mapRef.current;
+    map.flyTo([flyToMarker.lat, flyToMarker.lng], 17, {
+      duration: 1.5,
+    });
+
+    // Call completion callback after animation
+    const timeout = setTimeout(() => {
+      if (onFlyToComplete) {
+        onFlyToComplete();
+      }
+    }, 1500);
+
+    return () => clearTimeout(timeout);
+  }, [flyToMarker, isReady, onFlyToComplete]);
+
+  // Handle map layer type changes
+  useEffect(() => {
+    if (!isReady || !mapRef.current) return;
+
+    const map = mapRef.current;
+    const layers = (map as any)._layers;
+    
+    if (!layers) return;
+
+    // Remove all base layers
+    if (map.hasLayer(layers.osmLayer)) map.removeLayer(layers.osmLayer);
+    if (map.hasLayer(layers.satelliteLayer)) map.removeLayer(layers.satelliteLayer);
+    if (map.hasLayer(layers.hybridLayer)) map.removeLayer(layers.hybridLayer);
+    if (map.hasLayer(layers.labelsLayer)) map.removeLayer(layers.labelsLayer);
+
+    // Add selected layer
+    if (mapLayerType === 'street') {
+      layers.osmLayer.addTo(map);
+    } else if (mapLayerType === 'satellite') {
+      layers.satelliteLayer.addTo(map);
+    } else if (mapLayerType === 'hybrid') {
+      layers.hybridLayer.addTo(map);
+      layers.labelsLayer.addTo(map);
+    }
+  }, [mapLayerType, isReady]);
+
+  // Add color legend to map (only if showLegendOnMap is true)
+  useEffect(() => {
+    if (!showLegendOnMap || !isReady || !mapRef.current || existingBoundaries.length === 0) return;
+
+    const legend = new (L.Control as any)({ position: 'bottomright' });
+
+    legend.onAdd = function () {
+      const div = L.DomUtil.create('div', 'village-legend');
+      div.style.cssText = `
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        max-height: 400px;
+        overflow-y: auto;
+        font-family: sans-serif;
+      `;
+
+      let html = '<div style="font-weight: bold; margin-bottom: 8px; font-size: 14px;">🎨 สีขอบเขตหมู่บ้าน</div>';
+      
+      // Get unique villages with boundaries
+      const villagesWithBoundaries = existingBoundaries
+        .filter(b => b.boundary && b.villageNo)
+        .sort((a, b) => a.villageNo - b.villageNo);
+
+      villagesWithBoundaries.forEach((boundary) => {
+        const color = getVillageColor(boundary.villageNo);
+        html += `
+          <div style="display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px;">
+            <div style="width: 20px; height: 12px; background: ${color}; border-radius: 2px; border: 1px solid #ccc;"></div>
+            <span style="color: #333;">หมู่ ${boundary.villageNo}</span>
+          </div>
+        `;
+      });
+
+      div.innerHTML = html;
+      return div;
+    };
+
+    legend.addTo(mapRef.current);
+
+    return () => {
+      if (mapRef.current && legend) {
+        mapRef.current.removeControl(legend);
+      }
+    };
+  }, [isReady, existingBoundaries, showLegendOnMap]);
 
   return (
     <div

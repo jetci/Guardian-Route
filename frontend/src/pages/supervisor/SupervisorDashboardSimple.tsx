@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/authStore';
 import toast from 'react-hot-toast';
@@ -32,16 +32,84 @@ export default function SupervisorDashboardSimple() {
     // navigate(item.path); // Uncomment when pages are ready
   };
 
-  // Mock data
+  // Mock data - Enhanced with more details
   const urgentReports = [
-    { id: 1, title: "น้ำท่วม - บ้านหนองบัว", officer: "นายสมชาย ใจดี", date: "2025-11-12 14:30" },
-    { id: 2, title: "ดินถล่ม - หมู่ 5", officer: "นางสาวสมหญิง รักดี", date: "2025-11-12 10:15" }
+    { 
+      id: 1, 
+      title: "น้ำท่วม - บ้านหนองบัว", 
+      officer: "นายสมชาย ใจดี", 
+      date: "2025-11-12 14:30",
+      status: "กำลังดำเนินการ",
+      priority: "สูง",
+      village: "หมู่ 3",
+      type: "น้ำท่วม"
+    },
+    { 
+      id: 2, 
+      title: "ดินถล่ม - หมู่ 5", 
+      officer: "นางสาวสมหญิง รักดี", 
+      date: "2025-11-12 10:15",
+      status: "รอตรวจสอบ",
+      priority: "สูงมาก",
+      village: "หมู่ 5",
+      type: "ดินถล่ม"
+    },
+    { 
+      id: 5, 
+      title: "ไฟไหม้บ้าน - ป่าบง", 
+      officer: "นายวิชัย สุขสันต์", 
+      date: "2025-11-12 08:00",
+      status: "รอมอบหมาย",
+      priority: "สูง",
+      village: "หมู่ 2",
+      type: "ไฟไหม้"
+    }
   ];
 
   const normalReports = [
-    { id: 3, title: "ไฟไหม้ป่า - เขาใหญ่", officer: "นายประสิทธิ์ มั่นคง", date: "2025-11-11 16:45" },
-    { id: 4, title: "แผ่นดินไหว - ตำบลเวียง", officer: "นางสาววิภา สุขใจ", date: "2025-11-11 09:20" }
+    { 
+      id: 3, 
+      title: "ไฟไหม้ป่า - เขาใหญ่", 
+      officer: "นายประสิทธิ์ มั่นคง", 
+      date: "2025-11-11 16:45",
+      status: "เสร็จสิ้น",
+      priority: "ปานกลาง",
+      village: "หมู่ 8",
+      type: "ไฟไหม้"
+    },
+    { 
+      id: 4, 
+      title: "แผ่นดินไหว - ตำบลเวียง", 
+      officer: "นางสาววิภา สุขใจ", 
+      date: "2025-11-11 09:20",
+      status: "กำลังดำเนินการ",
+      priority: "ปานกลาง",
+      village: "หมู่ 12",
+      type: "แผ่นดินไหว"
+    },
+    { 
+      id: 6, 
+      title: "ถนนชำรุด - สันทรายคองน้อย", 
+      officer: "นายสมศักดิ์ ใจกล้า", 
+      date: "2025-11-10 14:20",
+      status: "เสร็จสิ้น",
+      priority: "ต่ำ",
+      village: "หมู่ 6",
+      type: "โครงสร้าง"
+    }
   ];
+
+  // Statistics data
+  const stats = {
+    totalIncidents: 24,
+    urgentIncidents: 3,
+    inProgress: 8,
+    completed: 13,
+    activeOfficers: 12,
+    totalOfficers: 15,
+    avgResponseTime: "2.5 ชม.",
+    todayIncidents: 5
+  };
 
   const reports = activeTab === 'urgent' ? urgentReports : normalReports;
 

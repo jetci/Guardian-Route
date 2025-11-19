@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import type { Role } from '../types';
 
 export interface LoginRequest {
   email: string;
@@ -14,7 +15,7 @@ export interface LoginResponse {
     username: string;
     firstName: string;
     lastName: string;
-    role: string;
+    role: Role;
     isActive: boolean;
   };
 }

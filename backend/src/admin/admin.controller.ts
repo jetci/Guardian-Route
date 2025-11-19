@@ -64,4 +64,40 @@ export class AdminController {
   async getVillageBoundaries() {
     return this.adminService.getVillageBoundaries();
   }
+
+  @Put('villages/:villageId/boundary')
+  @ApiOperation({ summary: 'Update village boundary' })
+  @ApiResponse({ status: 200, description: 'Village boundary updated' })
+  async updateVillageBoundary(
+    @Param('villageId') villageId: string,
+    @Body() data: { boundary: any; centerPoint: any },
+  ) {
+    return this.adminService.updateVillageBoundary(
+      villageId,
+      data.boundary,
+      data.centerPoint,
+    );
+  }
+
+  @Delete('villages/:villageId/boundary')
+  @ApiOperation({ summary: 'Delete village boundary' })
+  @ApiResponse({ status: 200, description: 'Village boundary deleted' })
+  async deleteVillageBoundary(@Param('villageId') villageId: string) {
+    return this.adminService.deleteVillageBoundary(villageId);
+  }
+
+  // Tambon Boundary
+  @Get('tambon/boundary')
+  @ApiOperation({ summary: 'Get tambon boundary' })
+  @ApiResponse({ status: 200, description: 'Return tambon boundary' })
+  async getTambonBoundary() {
+    return this.adminService.getTambonBoundary();
+  }
+
+  @Post('tambon/boundary')
+  @ApiOperation({ summary: 'Save or update tambon boundary' })
+  @ApiResponse({ status: 201, description: 'Tambon boundary saved' })
+  async saveTambonBoundary(@Body() data: any, @Request() req) {
+    return this.adminService.saveTambonBoundary(data, req.user.id);
+  }
 }

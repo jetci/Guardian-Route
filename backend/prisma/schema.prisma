@@ -18,6 +18,7 @@ model User {
   lastName           String?          @map("last_name")
   department         String?
   phone              String?
+  profileImage       String?          @map("profile_image")
   role               Role             @default(FIELD_OFFICER)
   isActive           Boolean          @default(true) @map("is_active")
   createdAt          DateTime         @default(now()) @map("created_at")
@@ -369,4 +370,50 @@ enum SurveyStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
+}
+
+model Settings {
+  id String @id @default(uuid())
+
+  // General (4)
+  systemName         String  @default("Guardian Route") @map("system_name")
+  timezone           String  @default("Asia/Bangkok")
+  maintenanceMode    Boolean @default(false) @map("maintenance_mode")
+  maintenanceMessage String? @map("maintenance_message")
+
+  // Security (4)
+  enforce2FA        Boolean @default(false) @map("enforce_2fa")
+  minPasswordLength Int     @default(8) @map("min_password_length")
+  sessionTimeout    Int     @default(30) @map("session_timeout")
+  ipAllowlist       String? @map("ip_allowlist")
+
+  // Map & GIS (6)
+  defaultLat          Float   @default(19.9167) @map("default_lat")
+  defaultLng          Float   @default(99.8833) @map("default_lng")
+  defaultZoom         Int     @default(13) @map("default_zoom")
+  defaultBaseLayer    String  @default("street") @map("default_base_layer")
+  customTileServer    String? @map("custom_tile_server")
+  enableWeatherRadar  Boolean @default(false) @map("enable_weather_radar")
+
+  // Notifications (5)
+  emailOnNewIncident Boolean @default(true) @map("email_on_new_incident")
+  smsOnHighSeverity  Boolean @default(false) @map("sms_on_high_severity")
+  dailyEmailSummary  Boolean @default(true) @map("daily_email_summary")
+  enableLineNotify   Boolean @default(false) @map("enable_line_notify")
+  lineNotifyToken    String? @map("line_notify_token")
+
+  // API (4)
+  weatherApiKey        String? @map("weather_api_key")
+  smsGatewayApiKey     String? @map("sms_gateway_api_key")
+  maxRequestsPerMinute Int     @default(60) @map("max_requests_per_minute")
+  blockDuration        Int     @default(300) @map("block_duration")
+
+  // Data (2)
+  dataRetentionDays Int    @default(365) @map("data_retention_days")
+  backupFrequency   String @default("daily") @map("backup_frequency")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("settings")
 }

@@ -360,10 +360,10 @@ export default function AdminDashboard() {
 
   return (
     <DashboardLayout>
-      <div className="admin-dashboard">
-        <header>
-          <h2>🛡️ Admin Dashboard</h2>
-          <p>จัดการผู้ใช้และระบบ</p>
+      <div style={{ width: '100%', maxWidth: '100%', margin: 0, padding: 0 }}>
+        <header style={{ marginBottom: '30px' }}>
+          <h2 style={{ fontSize: '28px', marginBottom: '5px', color: '#1f2937' }}>🛡️ Admin Dashboard</h2>
+          <p style={{ color: '#6b7280', fontSize: '16px' }}>จัดการผู้ใช้และระบบ</p>
         </header>
 
         {/* KPI Cards */}
@@ -406,19 +406,19 @@ export default function AdminDashboard() {
           <h3>📊 Users by Role</h3>
           <div className="role-cards">
             <div className="role-card">
-              <span className="role-badge admin">ADMIN</span>
+              <span className="role-name">👑 ADMIN</span>
               <span className="role-count">{roleCounts.ADMIN}</span>
             </div>
             <div className="role-card">
-              <span className="role-badge executive">EXECUTIVE</span>
+              <span className="role-name">💼 EXECUTIVE</span>
               <span className="role-count">{roleCounts.EXECUTIVE}</span>
             </div>
             <div className="role-card">
-              <span className="role-badge supervisor">SUPERVISOR</span>
+              <span className="role-name">👨‍💼 SUPERVISOR</span>
               <span className="role-count">{roleCounts.SUPERVISOR}</span>
             </div>
             <div className="role-card">
-              <span className="role-badge field">FIELD OFFICER</span>
+              <span className="role-name">🎯 FIELD OFFICER</span>
               <span className="role-count">{roleCounts.FIELD_OFFICER}</span>
             </div>
           </div>

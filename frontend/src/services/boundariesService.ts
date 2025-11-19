@@ -77,6 +77,40 @@ const boundariesService = {
     const response = await apiClient.get('/admin/villages/boundaries');
     return response.data;
   },
+
+  // Update village boundary
+  async updateVillageBoundary(
+    villageId: string,
+    boundary: any,
+    centerPoint: any
+  ): Promise<VillageBoundary> {
+    const response = await apiClient.put(`/admin/villages/${villageId}/boundary`, {
+      boundary,
+      centerPoint,
+    });
+    return response.data;
+  },
+
+  // Delete village boundary
+  async deleteVillageBoundary(villageId: string): Promise<void> {
+    await apiClient.delete(`/admin/villages/${villageId}/boundary`);
+  },
+
+  // Get tambon boundary
+  async getTambonBoundary(): Promise<GeoBoundary | null> {
+    const response = await apiClient.get('/admin/tambon/boundary');
+    return response.data;
+  },
+
+  // Save or update tambon boundary
+  async saveTambonBoundary(data: {
+    name: string;
+    geojson: any;
+    properties?: any;
+  }): Promise<GeoBoundary> {
+    const response = await apiClient.post('/admin/tambon/boundary', data);
+    return response.data;
+  },
 };
 
 export default boundariesService;

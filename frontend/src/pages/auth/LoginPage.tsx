@@ -42,7 +42,7 @@ export const LoginPage = () => {
 
     try {
       const response = await authService.login({ email, password });
-      setAuth(response.user, response.access_token, response.refresh_token);
+      setAuth(response.user, response.accessToken, response.refreshToken);
 
       toast({
         title: 'เข้าสู่ระบบสำเร็จ',

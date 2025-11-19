@@ -1,0 +1,33 @@
+-- CreateTable
+CREATE TABLE "settings" (
+    "id" TEXT NOT NULL,
+    "system_name" TEXT NOT NULL DEFAULT 'Guardian Route',
+    "timezone" TEXT NOT NULL DEFAULT 'Asia/Bangkok',
+    "maintenance_mode" BOOLEAN NOT NULL DEFAULT false,
+    "maintenance_message" TEXT,
+    "enforce_2fa" BOOLEAN NOT NULL DEFAULT false,
+    "min_password_length" INTEGER NOT NULL DEFAULT 8,
+    "session_timeout" INTEGER NOT NULL DEFAULT 30,
+    "ip_allowlist" TEXT,
+    "default_lat" DOUBLE PRECISION NOT NULL DEFAULT 19.9167,
+    "default_lng" DOUBLE PRECISION NOT NULL DEFAULT 99.8833,
+    "default_zoom" INTEGER NOT NULL DEFAULT 13,
+    "default_base_layer" TEXT NOT NULL DEFAULT 'street',
+    "custom_tile_server" TEXT,
+    "enable_weather_radar" BOOLEAN NOT NULL DEFAULT false,
+    "email_on_new_incident" BOOLEAN NOT NULL DEFAULT true,
+    "sms_on_high_severity" BOOLEAN NOT NULL DEFAULT false,
+    "daily_email_summary" BOOLEAN NOT NULL DEFAULT true,
+    "enable_line_notify" BOOLEAN NOT NULL DEFAULT false,
+    "line_notify_token" TEXT,
+    "weather_api_key" TEXT,
+    "sms_gateway_api_key" TEXT,
+    "max_requests_per_minute" INTEGER NOT NULL DEFAULT 60,
+    "block_duration" INTEGER NOT NULL DEFAULT 300,
+    "data_retention_days" INTEGER NOT NULL DEFAULT 365,
+    "backup_frequency" TEXT NOT NULL DEFAULT 'daily',
+    "updated_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "settings_pkey" PRIMARY KEY ("id")
+);

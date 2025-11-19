@@ -93,14 +93,15 @@ const ThaiDatePicker: React.FC<ThaiDatePickerProps> = ({
           disabled={disabled}
           style={{
             width: '100%',
-            background: disabled ? '#1f2937' : '#374151',
-            border: '1px solid #4b5563',
-            borderRadius: '6px',
-            padding: '10px 40px 10px 12px',
-            fontSize: '14px',
-            color: disabled ? '#6b7280' : '#f3f4f6',
+            background: disabled ? '#f7fafc' : 'white',
+            border: '2px solid #e2e8f0',
+            borderRadius: '8px',
+            padding: '0.75rem 2.5rem 0.75rem 0.75rem',
+            fontSize: '1rem',
+            color: disabled ? '#a0aec0' : '#1a202c',
             cursor: disabled ? 'not-allowed' : 'pointer',
-            outline: 'none'
+            outline: 'none',
+            transition: 'all 0.2s'
           }}
         />
         <div style={{
@@ -122,10 +123,10 @@ const ThaiDatePicker: React.FC<ThaiDatePickerProps> = ({
           zIndex: 10,
           marginTop: '8px',
           width: '288px',
-          background: '#1f2937',
-          border: '1px solid #4b5563',
+          background: 'white',
+          border: '2px solid #e2e8f0',
           borderRadius: '12px',
-          boxShadow: '0 10px 25px rgba(0,0,0,0.3)',
+          boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
           padding: '16px'
         }}>
           {/* Header - Month/Year Navigation */}
@@ -143,19 +144,19 @@ const ThaiDatePicker: React.FC<ThaiDatePickerProps> = ({
                 borderRadius: '6px',
                 background: 'transparent',
                 border: 'none',
-                color: '#d1d5db',
+                color: '#4a5568',
                 cursor: 'pointer',
                 fontSize: '16px',
                 transition: 'background 0.2s'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#374151'}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#f7fafc'}
               onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             >
               ‹
             </button>
             <div style={{
               fontWeight: '600',
-              color: '#f3f4f6',
+              color: '#1a202c',
               fontSize: '15px'
             }}>
               {THAI_MONTHS[displayDate.getMonth()]} {displayDate.getFullYear() + 543}
@@ -168,12 +169,12 @@ const ThaiDatePicker: React.FC<ThaiDatePickerProps> = ({
                 borderRadius: '6px',
                 background: 'transparent',
                 border: 'none',
-                color: '#d1d5db',
+                color: '#4a5568',
                 cursor: 'pointer',
                 fontSize: '16px',
                 transition: 'background 0.2s'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#374151'}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#f7fafc'}
               onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
             >
               ›
@@ -186,7 +187,7 @@ const ThaiDatePicker: React.FC<ThaiDatePickerProps> = ({
             gridTemplateColumns: 'repeat(7, 1fr)',
             textAlign: 'center',
             fontSize: '12px',
-            color: '#9ca3af',
+            color: '#718096',
             marginBottom: '8px',
             gap: '4px'
           }}>
@@ -230,7 +231,7 @@ const ThaiDatePicker: React.FC<ThaiDatePickerProps> = ({
                         value.getDate() === day &&
                         value.getMonth() === displayDate.getMonth() &&
                         value.getFullYear() === displayDate.getFullYear()
-                          ? '#3b82f6'
+                          ? '#667eea'
                           : 'transparent',
                       color:
                         value &&
@@ -238,14 +239,14 @@ const ThaiDatePicker: React.FC<ThaiDatePickerProps> = ({
                         value.getMonth() === displayDate.getMonth() &&
                         value.getFullYear() === displayDate.getFullYear()
                           ? '#ffffff'
-                          : '#e5e7eb'
+                          : '#2d3748'
                     }}
                     onMouseEnter={(e) => {
                       if (!(value &&
                         value.getDate() === day &&
                         value.getMonth() === displayDate.getMonth() &&
                         value.getFullYear() === displayDate.getFullYear())) {
-                        e.currentTarget.style.background = '#374151';
+                        e.currentTarget.style.background = '#f7fafc';
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -267,7 +268,7 @@ const ThaiDatePicker: React.FC<ThaiDatePickerProps> = ({
           </div>
 
           {/* Today Button */}
-          <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #374151' }}>
+          <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>
             <button
               type="button"
               onClick={() => {
@@ -279,16 +280,17 @@ const ThaiDatePicker: React.FC<ThaiDatePickerProps> = ({
               style={{
                 width: '100%',
                 padding: '8px',
-                background: '#374151',
+                background: '#f7fafc',
                 border: 'none',
                 borderRadius: '6px',
-                color: '#e5e7eb',
+                color: '#2d3748',
                 fontSize: '13px',
                 cursor: 'pointer',
-                transition: 'background 0.2s'
+                transition: 'background 0.2s',
+                fontWeight: '500'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.background = '#4b5563'}
-              onMouseLeave={(e) => e.currentTarget.style.background = '#374151'}
+              onMouseEnter={(e) => e.currentTarget.style.background = '#edf2f7'}
+              onMouseLeave={(e) => e.currentTarget.style.background = '#f7fafc'}
             >
               วันนี้
             </button>

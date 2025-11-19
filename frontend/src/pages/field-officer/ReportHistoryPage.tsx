@@ -126,19 +126,19 @@ export function ReportHistoryPage() {
         {/* Stats */}
         <div className="stats-row">
           <div className="stat-card">
-            <div className="stat-value">{mockTasks.length}</div>
+            <div className="stat-value">{reports.length}</div>
             <div className="stat-label">ทั้งหมด</div>
           </div>
           <div className="stat-card">
-            <div className="stat-value">{mockTasks.filter(t => t.status === 'SURVEY_COMPLETE').length}</div>
+            <div className="stat-value">{reports.filter((r: any) => r.status === 'PENDING_REVIEW').length}</div>
             <div className="stat-label">รอตรวจสอบ</div>
           </div>
           <div className="stat-card">
-            <div className="stat-value">{mockTasks.filter(t => t.status === 'REVISION_REQUIRED').length}</div>
+            <div className="stat-value">{reports.filter((r: any) => r.status === 'REVISION_REQUIRED').length}</div>
             <div className="stat-label">ต้องแก้ไข</div>
           </div>
           <div className="stat-card">
-            <div className="stat-value">0</div>
+            <div className="stat-value">{reports.filter((r: any) => r.status === 'APPROVED').length}</div>
             <div className="stat-label">อนุมัติแล้ว</div>
           </div>
         </div>

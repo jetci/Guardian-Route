@@ -29,6 +29,13 @@ Disaster Management System for Tambon Wiang, Fang District, Chiang Mai Province
 - ✅ User authentication (JWT)
 - ✅ Role-Based Access Control (4 roles)
 - ✅ 20 villages integration
+- ✅ **Village Boundaries Management** (Nov 2025)
+  - Draw and save village boundaries
+  - Color-coded boundaries (20 unique colors)
+  - Coordinate marker system
+  - Mobile-friendly interface
+  - Georeference tool
+  - Safe delete confirmations
 
 ### **Specified (Phase 3-4):**
 - ✅ Dynamic survey system (implemented)
@@ -176,6 +183,34 @@ Field Officer: field1@obtwiang.go.th / password123
 10. ห้วยเฮี่ยน/สันป่ายางยาง, 11. ท่าสะแล, 12. โป่งถืบ, 13. ห้วยบอน  
 14. เสาหิน, 15. โป่งถืบใน, 16. ปางผึ้ง, 17. ใหม่คองน้อย, 18. ศรีดอนชัย  
 19. ใหม่ชยาราม, 20. สระนิคม
+
+---
+
+## 📚 Documentation
+
+### **Village Boundaries Module:**
+- [Admin User Guide](./docs/ADMIN_USER_GUIDE.md) - How to use the system
+- [Developer Documentation](./docs/DEVELOPER_DOCUMENTATION.md) - Technical details
+- [Troubleshooting Guide](./docs/TROUBLESHOOTING.md) - Common issues & solutions
+
+### **Quick Start - Village Boundaries:**
+
+```bash
+# 1. Login as Admin
+# 2. Navigate to "🌐 กำหนดขอบเขตหมู่บ้าน"
+# 3. Select village from dropdown
+# 4. Draw boundary on map using polygon tool
+# 5. Enter boundary name
+# 6. Click "💾 บันทึกขอบเขต"
+# 7. Verify in list (status changes to "✅ มีขอบเขต")
+```
+
+### **Key Features:**
+- **Color-Coded System**: Each village has unique color (20 colors)
+- **Mobile-Friendly**: External controls, touch-optimized
+- **Safe Operations**: All deletes require confirmation
+- **Georeference Tool**: Overlay reference images
+- **Export**: Download boundaries as GeoJSON
 
 ---
 

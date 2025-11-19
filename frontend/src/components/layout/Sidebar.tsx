@@ -26,11 +26,6 @@ export function Sidebar() {
     // Convert role to string for comparison (handles both string and enum)
     const userRole = user?.role ? String(user.role) : '';
     
-    // Debug logging
-    console.log('[Sidebar] User:', user);
-    console.log('[Sidebar] User Role:', userRole);
-    console.log('[Sidebar] Is Ready:', isReady);
-    
     switch (userRole) {
       case 'DEVELOPER':
         return [
@@ -111,6 +106,10 @@ export function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
+        <button onClick={() => navigate('/profile')} className="nav-item profile-button">
+          <span className="nav-icon">👤</span>
+          <span className="nav-label">โปรไฟล์</span>
+        </button>
         <button onClick={handleLogout} className="logout-button">
           <span className="nav-icon">🚪</span>
           <span className="nav-label">Logout</span>

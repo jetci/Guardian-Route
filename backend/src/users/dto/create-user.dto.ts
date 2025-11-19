@@ -31,6 +31,11 @@ export class CreateUserDto {
   @IsString()
   phone?: string;
 
+  @ApiProperty({ example: 'สำนักปลัด', required: false })
+  @IsOptional()
+  @IsString()
+  department?: string;
+
   @ApiProperty({ enum: Role, example: Role.FIELD_OFFICER })
   @IsEnum(Role)
   role: Role;

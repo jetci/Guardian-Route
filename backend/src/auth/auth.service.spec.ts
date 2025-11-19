@@ -1,9 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { mockPrismaService, mockConfigService } from '../../test/utils/test-utils';
 
 // Mock bcrypt
 jest.mock('bcrypt');
@@ -17,8 +19,11 @@ describe('AuthService', () => {
     id: '1',
     email: 'test@example.com',
     password: 'hashedPassword',
-    name: 'Test User',
+    firstName: 'Test',
+    lastName: 'User',
+    username: 'testuser',
     role: 'FIELD_OFFICER',
+    isActive: true,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -44,6 +49,14 @@ describe('AuthService', () => {
         {
           provide: JwtService,
           useValue: mockJwtService,
+        },
+        {
+          provide: ConfigService,
+          useValue: mockConfigService,
+        },
+        {
+          provide: 'PrismaService',
+          useValue: mockPrismaService,
         },
       ],
     }).compile();

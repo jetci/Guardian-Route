@@ -55,7 +55,7 @@ export const TypeDonutChart = () => {
             cx="50%"
             cy="50%"
             labelLine={false}
-            label={({ type, percentage }) => `${type}: ${percentage}%`}
+            label={({ name, value }: any) => `${name}: ${value}`}
             outerRadius={80}
             innerRadius={40}
             fill="#8884d8"

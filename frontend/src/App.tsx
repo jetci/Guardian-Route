@@ -16,7 +16,7 @@ import ExecutiveBudgetResources from './pages/executive/ExecutiveBudgetResources
 import ExecutiveGeospatialAnalysis from './pages/executive/ExecutiveGeospatialAnalysis';
 import ThaiDatePickerDemo from './pages/ThaiDatePickerDemo';
 import { UsersPage } from './pages/UsersPage';
-import { SettingsPage } from './pages/SettingsPage';
+import SettingsPage from './pages/admin/SettingsPage';
 import { TeamsPage } from './pages/TeamsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { SubmitReportPage } from './pages/SubmitReportPage';
@@ -31,6 +31,7 @@ import { SupervisorDashboard } from './pages/supervisor/SupervisorDashboard';
 import SupervisorDashboardV2 from './pages/supervisor/SupervisorDashboardV2';
 import SupervisorDashboardStandalone from './pages/supervisor/SupervisorDashboardStandalone';
 import SupervisorDashboardSimple from './pages/supervisor/SupervisorDashboardSimple';
+import SupervisorDashboardModern from './pages/supervisor/SupervisorDashboardModern';
 import { MapView } from './pages/supervisor/MapView';
 import { TasksPage } from './pages/supervisor/TasksPage';
 import SurveyTemplateList from './pages/supervisor/SurveyTemplateList';
@@ -58,6 +59,7 @@ import TeamOverviewPage from './pages/supervisor/TeamOverviewPage';
 import OperationalReportsPage from './pages/supervisor/OperationalReportsPage';
 import ReportsStatisticsPage from './pages/executive/ReportsStatisticsPage';
 import ManageUsersPage from './pages/admin/ManageUsersPage';
+import ProfilePage from './pages/ProfilePage';
 import ManageDataPage from './pages/admin/ManageDataPage';
 import VillageBoundariesPage from './pages/admin/VillageBoundariesPage';
 import SurveyAreaPage from './pages/field-officer/SurveyAreaPage';
@@ -128,7 +130,7 @@ function App() {
           />
           <Route
             path="/dashboard/supervisor"
-            element={<SupervisorDashboardSimple />}
+            element={<SupervisorDashboardModern />}
           />
           <Route
             path="/dashboard/officer"
@@ -291,7 +293,7 @@ function App() {
             path="/supervisor"
             element={
               <ProtectedRoute>
-                <SupervisorDashboard />
+                <SupervisorDashboardModern />
               </ProtectedRoute>
             }
           />
@@ -450,6 +452,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['ADMIN']}>
                 <VillageBoundariesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <ProfilePage />
               </ProtectedRoute>
             }
           />
