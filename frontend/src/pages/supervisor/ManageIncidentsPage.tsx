@@ -352,28 +352,113 @@ export default function ManageIncidentsPage() {
           </div>
 
           {/* Tabs */}
-          <div className="tabs">
+          <div style={{
+            display: 'flex',
+            gap: '12px',
+            marginBottom: '24px',
+            flexWrap: 'wrap',
+            background: 'white',
+            padding: '8px',
+            borderRadius: '12px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+          }}>
             <button 
-              className={`tab ${activeTab === 'all' ? 'active' : ''}`}
               onClick={() => setActiveTab('all')}
+              style={{
+                flex: '1',
+                minWidth: '150px',
+                padding: '12px 20px',
+                background: activeTab === 'all' ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#f3f4f6',
+                color: activeTab === 'all' ? 'white' : '#374151',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: activeTab === 'all' ? '0 4px 6px rgba(102, 126, 234, 0.3)' : 'none'
+              }}
+              onMouseOver={(e) => {
+                if (activeTab !== 'all') e.currentTarget.style.background = '#e5e7eb';
+              }}
+              onMouseOut={(e) => {
+                if (activeTab !== 'all') e.currentTarget.style.background = '#f3f4f6';
+              }}
             >
               📋 ทั้งหมด ({allIncidents.length})
             </button>
             <button 
-              className={`tab ${activeTab === 'new' ? 'active' : ''}`}
               onClick={() => setActiveTab('new')}
+              style={{
+                flex: '1',
+                minWidth: '150px',
+                padding: '12px 20px',
+                background: activeTab === 'new' ? 'linear-gradient(135deg, #f43f5e 0%, #e11d48 100%)' : '#f3f4f6',
+                color: activeTab === 'new' ? 'white' : '#374151',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: activeTab === 'new' ? '0 4px 6px rgba(244, 63, 94, 0.3)' : 'none'
+              }}
+              onMouseOver={(e) => {
+                if (activeTab !== 'new') e.currentTarget.style.background = '#e5e7eb';
+              }}
+              onMouseOut={(e) => {
+                if (activeTab !== 'new') e.currentTarget.style.background = '#f3f4f6';
+              }}
             >
               🆕 เหตุการณ์ใหม่ ({allIncidents.filter(i => i.status === 'ใหม่').length})
             </button>
             <button 
-              className={`tab ${activeTab === 'ongoing' ? 'active' : ''}`}
               onClick={() => setActiveTab('ongoing')}
+              style={{
+                flex: '1',
+                minWidth: '150px',
+                padding: '12px 20px',
+                background: activeTab === 'ongoing' ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)' : '#f3f4f6',
+                color: activeTab === 'ongoing' ? 'white' : '#374151',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: activeTab === 'ongoing' ? '0 4px 6px rgba(59, 130, 246, 0.3)' : 'none'
+              }}
+              onMouseOver={(e) => {
+                if (activeTab !== 'ongoing') e.currentTarget.style.background = '#e5e7eb';
+              }}
+              onMouseOut={(e) => {
+                if (activeTab !== 'ongoing') e.currentTarget.style.background = '#f3f4f6';
+              }}
             >
               🔄 กำลังดำเนินการ ({allIncidents.filter(i => i.status === 'กำลังดำเนินการ').length})
             </button>
             <button 
-              className={`tab ${activeTab === 'closed' ? 'active' : ''}`}
               onClick={() => setActiveTab('closed')}
+              style={{
+                flex: '1',
+                minWidth: '150px',
+                padding: '12px 20px',
+                background: activeTab === 'closed' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : '#f3f4f6',
+                color: activeTab === 'closed' ? 'white' : '#374151',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                boxShadow: activeTab === 'closed' ? '0 4px 6px rgba(16, 185, 129, 0.3)' : 'none'
+              }}
+              onMouseOver={(e) => {
+                if (activeTab !== 'closed') e.currentTarget.style.background = '#e5e7eb';
+              }}
+              onMouseOut={(e) => {
+                if (activeTab !== 'closed') e.currentTarget.style.background = '#f3f4f6';
+              }}
             >
               ✅ เสร็จสิ้น ({allIncidents.filter(i => i.status === 'เสร็จสิ้น').length})
             </button>
