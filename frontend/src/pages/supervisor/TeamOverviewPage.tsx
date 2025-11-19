@@ -72,9 +72,62 @@ export default function TeamOverviewPage() {
           </div>
         </div>
 
+        {/* Performance Metrics */}
         <div className="content-card">
-          <div className="placeholder-content">
-            <p>💡 หน้านี้จะแสดงข้อมูล Real-time ของทีมงานทั้งหมด</p>
+          <h2>📊 ประสิทธิภาพทีม</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '16px' }}>
+            <div style={{
+              padding: '16px',
+              background: '#f0fdf4',
+              borderRadius: '8px',
+              border: '1px solid #86efac'
+            }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#16a34a', marginBottom: '4px' }}>
+                95%
+              </div>
+              <div style={{ fontSize: '14px', color: '#15803d' }}>
+                อัตราการตอบสนอง
+              </div>
+            </div>
+            <div style={{
+              padding: '16px',
+              background: '#eff6ff',
+              borderRadius: '8px',
+              border: '1px solid #93c5fd'
+            }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#2563eb', marginBottom: '4px' }}>
+                2.5 ชม.
+              </div>
+              <div style={{ fontSize: '14px', color: '#1e40af' }}>
+                เวลาเฉลี่ยต่องาน
+              </div>
+            </div>
+            <div style={{
+              padding: '16px',
+              background: '#fef3c7',
+              borderRadius: '8px',
+              border: '1px solid #fcd34d'
+            }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#d97706', marginBottom: '4px' }}>
+                12
+              </div>
+              <div style={{ fontSize: '14px', color: '#b45309' }}>
+                งานที่เสร็จวันนี้
+              </div>
+            </div>
+            <div style={{
+              padding: '16px',
+              background: '#fce7f3',
+              borderRadius: '8px',
+              border: '1px solid #f9a8d4'
+            }}>
+              <div style={{ fontSize: '24px', fontWeight: '700', color: '#db2777', marginBottom: '4px' }}>
+                3
+              </div>
+              <div style={{ fontSize: '14px', color: '#be185d' }}>
+                งานที่กำลังทำ
+              </div>
+            </div>
           </div>
         </div>
       </div>

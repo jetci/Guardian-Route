@@ -1,20 +1,11 @@
 import { useState } from 'react';
 import { IncidentsMap } from '../../components/maps/IncidentsMap';
-import { useAuthStore } from '../../stores/authStore';
-import { useNavigate } from 'react-router-dom';
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import type { Incident } from '../../types';
 import toast from 'react-hot-toast';
-import { NotificationBell } from '../../components/notifications/NotificationBell';
 
 export const MapView = () => {
-  const { user, logout } = useAuthStore();
-  const navigate = useNavigate();
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
 
   const handleIncidentClick = (incident: Incident) => {
     setSelectedIncident(incident);
@@ -22,82 +13,94 @@ export const MapView = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <nav className="bg-white shadow-lg border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
+    <DashboardLayout>
+      <div style={{ width: '100%', height: '100%' }}>
+        {/* Header */}
+        <div style={{
+          background: 'white',
+          padding: '20px',
+          borderRadius: '12px',
+          marginBottom: '20px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <div>
-              <h1 className="text-2xl font-extrabold text-gray-900">
-                แผนที่เหตุการณ์ - Guardian Route
+              <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#1f2937', marginBottom: '4px' }}>
+                🗺️ แผนที่เหตุการณ์
               </h1>
-              <p className="text-base text-gray-600 mt-1">
-                {user?.firstName} {user?.lastName} ({user?.role})
+              <p style={{ color: '#6b7280', fontSize: '14px' }}>
+                แสดงตำแหน่งเหตุการณ์ทั้งหมดบนแผนที่
               </p>
             </div>
-            <div className="flex gap-3">
-              <NotificationBell />
-              <button
-                onClick={() => navigate('/supervisor')}
-                className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-200 transition-colors font-medium shadow-sm"
-              >
-                รายการเหตุการณ์
-              </button>
-              <button
-                onClick={handleLogout}
-                className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl hover:bg-gray-200 transition-colors font-medium shadow-sm"
-              >
-                ออกจากระบบ
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="bg-white rounded-xl shadow-md p-6 mb-6 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-800">แผนที่แสดงเหตุการณ์ทั้งหมด</h2>
-            <div className="flex gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-gray-500"></div>
+            <div style={{ display: 'flex', gap: '16px', fontSize: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#6b7280' }}></div>
                 <span>ต่ำ</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-blue-500"></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#3b82f6' }}></div>
                 <span>ปานกลาง</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-orange-500"></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#f59e0b' }}></div>
                 <span>สูง</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full bg-red-500"></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ef4444' }}></div>
                 <span>วิกฤต</span>
               </div>
             </div>
           </div>
         </div>
 
-        <IncidentsMap 
-          className="h-[calc(100vh-250px)] w-full rounded-xl shadow-xl border border-gray-200"
-          onIncidentClick={handleIncidentClick}
-        />
+        {/* Map */}
+        <div style={{
+          background: 'white',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+        }}>
+          <IncidentsMap 
+            className="h-[600px] w-full"
+            onIncidentClick={handleIncidentClick}
+          />
+        </div>
 
+        {/* Selected Incident */}
         {selectedIncident && (
-          <div className="mt-6 bg-white rounded-xl shadow-md p-6 border border-gray-100">
-            <h3 className="text-lg font-bold mb-2 text-gray-800">เหตุการณ์ที่เลือก:</h3>
-            <p className="text-xl font-semibold text-blue-600">{selectedIncident.title}</p>
+          <div style={{
+            background: 'white',
+            padding: '20px',
+            borderRadius: '12px',
+            marginTop: '20px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+            borderLeft: '4px solid #3b82f6'
+          }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '8px', color: '#1f2937' }}>
+              เหตุการณ์ที่เลือก:
+            </h3>
+            <p style={{ fontSize: '18px', fontWeight: '600', color: '#3b82f6', marginBottom: '12px' }}>
+              {selectedIncident.title}
+            </p>
             <button
               onClick={() => toast('Detail page coming soon!', { icon: 'ℹ️' })}
-              className="mt-3 text-blue-600 hover:text-blue-800 font-medium text-base"
+              style={{
+                padding: '8px 16px',
+                background: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
             >
-              ดูรายละเอียดเพิ่มเติม →
+              👁️ ดูรายละเอียดเพิ่มเติม
             </button>
           </div>
         )}
       </div>
-    </div>
+    </DashboardLayout>
   );
 };
