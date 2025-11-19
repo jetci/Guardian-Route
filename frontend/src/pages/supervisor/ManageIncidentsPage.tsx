@@ -155,22 +155,110 @@ export default function ManageIncidentsPage() {
     toast.success(`✅ ปิดงาน: ${incident.title}`);
   };
 
+  // Calculate stats
+  const stats = {
+    total: allIncidents.length,
+    new: allIncidents.filter(i => i.status === 'ใหม่').length,
+    ongoing: allIncidents.filter(i => i.status === 'กำลังดำเนินการ').length,
+    closed: allIncidents.filter(i => i.status === 'เสร็จสิ้น').length,
+  };
+
   return (
     <DashboardLayout>
-      <div className="supervisor-dashboard">
-        <div className="dashboard-header">
-          <h1>⚠️ จัดการเหตุการณ์ (Manage Incidents)</h1>
-          <p className="subtitle">ศูนย์กลางการจัดการเหตุการณ์ภัยพิบัติทั้งหมด</p>
+      <div style={{ width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
+        {/* Header */}
+        <div style={{
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          padding: '32px',
+          borderRadius: '16px',
+          marginBottom: '24px',
+          boxShadow: '0 10px 30px rgba(102, 126, 234, 0.3)'
+        }}>
+          <h1 style={{
+            fontSize: '32px',
+            fontWeight: '800',
+            color: 'white',
+            marginBottom: '8px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            ⚠️ จัดการเหตุการณ์
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.9)', fontSize: '16px', marginBottom: '24px' }}>
+            ศูนย์กลางการจัดการเหตุการณ์ภัยพิบัติทั้งหมด
+          </p>
+
+          {/* Stats Cards */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: '16px'
+          }}>
+            <div style={{
+              background: 'rgba(255,255,255,0.95)',
+              padding: '20px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+            }}>
+              <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px', fontWeight: '600' }}>
+                📊 ทั้งหมด
+              </div>
+              <div style={{ fontSize: '36px', fontWeight: '800', color: '#1f2937' }}>
+                {stats.total}
+              </div>
+            </div>
+            <div style={{
+              background: 'rgba(255,255,255,0.95)',
+              padding: '20px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+            }}>
+              <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px', fontWeight: '600' }}>
+                🆕 เหตุการณ์ใหม่
+              </div>
+              <div style={{ fontSize: '36px', fontWeight: '800', color: '#ef4444' }}>
+                {stats.new}
+              </div>
+            </div>
+            <div style={{
+              background: 'rgba(255,255,255,0.95)',
+              padding: '20px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+            }}>
+              <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px', fontWeight: '600' }}>
+                🔄 กำลังดำเนินการ
+              </div>
+              <div style={{ fontSize: '36px', fontWeight: '800', color: '#3b82f6' }}>
+                {stats.ongoing}
+              </div>
+            </div>
+            <div style={{
+              background: 'rgba(255,255,255,0.95)',
+              padding: '20px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+            }}>
+              <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px', fontWeight: '600' }}>
+                ✅ เสร็จสิ้น
+              </div>
+              <div style={{ fontSize: '36px', fontWeight: '800', color: '#10b981' }}>
+                {stats.closed}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="dashboard-content">
+        <div>
           {/* Search and Filters */}
           <div style={{
             background: 'white',
-            padding: '20px',
-            borderRadius: '12px',
-            marginBottom: '20px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+            padding: '24px',
+            borderRadius: '16px',
+            marginBottom: '24px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
+            border: '1px solid #e5e7eb'
           }}>
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               {/* Search */}
@@ -181,12 +269,16 @@ export default function ManageIncidentsPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
                   flex: '1',
-                  minWidth: '200px',
-                  padding: '10px 16px',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  fontSize: '14px'
+                  minWidth: '250px',
+                  padding: '12px 18px',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '10px',
+                  fontSize: '14px',
+                  outline: 'none',
+                  transition: 'all 0.2s'
                 }}
+                onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
               />
 
               {/* Village Filter */}
@@ -194,11 +286,13 @@ export default function ManageIncidentsPage() {
                 value={filterVillage}
                 onChange={(e) => setFilterVillage(e.target.value)}
                 style={{
-                  padding: '10px 16px',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
+                  padding: '12px 18px',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '10px',
                   fontSize: '14px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  background: 'white',
+                  outline: 'none'
                 }}
               >
                 <option value="all">📍 ทุกหมู่บ้าน</option>
@@ -215,11 +309,13 @@ export default function ManageIncidentsPage() {
                 value={filterPriority}
                 onChange={(e) => setFilterPriority(e.target.value)}
                 style={{
-                  padding: '10px 16px',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
+                  padding: '12px 18px',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '10px',
                   fontSize: '14px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  background: 'white',
+                  outline: 'none'
                 }}
               >
                 <option value="all">⚡ ทุกระดับ</option>
@@ -237,15 +333,18 @@ export default function ManageIncidentsPage() {
                   setFilterPriority('all');
                 }}
                 style={{
-                  padding: '10px 20px',
+                  padding: '12px 24px',
                   background: '#f3f4f6',
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '10px',
                   fontSize: '14px',
                   fontWeight: '600',
                   cursor: 'pointer',
-                  transition: 'all 0.2s'
+                  transition: 'all 0.2s',
+                  color: '#374151'
                 }}
+                onMouseOver={(e) => e.currentTarget.style.background = '#e5e7eb'}
+                onMouseOut={(e) => e.currentTarget.style.background = '#f3f4f6'}
               >
                 🔄 รีเซ็ต
               </button>
@@ -281,80 +380,122 @@ export default function ManageIncidentsPage() {
           </div>
 
           {/* Incidents List */}
-          <div style={{ display: 'grid', gap: '16px', marginTop: '20px' }}>
+          <div style={{ display: 'grid', gap: '20px', marginTop: '20px' }}>
             {filteredIncidents.length === 0 ? (
               <div style={{
                 background: 'white',
-                padding: '60px 20px',
-                borderRadius: '12px',
+                padding: '80px 20px',
+                borderRadius: '16px',
                 textAlign: 'center',
-                color: '#6b7280'
+                color: '#6b7280',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
+                border: '2px dashed #e5e7eb'
               }}>
-                <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
-                <h3 style={{ fontSize: '18px', marginBottom: '8px' }}>ไม่พบเหตุการณ์</h3>
-                <p>ลองเปลี่ยนตัวกรองหรือคำค้นหา</p>
+                <div style={{ fontSize: '64px', marginBottom: '20px' }}>🔍</div>
+                <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '12px', color: '#374151' }}>ไม่พบเหตุการณ์</h3>
+                <p style={{ fontSize: '15px' }}>ลองเปลี่ยนตัวกรองหรือคำค้นหา</p>
               </div>
             ) : (
               filteredIncidents.map(incident => (
                 <div key={incident.id} style={{
                   background: 'white',
-                  padding: '20px',
-                  borderRadius: '12px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                  borderLeft: `4px solid ${getPriorityColor(incident.priority)}`
+                  padding: '24px',
+                  borderRadius: '16px',
+                  boxShadow: '0 4px 6px rgba(0,0,0,0.07)',
+                  borderLeft: `5px solid ${getPriorityColor(incident.priority)}`,
+                  transition: 'all 0.3s',
+                  cursor: 'pointer'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.12)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.boxShadow = '0 4px 6px rgba(0,0,0,0.07)';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}>
                   {/* Header */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '16px', gap: '16px' }}>
                     <div style={{ flex: 1 }}>
-                      <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px', color: '#1f2937' }}>
+                      <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '10px', color: '#111827', lineHeight: '1.4' }}>
                         {incident.title}
                       </h3>
-                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', fontSize: '14px', color: '#6b7280' }}>
-                        <span>📍 {incident.village}</span>
-                        <span>🏷️ {incident.type}</span>
-                        <span>👤 รายงานโดย: {incident.reportedBy}</span>
-                        <span>🕐 {incident.date}</span>
+                      <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '14px', color: '#6b7280' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontSize: '16px' }}>📍</span> {incident.village}
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontSize: '16px' }}>🏷️</span> {incident.type}
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontSize: '16px' }}>👤</span> {incident.reportedBy}
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontSize: '16px' }}>🕐</span> {incident.date}
+                        </span>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', gap: '8px', flexShrink: 0, flexDirection: 'column', alignItems: 'flex-end' }}>
                       <span style={{
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        fontSize: '12px',
-                        fontWeight: '600',
+                        padding: '8px 14px',
+                        borderRadius: '8px',
+                        fontSize: '13px',
+                        fontWeight: '700',
                         color: 'white',
-                        background: getPriorityColor(incident.priority)
+                        background: getPriorityColor(incident.priority),
+                        boxShadow: `0 2px 4px ${getPriorityColor(incident.priority)}40`,
+                        whiteSpace: 'nowrap'
                       }}>
-                        {incident.priority}
+                        ⚡ {incident.priority}
                       </span>
                       <span style={{
-                        padding: '6px 12px',
-                        borderRadius: '6px',
-                        fontSize: '12px',
-                        fontWeight: '600',
+                        padding: '8px 14px',
+                        borderRadius: '8px',
+                        fontSize: '13px',
+                        fontWeight: '700',
                         color: 'white',
-                        background: getStatusColor(incident.status)
+                        background: getStatusColor(incident.status),
+                        boxShadow: `0 2px 4px ${getStatusColor(incident.status)}40`,
+                        whiteSpace: 'nowrap'
                       }}>
-                        {incident.status}
+                        {incident.status === 'ใหม่' && '🆕'}
+                        {incident.status === 'กำลังดำเนินการ' && '🔄'}
+                        {incident.status === 'เสร็จสิ้น' && '✅'}
+                        {' '}{incident.status}
                       </span>
                     </div>
                   </div>
 
                   {/* Description */}
-                  <p style={{ fontSize: '14px', color: '#4b5563', marginBottom: '12px' }}>
-                    {incident.description}
-                  </p>
+                  <div style={{
+                    padding: '16px',
+                    background: '#f9fafb',
+                    borderRadius: '10px',
+                    marginBottom: '16px',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    <p style={{ fontSize: '14px', color: '#374151', lineHeight: '1.6', margin: 0 }}>
+                      💬 {incident.description}
+                    </p>
+                  </div>
 
                   {/* Officer */}
                   {incident.officer && (
                     <div style={{
-                      padding: '8px 12px',
-                      background: '#f3f4f6',
-                      borderRadius: '6px',
+                      padding: '12px 16px',
+                      background: 'linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%)',
+                      borderRadius: '10px',
                       fontSize: '14px',
-                      marginBottom: '12px'
+                      marginBottom: '16px',
+                      border: '1px solid #bfdbfe',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px'
                     }}>
-                      👮 เจ้าหน้าที่: <strong>{incident.officer}</strong>
+                      <span style={{ fontSize: '18px' }}>👮</span>
+                      <span style={{ color: '#1e40af' }}>
+                        เจ้าหน้าที่: <strong style={{ fontWeight: '700' }}>{incident.officer}</strong>
+                      </span>
                     </div>
                   )}
 
