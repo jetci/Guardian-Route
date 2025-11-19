@@ -246,14 +246,73 @@ export default function SupervisorDashboardModern() {
                   </div>
                 </div>
 
-                <div className="report-actions">
-                  <button className="btn-action btn-view" onClick={() => toast.success('📄 View details')}>
+                <div style={{
+                  display: 'flex',
+                  gap: '8px',
+                  marginTop: '12px',
+                  paddingTop: '12px',
+                  borderTop: '1px solid #e2e8f0'
+                }}>
+                  <button 
+                    onClick={() => toast.success('📄 View details')}
+                    title="ดูรายละเอียด"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 12px',
+                      background: '#3b82f6',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
                     👁️ ดูรายละเอียด
                   </button>
-                  <button className="btn-action btn-approve" onClick={() => toast.success('✅ Approved!')}>
+                  
+                  <button 
+                    onClick={() => toast.success('✅ Approved!')}
+                    title="อนุมัติรายงาน"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 12px',
+                      background: '#10b981',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
                     ✅ อนุมัติ
                   </button>
-                  <button className="btn-action btn-reject" onClick={() => toast.error('❌ Rejected')}>
+                  
+                  <button 
+                    onClick={() => toast.error('❌ Rejected')}
+                    title="ปฏิเสธรายงาน"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      padding: '8px 12px',
+                      background: '#ef4444',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
                     ❌ ปฏิเสธ
                   </button>
                 </div>

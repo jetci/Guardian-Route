@@ -534,3 +534,112 @@
 .info-icon {
   font-size: 16px;
 }
+
+/* ==================== Report Actions (Buttons) ==================== */
+.report-actions {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-start !important;
+  margin-top: 12px !important;
+  padding: 12px 0 0 0 !important;
+  border-top: 1px solid #e5e7eb !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.btn-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 8px 14px !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  box-sizing: border-box !important;
+  min-height: 36px !important;
+  line-height: 1.2 !important;
+}
+
+.btn-action:hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.1) !important;
+}
+
+.btn-action:active {
+  transform: translateY(0) !important;
+}
+
+.btn-icon {
+  font-size: 16px !important;
+  line-height: 1 !important;
+  display: inline-block !important;
+}
+
+.btn-text {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+.btn-view {
+  background: #3b82f6 !important;
+  color: white !important;
+  border-color: #3b82f6 !important;
+}
+
+.btn-view:hover {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+.btn-approve {
+  background: #10b981 !important;
+  color: white !important;
+  border-color: #10b981 !important;
+}
+
+.btn-approve:hover {
+  background: #059669 !important;
+  border-color: #059669 !important;
+}
+
+.btn-reject {
+  background: #ef4444 !important;
+  color: white !important;
+  border-color: #ef4444 !important;
+}
+
+.btn-reject:hover {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+}
+
+/* Responsive: ซ่อนข้อความในหน้าจอเล็ก */
+@media (max-width: 768px) {
+  .btn-text {
+    display: none !important;
+  }
+  
+  .btn-action {
+    padding: 10px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    justify-content: center !important;
+  }
+  
+  .btn-icon {
+    font-size: 18px !important;
+  }
+  
+  .report-actions {
+    gap: 6px !important;
+  }
+}
