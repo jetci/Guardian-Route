@@ -26,6 +26,10 @@ export default function ManageIncidentsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterVillage, setFilterVillage] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
+  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [selectedOfficer, setSelectedOfficer] = useState('');
 
   // Mock data - 6 incidents
   const allIncidents: Incident[] = [
@@ -143,16 +147,42 @@ export default function ManageIncidentsPage() {
     }
   };
 
-  const handleAssign = (incident: Incident) => {
-    toast.success(`🎯 มอบหมายงาน: ${incident.title}`);
-  };
+  // Mock officers list
+  const officers = [
+    'นางสาวสมหญิง รักดี',
+    'นายประสิทธิ์ มั่นคง',
+    'นางสาววิภา สุขใจ',
+    'นายสมศักดิ์ ใจกล้า',
+    'นายวิชัย ขยัน',
+    'นางสาวสุดา เก่งงาน'
+  ];
 
   const handleViewDetails = (incident: Incident) => {
-    toast.success(`👁️ ดูรายละเอียด: ${incident.title}`);
+    setSelectedIncident(incident);
+    setShowDetailsModal(true);
+  };
+
+  const handleAssign = (incident: Incident) => {
+    setSelectedIncident(incident);
+    setShowAssignModal(true);
+    setSelectedOfficer('');
+  };
+
+  const handleConfirmAssign = () => {
+    if (!selectedOfficer) {
+      toast.error('กรุณาเลือกเจ้าหน้าที่');
+      return;
+    }
+    toast.success(`✅ มอบหมายงานให้ ${selectedOfficer} สำเร็จ!`);
+    setShowAssignModal(false);
+    setSelectedIncident(null);
+    setSelectedOfficer('');
   };
 
   const handleClose = (incident: Incident) => {
-    toast.success(`✅ ปิดงาน: ${incident.title}`);
+    if (confirm(`ยืนยันการปิดงาน: ${incident.title}?`)) {
+      toast.success(`✅ ปิดงาน: ${incident.title} สำเร็จ!`);
+    }
   };
 
   // Calculate stats
@@ -677,6 +707,363 @@ export default function ManageIncidentsPage() {
             )}
           </div>
         </div>
+
+        {/* Details Modal */}
+        {showDetailsModal && selectedIncident && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}
+          onClick={() => setShowDetailsModal(false)}>
+            <div style={{
+              background: 'white',
+              borderRadius: '20px',
+              maxWidth: '700px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+            }}
+            onClick={(e) => e.stopPropagation()}>
+              {/* Modal Header */}
+              <div style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: '24px',
+                borderRadius: '20px 20px 0 0',
+                color: 'white'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                  <div style={{ flex: 1 }}>
+                    <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>
+                      📋 รายละเอียดเหตุการณ์
+                    </h2>
+                    <p style={{ fontSize: '14px', opacity: 0.9 }}>
+                      รหัส: #{selectedIncident.id}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowDetailsModal(false)}
+                    style={{
+                      background: 'rgba(255,255,255,0.2)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '36px',
+                      height: '36px',
+                      cursor: 'pointer',
+                      fontSize: '20px',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div style={{ padding: '24px' }}>
+                {/* Title */}
+                <div style={{ marginBottom: '20px' }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#111827', marginBottom: '12px' }}>
+                    {selectedIncident.title}
+                  </h3>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: '700',
+                      color: 'white',
+                      background: getPriorityColor(selectedIncident.priority),
+                      boxShadow: `0 2px 4px ${getPriorityColor(selectedIncident.priority)}40`
+                    }}>
+                      ⚡ {selectedIncident.priority}
+                    </span>
+                    <span style={{
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: '700',
+                      color: 'white',
+                      background: getStatusColor(selectedIncident.status),
+                      boxShadow: `0 2px 4px ${getStatusColor(selectedIncident.status)}40`
+                    }}>
+                      {selectedIncident.status === 'ใหม่' && '🆕'}
+                      {selectedIncident.status === 'กำลังดำเนินการ' && '🔄'}
+                      {selectedIncident.status === 'เสร็จสิ้น' && '✅'}
+                      {' '}{selectedIncident.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Info Grid */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                  gap: '16px',
+                  marginBottom: '20px'
+                }}>
+                  <div style={{
+                    padding: '16px',
+                    background: '#f9fafb',
+                    borderRadius: '12px',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>📍 หมู่บ้าน</div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#111827' }}>{selectedIncident.village}</div>
+                  </div>
+                  <div style={{
+                    padding: '16px',
+                    background: '#f9fafb',
+                    borderRadius: '12px',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>🏷️ ประเภท</div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#111827' }}>{selectedIncident.type}</div>
+                  </div>
+                  <div style={{
+                    padding: '16px',
+                    background: '#f9fafb',
+                    borderRadius: '12px',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>👤 รายงานโดย</div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#111827' }}>{selectedIncident.reportedBy}</div>
+                  </div>
+                  <div style={{
+                    padding: '16px',
+                    background: '#f9fafb',
+                    borderRadius: '12px',
+                    border: '1px solid #e5e7eb'
+                  }}>
+                    <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>🕐 วันที่</div>
+                    <div style={{ fontSize: '16px', fontWeight: '600', color: '#111827' }}>{selectedIncident.date}</div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div style={{
+                  padding: '20px',
+                  background: '#f9fafb',
+                  borderRadius: '12px',
+                  marginBottom: '20px',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151', marginBottom: '8px' }}>
+                    💬 รายละเอียด
+                  </div>
+                  <p style={{ fontSize: '14px', color: '#4b5563', lineHeight: '1.6', margin: 0 }}>
+                    {selectedIncident.description}
+                  </p>
+                </div>
+
+                {/* Officer */}
+                {selectedIncident.officer && (
+                  <div style={{
+                    padding: '16px',
+                    background: 'linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%)',
+                    borderRadius: '12px',
+                    border: '1px solid #bfdbfe',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px'
+                  }}>
+                    <span style={{ fontSize: '24px' }}>👮</span>
+                    <div>
+                      <div style={{ fontSize: '12px', color: '#1e40af', marginBottom: '2px' }}>เจ้าหน้าที่ผู้รับผิดชอบ</div>
+                      <div style={{ fontSize: '16px', fontWeight: '700', color: '#1e40af' }}>
+                        {selectedIncident.officer}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div style={{
+                padding: '20px 24px',
+                borderTop: '1px solid #e5e7eb',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '12px'
+              }}>
+                <button
+                  onClick={() => setShowDetailsModal(false)}
+                  style={{
+                    padding: '10px 24px',
+                    background: '#f3f4f6',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    color: '#374151'
+                  }}
+                >
+                  ปิด
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Assign Modal */}
+        {showAssignModal && selectedIncident && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}
+          onClick={() => setShowAssignModal(false)}>
+            <div style={{
+              background: 'white',
+              borderRadius: '20px',
+              maxWidth: '500px',
+              width: '100%',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
+            }}
+            onClick={(e) => e.stopPropagation()}>
+              {/* Modal Header */}
+              <div style={{
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                padding: '24px',
+                borderRadius: '20px 20px 0 0',
+                color: 'white'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                  <div>
+                    <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px' }}>
+                      🎯 มอบหมายงาน
+                    </h2>
+                    <p style={{ fontSize: '14px', opacity: 0.9 }}>
+                      {selectedIncident.title}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowAssignModal(false)}
+                    style={{
+                      background: 'rgba(255,255,255,0.2)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '36px',
+                      height: '36px',
+                      cursor: 'pointer',
+                      fontSize: '20px',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div style={{ padding: '24px' }}>
+                <label style={{
+                  display: 'block',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#374151',
+                  marginBottom: '8px'
+                }}>
+                  👮 เลือกเจ้าหน้าที่
+                </label>
+                <select
+                  value={selectedOfficer}
+                  onChange={(e) => setSelectedOfficer(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 16px',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '10px',
+                    fontSize: '14px',
+                    cursor: 'pointer',
+                    background: 'white',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="">-- เลือกเจ้าหน้าที่ --</option>
+                  {officers.map((officer, index) => (
+                    <option key={index} value={officer}>{officer}</option>
+                  ))}
+                </select>
+
+                {selectedOfficer && (
+                  <div style={{
+                    marginTop: '16px',
+                    padding: '16px',
+                    background: '#f0fdf4',
+                    borderRadius: '10px',
+                    border: '1px solid #86efac'
+                  }}>
+                    <div style={{ fontSize: '14px', color: '#15803d' }}>
+                      ✅ จะมอบหมายงานให้: <strong>{selectedOfficer}</strong>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div style={{
+                padding: '20px 24px',
+                borderTop: '1px solid #e5e7eb',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '12px'
+              }}>
+                <button
+                  onClick={() => setShowAssignModal(false)}
+                  style={{
+                    padding: '10px 24px',
+                    background: '#f3f4f6',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    color: '#374151'
+                  }}
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  onClick={handleConfirmAssign}
+                  style={{
+                    padding: '10px 24px',
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    color: 'white',
+                    boxShadow: '0 4px 6px rgba(16, 185, 129, 0.3)'
+                  }}
+                >
+                  ✅ ยืนยันมอบหมาย
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
