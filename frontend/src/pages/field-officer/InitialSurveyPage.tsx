@@ -6,6 +6,7 @@ import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { mockTasks } from '../../mocks/dashboardData';
+import { VILLAGE_NAMES, TAMBON_INFO } from '../../data/villages';
 import ThaiDatePicker from '../../components/ThaiDatePicker';
 import './InitialSurveyPage.css';
 
@@ -48,12 +49,15 @@ export function InitialSurveyPage() {
 
   // Polygon state
   const [polygonData, setPolygonData] = useState<any>(null);
+  
+  // Instructions modal state
+  const [showInstructions, setShowInstructions] = useState(false);
 
   // Initialize map
   useEffect(() => {
     if (!mapRef.current) {
-      // Create map centered on Fang District, Chiang Mai (exact coordinates)
-      const map = L.map('survey-map').setView([19.9422, 99.2195], 13);
+      // Create map centered on Tambon Wiang, Fang District
+      const map = L.map('survey-map').setView([TAMBON_INFO.centerLat, TAMBON_INFO.centerLng], 13);
 
       // Add tile layer
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -127,6 +131,11 @@ export function InitialSurveyPage() {
       });
 
       mapRef.current = map;
+      
+      // Force map to resize after layout is ready
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 100);
     }
 
     return () => {
@@ -134,6 +143,29 @@ export function InitialSurveyPage() {
         mapRef.current.remove();
         mapRef.current = null;
       }
+    };
+  }, []);
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    
+    // Also invalidate on mount
+    const timer = setTimeout(() => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
+    }, 200);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timer);
     };
   }, []);
 
@@ -269,8 +301,9 @@ export function InitialSurveyPage() {
   }
 
   return (
-    <DashboardLayout>
-      <div className="initial-survey-page">
+    <>
+      <DashboardLayout noPadding>
+        <div className="initial-survey-page">
         {/* Header */}
         <div className="survey-header">
           <div>
@@ -289,28 +322,42 @@ export function InitialSurveyPage() {
         <div className="survey-content">
           
           {/* Left: Map */}
-          <div className="map-section">
-            <div id="survey-map"></div>
+          <div style={{
+            position: 'fixed',
+            top: '70px',
+            left: '240px',
+            right: '380px',
+            bottom: 0,
+            zIndex: 1
+          }}>
+            <div id="survey-map" style={{ width: '100%', height: '100%' }}></div>
             
-            {/* Map Controls */}
-            <div className="map-controls">
-              <button className="map-btn" onClick={getCurrentLocation} title="ระบุตำแหน่งปัจจุบัน">
-                📍 Get Location
-              </button>
-              <button className="map-btn" onClick={clearPolygon} title="ลบพื้นที่ที่วาด">
-                🗑️ Clear Area
-              </button>
-            </div>
-            
-            <div className="map-instructions">
-              <p><strong>📐 วิธีวาดพื้นที่:</strong></p>
-              <ol>
-                <li>คลิกปุ่ม <strong>🔷 Draw Polygon</strong> มุมบนซ้ายแผนที่</li>
-                <li>คลิกบนแผนที่เพื่อสร้างจุด (คลิกได้ไม่จำกัด)</li>
-                <li>คลิกที่จุดแรกอีกครั้งเพื่อปิด polygon</li>
-              </ol>
-              <p className="note">✅ <em>ตอนนี้คลิกได้หลายจุดแล้ว! ไม่จำกัดที่ 3 จุด</em></p>
-            </div>
+            {/* Instructions Modal */}
+            {showInstructions && (
+              <div className="modal-overlay" onClick={() => setShowInstructions(false)}>
+                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal-header">
+                    <h3>📐 วิธีวาดพื้ศที่บนแผนที่</h3>
+                    <button className="modal-close" onClick={() => setShowInstructions(false)}>×</button>
+                  </div>
+                  <div className="modal-body">
+                    <ol>
+                      <li>คลิกปุ่ม <strong>🔷 Draw Polygon</strong> ที่มุมบนซ้ายของแผนที่</li>
+                      <li>คลิกบนแผนที่เพื่อสร้างจุด (คลิกได้ไม่จำกัด)</li>
+                      <li>คลิกที่จุดแรกอีกครั้งเพื่อปิดรูปหลังคา</li>
+                    </ol>
+                    <div className="note">
+                      <strong>✅ เคล็ดลับ:</strong>
+                      <ul>
+                        <li>คลิกได้ไม่จำกัดจุด วาดได้ตามพื้นที่จริง</li>
+                        <li>สามารถลบและวาดใหม่ได้</li>
+                        <li>กด "Clear Area" เพื่อลบแล้ววาดใหม่</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Map Info */}
             {polygonData && (
@@ -322,6 +369,19 @@ export function InitialSurveyPage() {
 
           {/* Right: Form */}
           <div className="form-section">
+            
+            {/* Map Controls - Moved here */}
+            <div className="form-map-controls">
+              <button className="control-btn" onClick={getCurrentLocation}>
+                📍 Get Location
+              </button>
+              <button className="control-btn" onClick={clearPolygon}>
+                🗑️ Clear Area
+              </button>
+              <button className="control-btn help" onClick={() => setShowInstructions(true)}>
+                ❓ คู่มือ
+              </button>
+            </div>
             
             {/* GPS Info */}
             {latitude && longitude && (
@@ -367,13 +427,18 @@ export function InitialSurveyPage() {
 
               <div className="form-group">
                 <label>หมู่บ้านที่ได้รับผลกระทบ *</label>
-                <input 
-                  type="text" 
-                  placeholder="เช่น บ้านหนองบัว หมู่ 3"
+                <select
                   value={village}
                   onChange={(e) => setVillage(e.target.value)}
-                  required 
-                />
+                  required
+                >
+                  <option value="">เลือกหมู่บ้าน</option>
+                  {VILLAGE_NAMES.map((name, index) => (
+                    <option key={index} value={name}>
+                      {name} (หมู่ {index + 1})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="form-group">
@@ -461,6 +526,7 @@ export function InitialSurveyPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </>
   );
 }
