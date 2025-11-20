@@ -152,18 +152,17 @@
 
 /* Map Section */
 .map-section {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 1.5rem;
+  position: relative;
+  display: block;
 }
 
 /* Full width map when no form */
 .map-section.full-width {
-  grid-template-columns: 1fr;
+  display: block;
 }
 
 .map-section.full-width .map-wrapper {
-  grid-column: 1;
+  width: 100%;
 }
 
 /* Coordinate Marker Section */
@@ -396,12 +395,45 @@
   width: 100%;
 }
 
-/* Save Form */
+/* Save Form - แสดงเป็น modal ทับแผนที่ */
 .save-form {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background: white;
   border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Backdrop */
+.save-form::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: -1;
 }
 
 .save-form h3 {
