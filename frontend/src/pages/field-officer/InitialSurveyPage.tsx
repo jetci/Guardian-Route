@@ -180,13 +180,23 @@ export function InitialSurveyPage() {
   useEffect(() => {
     const loadVillages = async () => {
       try {
+        console.log('🔄 Loading villages from API...');
         const data = await fetchVillages();
+        console.log('✅ Loaded villages from API:', data.length, data);
         setVillages(data);
-        console.log('✅ Loaded villages from API:', data.length);
-      } catch (error) {
+      } catch (error: any) {
         console.error('❌ Error loading villages:', error);
-        // Fallback to empty array if API fails
-        setVillages([]);
+        console.error('Error details:', error.message, error.response?.data);
+        // Fallback to VILLAGE_NAMES if API fails
+        const fallbackVillages = VILLAGE_NAMES.map((name, index) => ({
+          id: index + 1,
+          name: name,
+          moo: index + 1,
+          lat: TAMBON_INFO.centerLat,
+          lng: TAMBON_INFO.centerLng
+        }));
+        setVillages(fallbackVillages);
+        console.log('⚠️ Using fallback villages:', fallbackVillages.length);
       }
     };
     loadVillages();
