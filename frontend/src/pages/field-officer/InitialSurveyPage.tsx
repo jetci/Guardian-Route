@@ -6,7 +6,7 @@ import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { mockTasks } from '../../mocks/dashboardData';
-import { VILLAGE_NAMES, TAMBON_INFO } from '../../data/villages';
+import { VILLAGE_NAMES, TAMBON_INFO, VILLAGES } from '../../data/villages';
 import ThaiDatePicker from '../../components/ThaiDatePicker';
 import './InitialSurveyPage.css';
 
@@ -52,6 +52,9 @@ export function InitialSurveyPage() {
   
   // Instructions modal state
   const [showInstructions, setShowInstructions] = useState(false);
+  
+  // Village boundary marker
+  const villageBoundaryRef = useRef<L.Circle | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -168,6 +171,54 @@ export function InitialSurveyPage() {
       clearTimeout(timer);
     };
   }, []);
+
+  // Show village boundary when village is selected
+  useEffect(() => {
+    if (!mapRef.current || !village) {
+      // Remove existing boundary if village is deselected
+      if (villageBoundaryRef.current) {
+        mapRef.current?.removeLayer(villageBoundaryRef.current);
+        villageBoundaryRef.current = null;
+      }
+      return;
+    }
+
+    // Find selected village data
+    const selectedVillage = VILLAGES.find(v => v.name === village);
+    if (!selectedVillage) return;
+
+    // Remove existing boundary
+    if (villageBoundaryRef.current) {
+      mapRef.current.removeLayer(villageBoundaryRef.current);
+    }
+
+    // Add circle to show village boundary (approximate)
+    const circle = L.circle([selectedVillage.lat, selectedVillage.lng], {
+      color: '#3b82f6',
+      fillColor: '#3b82f6',
+      fillOpacity: 0.1,
+      radius: 500, // 500 meters radius
+      weight: 2,
+      dashArray: '5, 5'
+    }).addTo(mapRef.current);
+
+    // Add marker with village name
+    L.marker([selectedVillage.lat, selectedVillage.lng], {
+      icon: L.divIcon({
+        className: 'village-marker',
+        html: `<div style="background: #3b82f6; color: white; padding: 6px 12px; border-radius: 12px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.3); white-space: nowrap;">
+          📍 ${selectedVillage.name} (หมู่ ${selectedVillage.moo})
+        </div>`,
+        iconSize: [150, 40],
+        iconAnchor: [75, 40]
+      })
+    }).addTo(mapRef.current);
+
+    villageBoundaryRef.current = circle;
+
+    // Pan to village location
+    mapRef.current.setView([selectedVillage.lat, selectedVillage.lng], 14);
+  }, [village]);
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
