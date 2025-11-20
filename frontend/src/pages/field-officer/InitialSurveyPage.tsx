@@ -54,7 +54,7 @@ export function InitialSurveyPage() {
   const [showInstructions, setShowInstructions] = useState(false);
   
   // Village boundary marker
-  const villageBoundaryRef = useRef<L.Circle | null>(null);
+  const villageBoundaryRef = useRef<L.Circle | L.Polygon | null>(null);
 
   // Initialize map
   useEffect(() => {
@@ -192,15 +192,29 @@ export function InitialSurveyPage() {
       mapRef.current.removeLayer(villageBoundaryRef.current);
     }
 
-    // Add circle to show village boundary (approximate)
-    const circle = L.circle([selectedVillage.lat, selectedVillage.lng], {
-      color: '#3b82f6',
-      fillColor: '#3b82f6',
-      fillOpacity: 0.1,
-      radius: 500, // 500 meters radius
-      weight: 2,
-      dashArray: '5, 5'
-    }).addTo(mapRef.current);
+    // Add boundary (polygon if available, otherwise circle)
+    let boundary: L.Circle | L.Polygon;
+    
+    if (selectedVillage.boundary && selectedVillage.boundary.length > 0) {
+      // Use actual boundary polygon
+      boundary = L.polygon(selectedVillage.boundary, {
+        color: '#3b82f6',
+        fillColor: '#3b82f6',
+        fillOpacity: 0.15,
+        weight: 2,
+        dashArray: '5, 5'
+      }).addTo(mapRef.current);
+    } else {
+      // Use approximate circle (500m radius)
+      boundary = L.circle([selectedVillage.lat, selectedVillage.lng], {
+        color: '#3b82f6',
+        fillColor: '#3b82f6',
+        fillOpacity: 0.1,
+        radius: 500,
+        weight: 2,
+        dashArray: '5, 5'
+      }).addTo(mapRef.current);
+    }
 
     // Add marker with village name
     L.marker([selectedVillage.lat, selectedVillage.lng], {
@@ -214,7 +228,7 @@ export function InitialSurveyPage() {
       })
     }).addTo(mapRef.current);
 
-    villageBoundaryRef.current = circle;
+    villageBoundaryRef.current = boundary;
 
     // Pan to village location
     mapRef.current.setView([selectedVillage.lat, selectedVillage.lng], 14);
