@@ -11,7 +11,9 @@ export interface UserProfile {
   username: string;
   firstName: string;
   lastName: string;
+  lastName: string;
   phone?: string;
+  department?: string;
   role: string;
   isActive: boolean;
   profileImage?: string;
@@ -23,6 +25,7 @@ export interface UpdateProfileDto {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  department?: string;
 }
 
 export interface ChangePasswordDto {

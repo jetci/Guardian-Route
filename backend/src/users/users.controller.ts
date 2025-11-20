@@ -38,19 +38,19 @@ export class UsersController {
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
   getProfile(@Request() req: any) {
-    return this.usersService.getProfile(req.user.userId);
+    return this.usersService.getProfile(req.user.id);
   }
 
   @Put('profile')
   @ApiOperation({ summary: 'Update current user profile' })
   updateProfile(@Request() req: any, @Body() updateProfileDto: UpdateProfileDto) {
-    return this.usersService.updateProfile(req.user.userId, updateProfileDto);
+    return this.usersService.updateProfile(req.user.id, updateProfileDto);
   }
 
   @Post('change-password')
   @ApiOperation({ summary: 'Change password' })
   changePassword(@Request() req: any, @Body() changePasswordDto: ChangePasswordDto) {
-    return this.usersService.changePassword(req.user.userId, changePasswordDto);
+    return this.usersService.changePassword(req.user.id, changePasswordDto);
   }
 
   @Post('profile/image')
@@ -75,20 +75,20 @@ export class UsersController {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
-    return this.usersService.uploadProfileImage(req.user.userId, file);
+    return this.usersService.uploadProfileImage(req.user.id, file);
   }
 
   @Delete('profile/image')
   @ApiOperation({ summary: 'Delete profile image' })
   deleteProfileImage(@Request() req: any) {
-    return this.usersService.deleteProfileImage(req.user.userId);
+    return this.usersService.deleteProfileImage(req.user.id);
   }
 
   @Get('activity-logs')
   @ApiOperation({ summary: 'Get user activity logs' })
   getActivityLogs(@Request() req: any, @Query('limit') limit?: string) {
     const limitNum = limit ? parseInt(limit, 10) : 20;
-    return this.usersService.getActivityLogs(req.user.userId, limitNum);
+    return this.usersService.getActivityLogs(req.user.id, limitNum);
   }
 
   // ==================== Admin User Management Endpoints ====================

@@ -4,18 +4,19 @@ import './DashboardLayout.css';
 
 interface DashboardLayoutProps {
   children: ReactNode;
+  noPadding?: boolean;
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({ children, noPadding = false }: DashboardLayoutProps) {
   return (
     <div className="dashboard-layout" style={{ display: 'flex', minHeight: '100vh', background: '#f7fafc' }}>
       <Sidebar />
       <main 
-        className="dashboard-main"
+        className={`dashboard-main ${noPadding ? 'no-padding' : ''}`}
         style={{
           flex: 1,
-          padding: '32px',
-          overflowY: 'auto',
+          padding: noPadding ? '0' : '32px',
+          overflowY: noPadding ? 'hidden' : 'auto',
           minHeight: '100vh',
           position: 'relative',
           boxSizing: 'border-box'

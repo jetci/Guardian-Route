@@ -1,73 +1,318 @@
 /**
  * Survey Area Page - Field Officer
- * สำรวจพื้นที่
+ * สำรวจพื้นที่พร้อม GPS และ Drawing Tools
  */
 
+import { useState, useEffect, useRef } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import L from 'leaflet';
+import '@geoman-io/leaflet-geoman-free';
+import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
+import 'leaflet/dist/leaflet.css';
+import toast from 'react-hot-toast';
+import { VILLAGE_NAMES, TAMBON_INFO } from '../../data/villages';
+
+const VILLAGES = VILLAGE_NAMES;
 
 export default function SurveyAreaPage() {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [drawnArea, setDrawnArea] = useState<any>(null);
+  const [formData, setFormData] = useState({
+    disasterType: '',
+    severity: '',
+    village: '',
+    description: '',
+    estimatedHouseholds: ''
+  });
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapRef.current || mapInstanceRef.current) return;
+
+    // Create map centered on ตำบลเวียง อำเภอฝาง
+    const map = L.map(mapRef.current).setView([TAMBON_INFO.centerLat, TAMBON_INFO.centerLng], 13);
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18,
+    }).addTo(map);
+
+    // Add Geoman controls
+    map.pm.addControls({
+      position: 'topleft',
+      drawCircle: false,
+      drawCircleMarker: false,
+      drawPolyline: false,
+      drawRectangle: true,
+      drawPolygon: true,
+      drawMarker: true,
+      editMode: true,
+      dragMode: true,
+      cutPolygon: false,
+      removalMode: true,
+    });
+
+    // Listen for drawn shapes
+    map.on('pm:create', (e: any) => {
+      const layer = e.layer;
+      if (layer && typeof layer.toGeoJSON === 'function') {
+        setDrawnArea(layer.toGeoJSON());
+        toast.success('✅ วาดขอบเขตพื้นที่เรียบร้อย');
+      }
+    });
+
+    map.on('pm:remove', () => {
+      setDrawnArea(null);
+      toast('ลบขอบเขตพื้นที่แล้ว', { icon: 'ℹ️' });
+    });
+
+    mapInstanceRef.current = map;
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // Get current location
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error('เบราว์เซอร์ไม่รองรับ GPS');
+      return;
+    }
+
+    toast.loading('กำลังค้นหาตำแหน่ง...');
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setCurrentLocation({ lat: latitude, lng: longitude });
+        
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.setView([latitude, longitude], 15);
+          
+          // Add marker
+          L.marker([latitude, longitude], {
+            icon: L.divIcon({
+              className: 'custom-marker',
+              html: '<div style="background: #3b82f6; color: white; padding: 8px 12px; border-radius: 20px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">📍 ตำแหน่งปัจจุบัน</div>',
+              iconSize: [150, 40],
+              iconAnchor: [75, 40]
+            })
+          }).addTo(mapInstanceRef.current);
+        }
+        
+        toast.dismiss();
+        toast.success(`📍 พบตำแหน่ง: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+      },
+      (error) => {
+        toast.dismiss();
+        toast.error('ไม่สามารถค้นหาตำแหน่งได้: ' + error.message);
+      }
+    );
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!currentLocation) {
+      toast.error('กรุณาระบุตำแหน่ง GPS ก่อน');
+      return;
+    }
+    
+    if (!drawnArea) {
+      toast.error('กรุณาวาดขอบเขตพื้นที่บนแผนที่');
+      return;
+    }
+    
+    if (!formData.disasterType || !formData.severity || !formData.village) {
+      toast.error('กรุณากรอกข้อมูลให้ครบถ้วน');
+      return;
+    }
+    
+    toast.success('✅ บันทึกข้อมูลการสำรวจเรียบร้อย');
+    console.log('Survey Data:', {
+      location: currentLocation,
+      area: drawnArea,
+      ...formData
+    });
+  };
+
   return (
     <DashboardLayout>
-      <div className="field-officer-dashboard">
-      <div className="dashboard-header">
-        <h1>🔍 สำรวจพื้นที่ (Survey Area)</h1>
-        <p className="subtitle">เครื่องมือหลักในการลงพื้นที่สำรวจและบันทึกข้อมูล</p>
-      </div>
+      <div style={{ padding: '0' }}>
+        <div style={{ marginBottom: '24px' }}>
+          <h1 style={{ fontSize: '28px', fontWeight: '700', color: '#1a202c', margin: '0 0 8px 0' }}>
+            🔍 สำรวจพื้นที่ (Survey Area)
+          </h1>
+          <p style={{ color: '#718096', margin: 0 }}>
+            ระบุตำแหน่ง GPS และวาดขอบเขตพื้นที่ประสบภัย
+          </p>
+        </div>
 
-      <div className="dashboard-content">
-        <div className="content-card">
-          <h2>แผนที่สำรวจ</h2>
-          <div className="map-container" style={{ height: '400px', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div className="placeholder-content">
-              <div className="placeholder-icon">🗺️</div>
-              <h3>แผนที่แบบ Interactive</h3>
-              <p>วาดขอบเขตพื้นที่ประสบภัยบนแผนที่</p>
+        {/* Map Section */}
+        <div style={{ background: 'white', borderRadius: '16px', padding: '24px', marginBottom: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>🗺️ แผนที่สำรวจ</h2>
+            <button
+              onClick={handleGetLocation}
+              style={{
+                padding: '10px 20px',
+                background: '#10b981',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+              }}
+            >
+              📍 Get Location
+            </button>
+          </div>
+          
+          {currentLocation && (
+            <div style={{ padding: '12px', background: '#f0fdf4', borderRadius: '8px', marginBottom: '16px', border: '1px solid #86efac' }}>
+              <strong style={{ color: '#16a34a' }}>✅ ตำแหน่งปัจจุบัน:</strong>
+              <span style={{ marginLeft: '8px', color: '#166534' }}>
+                Lat: {currentLocation.lat.toFixed(6)}, Lng: {currentLocation.lng.toFixed(6)}
+              </span>
             </div>
+          )}
+          
+          <div
+            ref={mapRef}
+            style={{
+              height: '500px',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              border: '1px solid #e2e8f0'
+            }}
+          />
+          
+          <div style={{ marginTop: '12px', padding: '12px', background: '#f7fafc', borderRadius: '8px' }}>
+            <strong style={{ fontSize: '14px' }}>💡 วิธีใช้:</strong>
+            <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px', fontSize: '14px', color: '#4a5568' }}>
+              <li>คลิก "Get Location" เพื่อระบุตำแหน่งปัจจุบัน</li>
+              <li>ใช้เครื่องมือด้านซ้ายบนแผนที่เพื่อวาด Polygon หรือ Rectangle</li>
+              <li>สามารถแก้ไข ลบ หรือย้ายรูปร่างได้</li>
+            </ul>
           </div>
         </div>
 
-        <div className="content-card">
-          <h2>บันทึกข้อมูลการสำรวจ</h2>
-          <form className="survey-form">
-            <div className="form-group">
-              <label>ประเภทภัย</label>
-              <select className="form-control">
-                <option>เลือกประเภทภัย</option>
-                <option>น้ำท่วม</option>
-                <option>ดินถล่ม</option>
-                <option>อัคคีภัย</option>
-                <option>แผ่นดินไหว</option>
-              </select>
+        {/* Form Section */}
+        <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px' }}>📝 บันทึกข้อมูลการสำรวจ</h2>
+          
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '20px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>ประเภทภัย *</label>
+                <select
+                  value={formData.disasterType}
+                  onChange={(e) => setFormData({...formData, disasterType: e.target.value})}
+                  style={{ width: '100%', padding: '10px', border: '2px solid #e2e8f0', borderRadius: '8px', fontSize: '14px' }}
+                  required
+                >
+                  <option value="">เลือกประเภทภัย</option>
+                  <option value="flood">น้ำท่วม</option>
+                  <option value="landslide">ดินถล่ม</option>
+                  <option value="fire">อัคคีภัย</option>
+                  <option value="earthquake">แผ่นดินไหว</option>
+                  <option value="storm">วาตภัย</option>
+                </select>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>ระดับความรุนแรง *</label>
+                <select
+                  value={formData.severity}
+                  onChange={(e) => setFormData({...formData, severity: e.target.value})}
+                  style={{ width: '100%', padding: '10px', border: '2px solid #e2e8f0', borderRadius: '8px', fontSize: '14px' }}
+                  required
+                >
+                  <option value="">เลือกระดับ</option>
+                  <option value="1">1 - เล็กน้อย</option>
+                  <option value="2">2 - ปานกลาง</option>
+                  <option value="3">3 - รุนแรง</option>
+                  <option value="4">4 - รุนแรงมาก</option>
+                  <option value="5">5 - ภัยพิบัติ</option>
+                </select>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>หมู่บ้าน *</label>
+                <select
+                  value={formData.village}
+                  onChange={(e) => setFormData({...formData, village: e.target.value})}
+                  style={{ width: '100%', padding: '10px', border: '2px solid #e2e8f0', borderRadius: '8px', fontSize: '14px' }}
+                  required
+                >
+                  <option value="">เลือกหมู่บ้าน</option>
+                  {VILLAGES.map((v, i) => (
+                    <option key={i} value={v}>{v}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>จำนวนครัวเรือนประมาณ</label>
+                <input
+                  type="number"
+                  value={formData.estimatedHouseholds}
+                  onChange={(e) => setFormData({...formData, estimatedHouseholds: e.target.value})}
+                  placeholder="เช่น 50"
+                  style={{ width: '100%', padding: '10px', border: '2px solid #e2e8f0', borderRadius: '8px', fontSize: '14px' }}
+                />
+              </div>
             </div>
-            <div className="form-group">
-              <label>ระดับความรุนแรง</label>
-              <select className="form-control">
-                <option>เลือกระดับ</option>
-                <option>เล็กน้อย</option>
-                <option>ปานกลาง</option>
-                <option>รุนแรง</option>
-                <option>รุนแรงมาก</option>
-              </select>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>รายละเอียดเพิ่มเติม</label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                rows={4}
+                placeholder="บันทึกรายละเอียดการสำรวจ สภาพพื้นที่ ความเสียหาย..."
+                style={{ width: '100%', padding: '10px', border: '2px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', fontFamily: 'inherit' }}
+              />
             </div>
-            <div className="form-group">
-              <label>รายละเอียดเพิ่มเติม</label>
-              <textarea className="form-control" rows={4} placeholder="บันทึกรายละเอียดการสำรวจ..."></textarea>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>อัปโหลดรูปภาพ</label>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                style={{ width: '100%', padding: '10px', border: '2px solid #e2e8f0', borderRadius: '8px', fontSize: '14px' }}
+              />
             </div>
-            <div className="form-group">
-              <label>อัปโหลดรูปภาพ</label>
-              <input type="file" className="form-control" accept="image/*" multiple />
-            </div>
-            <button type="submit" className="btn-primary">💾 บันทึกข้อมูล</button>
+            
+            <button
+              type="submit"
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.4)'
+              }}
+            >
+              💾 บันทึกข้อมูลการสำรวจ
+            </button>
           </form>
         </div>
-
-        <div className="content-card">
-          <div className="placeholder-content">
-            <p>💡 หน้านี้จะเชื่อมต่อกับ GPS และ Camera ของอุปกรณ์</p>
-          </div>
-        </div>
       </div>
-    </div>
     </DashboardLayout>
   );
 }

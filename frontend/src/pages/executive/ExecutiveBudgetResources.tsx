@@ -1,40 +1,6 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../stores/authStore';
-import toast from 'react-hot-toast';
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
 
 export default function ExecutiveBudgetResources() {
-  const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
-  const [activeMenu, setActiveMenu] = useState('budget');
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  const menuItems = [
-    { id: 'dashboard', icon: '📈', label: 'แดชบอร์ดสรุป', path: '/dashboard/executive' },
-    { id: 'analytics', icon: '📊', label: 'รายงานและสถิติ', path: '/executive/analytics' },
-    { id: 'budget', icon: '💰', label: 'งบประมาณและทรัพยากร', path: '/executive/budget-resources' },
-    { id: 'geospatial', icon: '🗺️', label: 'วิเคราะห์เชิงพื้นที่', path: '/executive/geospatial-analysis' },
-  ];
-
-  const handleMenuClick = (item: any) => {
-    setActiveMenu(item.id);
-    if (item.path === '/executive/budget-resources') {
-      return;
-    }
-    if (item.path === '/dashboard/executive') {
-      navigate('/dashboard/executive');
-      return;
-    }
-    if (item.path === '/executive/analytics') {
-      navigate('/executive/analytics');
-      return;
-    }
-    toast.success(`🚀 ${item.label} - Coming soon!`);
-  };
 
   // Mock budget data
   const budgetData = {
@@ -70,105 +36,8 @@ export default function ExecutiveBudgetResources() {
   const maxCost = Math.max(...costByType.map(c => c.cost));
 
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      margin: 0,
-      padding: 0,
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      background: '#f7fafc'
-    }}>
-      {/* Sidebar */}
-      <div style={{
-        width: '260px',
-        minWidth: '260px',
-        background: 'linear-gradient(180deg, #1e3a8a 0%, #3b82f6 100%)',
-        color: 'white',
-        padding: '20px',
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        height: '100vh',
-        overflowY: 'auto',
-        boxShadow: '2px 0 10px rgba(0,0,0,0.1)'
-      }}>
-        <h2 style={{ margin: '0 0 30px 0', fontSize: '20px' }}>🛡️ Guardian Route</h2>
-        
-        <div style={{
-          background: 'rgba(255,255,255,0.15)',
-          padding: '15px',
-          borderRadius: '12px',
-          marginBottom: '30px'
-        }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
-            {user?.firstName} {user?.lastName}
-          </div>
-          <div style={{ fontSize: '12px', opacity: 0.9 }}>
-            ผู้บริหาร (Executive)
-          </div>
-        </div>
-
-        <nav style={{ marginBottom: '30px' }}>
-          {menuItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => handleMenuClick(item)}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                background: activeMenu === item.id ? 'rgba(255,255,255,0.25)' : 'transparent',
-                border: 'none',
-                borderRadius: '10px',
-                color: 'white',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: activeMenu === item.id ? '600' : '500',
-                marginBottom: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                textAlign: 'left',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                if (activeMenu !== item.id) {
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (activeMenu !== item.id) {
-                  e.currentTarget.style.background = 'transparent';
-                }
-              }}
-            >
-              <span style={{ fontSize: '18px' }}>{item.icon}</span>
-              <span style={{ flex: 1 }}>{item.label}</span>
-            </button>
-          ))}
-        </nav>
-
-        <button onClick={handleLogout} style={{
-          width: '100%',
-          padding: '12px',
-          background: 'rgba(255,255,255,0.2)',
-          border: 'none',
-          borderRadius: '10px',
-          color: 'white',
-          cursor: 'pointer',
-          fontSize: '14px',
-          fontWeight: '500'
-        }}>
-          🚪 Logout
-        </button>
-      </div>
-
-      {/* Main Content */}
-      <div style={{
-        marginLeft: '260px',
-        flex: 1,
-        padding: '40px',
-        minHeight: '100vh'
-      }}>
+    <DashboardLayout>
+      <div>
         {/* Header */}
         <div style={{ marginBottom: '40px' }}>
           <h1 style={{ margin: '0 0 10px 0', fontSize: '32px', color: '#1a202c' }}>
@@ -438,6 +307,6 @@ export default function ExecutiveBudgetResources() {
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

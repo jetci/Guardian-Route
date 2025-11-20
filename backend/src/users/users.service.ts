@@ -19,7 +19,7 @@ import sharp from 'sharp';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async create(createUserDto: CreateUserDto) {
     // Check if user exists
@@ -36,7 +36,7 @@ export class UsersService {
 
     // Generate username from email
     const username = createUserDto.email.split('@')[0];
-    
+
     // Generate fullName from firstName and lastName
     const fullName = `${createUserDto.firstName} ${createUserDto.lastName}`;
 
@@ -72,7 +72,7 @@ export class UsersService {
   async findAll(role?: Role, requestingUserRole?: Role) {
     // Hide DEVELOPER users from ADMIN
     const whereClause: any = role ? { role } : {};
-    
+
     if (requestingUserRole === Role.ADMIN) {
       whereClause.role = { not: Role.DEVELOPER };
     }
@@ -175,13 +175,13 @@ export class UsersService {
     const [total, byRole, byStatus] = await Promise.all([
       // Total users
       this.prisma.user.count(),
-      
+
       // Count by role
       this.prisma.user.groupBy({
         by: ['role'],
         _count: true,
       }),
-      
+
       // Count by status
       this.prisma.user.groupBy({
         by: ['isActive'],
@@ -254,6 +254,7 @@ export class UsersService {
         firstName: true,
         lastName: true,
         phone: true,
+        department: true,
         role: true,
         isActive: true,
         profileImage: true,
@@ -299,6 +300,7 @@ export class UsersService {
         firstName: true,
         lastName: true,
         phone: true,
+        department: true,
         role: true,
         isActive: true,
         profileImage: true,
@@ -418,7 +420,7 @@ export class UsersService {
     // Note: This is a placeholder implementation
     // In a real application, you would have an ActivityLog model in Prisma
     // For now, we'll return mock data or implement basic logging
-    
+
     // Check if user exists
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -431,7 +433,7 @@ export class UsersService {
     // TODO: Implement actual activity logging
     // For now, return empty array or mock data
     return [];
-    
+
     // Future implementation would look like:
     // return this.prisma.activityLog.findMany({
     //   where: { userId },

@@ -12,7 +12,9 @@ export interface User {
   username?: string;
   firstName: string;
   lastName: string;
+  phone?: string;
   role: Role;
+  isActive?: boolean;
 }
 
 export interface LoginResponse {

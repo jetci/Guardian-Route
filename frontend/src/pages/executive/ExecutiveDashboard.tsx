@@ -3,10 +3,15 @@
  * Standardized with DashboardLayout
  */
 
+import { useState, Suspense, lazy } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
-import HeatmapVisualization from '../../components/HeatmapVisualization';
+import './ExecutiveDashboard.css';
+
+// Lazy load HeatmapVisualization to avoid blocking initial render
+const HeatmapVisualization = lazy(() => import('../../components/HeatmapVisualization'));
 
 export default function ExecutiveDashboard() {
+  const [showMap, setShowMap] = useState(false);
   // Mock data with comparisons (ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่)
   const kpiData = {
     monthlyIncidents: 24,
@@ -123,8 +128,56 @@ export default function ExecutiveDashboard() {
           </div>
 
           <div className="chart-card">
-            <h3>🗺️ แผนที่ความเสี่ยง</h3>
-            <HeatmapVisualization />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0 }}>🗺️ แผนที่ความเสี่ยง</h3>
+              <button 
+                onClick={() => setShowMap(!showMap)}
+                style={{
+                  padding: '8px 16px',
+                  background: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '600'
+                }}
+              >
+                {showMap ? 'ซ่อนแผนที่' : 'แสดงแผนที่'}
+              </button>
+            </div>
+            {showMap ? (
+              <Suspense fallback={
+                <div style={{ 
+                  height: '400px', 
+                  background: '#f3f4f6',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'column',
+                  gap: '12px'
+                }}>
+                  <div style={{ fontSize: '48px' }}>🗺️</div>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '16px' }}>กำลังโหลดแผนที่...</p>
+                  <p style={{ margin: 0, color: '#9ca3af', fontSize: '14px' }}>ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่</p>
+                </div>
+              }>
+                <HeatmapVisualization height="400px" />
+              </Suspense>
+            ) : (
+              <div style={{ 
+                height: '300px', 
+                background: '#f9fafb',
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '2px dashed #e5e7eb'
+              }}>
+                <p style={{ margin: 0, color: '#9ca3af' }}>คลิกปุ่ม "แสดงแผนที่" เพื่อดูแผนที่ความเสี่ยง</p>
+              </div>
+            )}
           </div>
         </div>
 

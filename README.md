@@ -62,6 +62,19 @@ Disaster Management System for Tambon Wiang, Fang District, Chiang Mai Province
 - React Leaflet for maps
 - Zustand for state management
 
+- Zustand for state management
+
+---
+
+## 🗄️ Database
+
+**This project uses PostgreSQL as the primary database.**
+
+- **Database Engine:** PostgreSQL 14+
+- **Spatial Extension:** PostGIS 3.2+ (Required for map features)
+- **ORM:** Prisma
+- **Schema:** Defined in `backend/prisma/schema.prisma`
+
 ---
 
 ## 📦 Installation

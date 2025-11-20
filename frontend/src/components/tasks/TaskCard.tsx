@@ -12,6 +12,7 @@ import {
   Box,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
+import { formatThaiDateShort } from '../../utils/dateFormatter';
 
 interface Task {
   id: string;
@@ -111,7 +112,7 @@ export const TaskCard = ({ task, onAccept, onViewDetails }: TaskCardProps) => {
             </Badge>
             {task.dueDate && (
               <Badge colorScheme="purple" variant="subtle">
-                📅 ครบกำหนด: {new Date(task.dueDate).toLocaleDateString('th-TH')}
+                📅 {formatThaiDateShort(task.dueDate)}
               </Badge>
             )}
           </HStack>
@@ -120,7 +121,7 @@ export const TaskCard = ({ task, onAccept, onViewDetails }: TaskCardProps) => {
 
           <HStack justify="space-between">
             <Text fontSize="xs" color="gray.500">
-              สร้างเมื่อ: {new Date(task.createdAt).toLocaleDateString('th-TH')}
+              สร้างเมื่อ: {formatThaiDateShort(task.createdAt)}
             </Text>
 
             <HStack>

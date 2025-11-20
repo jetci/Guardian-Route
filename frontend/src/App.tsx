@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { ChakraProvider } from '@chakra-ui/react';
 import { LoginPage } from './pages/LoginPage';
 import { UnauthorizedPage } from './pages/auth/UnauthorizedPage';
 import { SimpleDashboard } from './pages/SimpleDashboard';
@@ -36,7 +37,7 @@ import { MapView } from './pages/supervisor/MapView';
 import { TasksPage } from './pages/supervisor/TasksPage';
 import SurveyTemplateList from './pages/supervisor/SurveyTemplateList';
 import SurveyFormBuilder from './pages/supervisor/SurveyFormBuilder';
-import SurveyResponseForm from './pages/field_officer/SurveyResponseForm';
+// import SurveyResponseForm from './pages/field_officer/SurveyResponseForm'; // Temporarily disabled - requires Chakra UI
 import ReportsPage from './pages/ReportsPage';
 import CreateReportPage from './pages/CreateReportPage';
 import ReportDetailsPage from './pages/ReportDetailsPage';
@@ -50,6 +51,18 @@ import { TaskDetailPage } from './pages/tasks/TaskDetailPage';
 import DeveloperHandbookPage from './pages/DeveloperHandbookPage';
 import DeveloperDashboard from './pages/developer/DeveloperDashboard';
 import ApiDocsPage from './pages/developer/ApiDocsPage';
+
+// Developer Testing Pages
+import TestCreateReportPage from './pages/developer/test/TestCreateReportPage';
+import TestSurveyFormPage from './pages/developer/test/TestSurveyFormPage';
+
+// Developer View Pages
+import DevFieldOfficerWorkflowPage from './pages/developer/field-officer/DevFieldOfficerWorkflowPage';
+import DevSupervisorTeamPage from './pages/developer/supervisor/DevSupervisorTeamPage';
+import DevExecutiveReportsPage from './pages/developer/executive/DevExecutiveReportsPage';
+import DevExecutiveBudgetPage from './pages/developer/executive/DevExecutiveBudgetPage';
+import DevAdminDataPage from './pages/developer/admin/DevAdminDataPage';
+import DevAdminSettingsPage from './pages/developer/admin/DevAdminSettingsPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { RoleBasedRedirect } from './components/RoleBasedRedirect';
 
@@ -67,16 +80,16 @@ import SurveyAnalysisPage from './pages/analysis/SurveyAnalysisPage';
 
 function App() {
   return (
-    <>
+    <ChakraProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
-          
+
           {/* Public Routes */}
           <Route path="/demo/thai-datepicker" element={<ThaiDatePickerDemo />} />
           <Route path="/developer-handbook" element={<DeveloperHandbookPage />} />
-          
+
           {/* Developer Routes */}
           <Route
             path="/developer"
@@ -94,7 +107,81 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+
+          {/* Developer Testing Forms */}
+          <Route
+            path="/developer/test/create-report"
+            element={
+              <ProtectedRoute allowedRoles={['DEVELOPER']}>
+                <TestCreateReportPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/developer/test/survey-form"
+            element={
+              <ProtectedRoute allowedRoles={['DEVELOPER']}>
+                <TestSurveyFormPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Developer Field Officer Views */}
+          <Route
+            path="/developer/field-officer/workflow"
+            element={
+              <ProtectedRoute allowedRoles={['DEVELOPER']}>
+                <DevFieldOfficerWorkflowPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Developer Supervisor Views */}
+          <Route
+            path="/developer/supervisor/team"
+            element={
+              <ProtectedRoute allowedRoles={['DEVELOPER']}>
+                <DevSupervisorTeamPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Developer Executive Views */}
+          <Route
+            path="/developer/executive/reports"
+            element={
+              <ProtectedRoute allowedRoles={['DEVELOPER']}>
+                <DevExecutiveReportsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/developer/executive/budget"
+            element={
+              <ProtectedRoute allowedRoles={['DEVELOPER']}>
+                <DevExecutiveBudgetPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Developer Admin Views */}
+          <Route
+            path="/developer/admin/data"
+            element={
+              <ProtectedRoute allowedRoles={['DEVELOPER']}>
+                <DevAdminDataPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/developer/admin/settings"
+            element={
+              <ProtectedRoute allowedRoles={['DEVELOPER']}>
+                <DevAdminSettingsPage />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/dashboard"
             element={
@@ -277,7 +364,7 @@ function App() {
             path="/executive-dashboard"
             element={
               <ProtectedRoute>
-                <ExecutiveDashboardPage />
+                <ExecutiveDashboardNew />
               </ProtectedRoute>
             }
           />
@@ -337,14 +424,15 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* Temporarily disabled - SurveyResponseForm requires Chakra UI */}
+          {/* <Route
             path="/survey/:surveyId/respond"
             element={
               <ProtectedRoute>
                 <SurveyResponseForm />
               </ProtectedRoute>
             }
-          />
+          /> */}
           <Route
             path="/reports"
             element={
@@ -393,7 +481,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+
           {/* NEW ROUTES - Supervisor */}
           <Route
             path="/manage-incidents"
@@ -419,7 +507,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+
           {/* NEW ROUTES - Executive */}
           <Route
             path="/reports-statistics"
@@ -429,7 +517,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+
           {/* NEW ROUTES - Admin */}
           <Route
             path="/manage-users"
@@ -471,7 +559,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+
           {/* NEW ROUTES - Field Officer */}
           <Route
             path="/survey-area"
@@ -481,7 +569,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+
           {/* NEW ROUTES - Shared (Supervisor & Executive) */}
           <Route
             path="/survey-analysis"
@@ -491,13 +579,13 @@ function App() {
               </ProtectedRoute>
             }
           />
-          
+
           {/* Role-based redirect */}
           <Route path="/" element={<RoleBasedRedirect />} />
         </Routes>
       </BrowserRouter>
       <Toaster position="top-right" />
-    </>
+    </ChakraProvider>
   );
 }
 

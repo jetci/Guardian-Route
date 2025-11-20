@@ -1,0 +1,52 @@
+/* Test CSS - Full Screen Map */
+.initial-survey-page {
+  position: fixed;
+  top: 0;
+  left: 240px; /* Sidebar width */
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  background: #f7fafc;
+  overflow: hidden;
+}
+
+.survey-header {
+  background: white;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  height: 70px;
+  box-sizing: border-box;
+}
+
+.survey-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - 70px);
+}
+
+.map-section {
+  flex: 1;
+  position: relative;
+  background: #e2e8f0;
+  height: 100%;
+}
+
+#survey-map {
+  width: 100%;
+  height: 100%;
+}
+
+.form-section {
+  flex: 0 0 380px;
+  padding: 24px;
+  overflow-y: auto;
+  background: white;
+  border-left: 1px solid #e2e8f0;
+  height: 100%;
+}

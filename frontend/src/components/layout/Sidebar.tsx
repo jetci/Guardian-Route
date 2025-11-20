@@ -53,8 +53,9 @@ export function Sidebar() {
       case 'EXECUTIVE':
         return [
           { icon: '📈', label: 'แดชบอร์ดสรุป (Summary Dashboard)', path: '/dashboard/executive' },
-          { icon: '📊', label: 'รายงานและสถิติ (Reports & Statistics)', path: '/reports-statistics' },
-          { icon: '📊', label: 'วิเคราะห์ข้อมูลสำรวจ (Survey Analysis)', path: '/survey-analysis' },
+          { icon: '📊', label: 'รายงานและสถิติ (Reports & Statistics)', path: '/executive/analytics' },
+          { icon: '💰', label: 'งบประมาณและทรัพยากร (Budget & Resources)', path: '/executive/budget-resources' },
+          { icon: '🗺️', label: 'วิเคราะห์เชิงพื้นที่ (Geospatial Analysis)', path: '/executive/geospatial-analysis' },
         ];
       case 'FIELD_OFFICER':
         return [

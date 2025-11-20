@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { KPICard } from '../../components/KPICard';
 import { mockKPIs, mockTasks } from '../../mocks/dashboardData';
+import { formatThaiDateShort } from '../../utils/dateFormatter';
 import './FieldOfficerDashboard.css';
 
 export function FieldOfficerDashboard() {
@@ -124,7 +125,7 @@ export function FieldOfficerDashboard() {
                 <span className={`priority priority-${task.priority.toLowerCase()}`}>
                   {task.priority}
                 </span>
-                <span className="task-date">📅 {task.dueDate}</span>
+                <span className="task-date">📅 {formatThaiDateShort(task.dueDate)}</span>
               </div>
               
               <h3 className="task-title-new">{task.title}</h3>
@@ -136,7 +137,7 @@ export function FieldOfficerDashboard() {
 
               {task.surveyDate && (
                 <div className="task-survey-date">
-                  ✅ สำรวจเมื่อ: {task.surveyDate}
+                  ✅ สำรวจเมื่อ: {formatThaiDateShort(task.surveyDate)}
                 </div>
               )}
 
@@ -175,7 +176,7 @@ export function FieldOfficerDashboard() {
               <div className="task-detail-section">
                 <h3>📋 {selectedTask.title}</h3>
                 <p><strong>สถานที่:</strong> {selectedTask.location}</p>
-                <p><strong>กำหนดส่ง:</strong> {selectedTask.dueDate}</p>
+                <p><strong>กำหนดส่ง:</strong> {formatThaiDateShort(selectedTask.dueDate)}</p>
               </div>
 
               <div className="task-detail-section">

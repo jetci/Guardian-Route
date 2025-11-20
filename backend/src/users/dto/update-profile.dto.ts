@@ -18,4 +18,9 @@ export class UpdateProfileDto {
   @IsString()
   @IsOptional()
   phone?: string;
+
+  @ApiProperty({ example: 'สำนักปลัด', description: 'Department', required: false })
+  @IsString()
+  @IsOptional()
+  department?: string;
 }

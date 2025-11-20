@@ -1,4 +1,5 @@
 // Mock data for dashboard testing
+import { VILLAGE_NAMES, TAMBON_INFO } from '../data/villages';
 
 export const mockKPIs = {
   admin: {
@@ -30,34 +31,34 @@ export const mockKPIs = {
 export const mockTasks = [
   {
     id: 1,
-    title: 'ตรวจสอบพื้นที่น้ำท่วม - บ้านหนองบัว',
+    title: `ตรวจสอบพื้นที่น้ำท่วม - บ้าน${VILLAGE_NAMES[0]}`,
     priority: 'HIGH',
     status: 'NEW_ASSIGNMENT',
     assignee: 'Field Officer',
-    dueDate: '2025-11-13',
+    dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
     description: 'ตรวจสอบระดับน้ำและความเสียหาย พื้นที่ประมาณ 50 ไร่',
-    location: 'บ้านหนองบัว หมู่ 3 ต.แม่สาว อ.แม่ริม',
+    location: `${VILLAGE_NAMES[0]} หมู่ 3 ${TAMBON_INFO.fullName}`,
   },
   {
     id: 2,
-    title: 'สำรวจดินถลม - ถนนสายเก่า',
+    title: `สำรวจดินถล่ม - บ้าน${VILLAGE_NAMES[11]}`,
     priority: 'HIGH',
     status: 'NEW_ASSIGNMENT',
     assignee: 'Field Officer',
-    dueDate: '2025-11-13',
-    description: 'สำรวจพื้นที่ดินถลมและประเมินความเสียหาย',
-    location: 'ถนนสายเก่า กม.12',
+    dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+    description: 'สำรวจพื้นที่ดินถล่มและประเมินความเสียหาย',
+    location: `${VILLAGE_NAMES[11]} หมู่ 12 ${TAMBON_INFO.fullName}`,
   },
   {
     id: 3,
-    title: 'ประเมินความเสียหาย - หมู่บ้านดอยสูง',
+    title: `ประเมินความเสียหาย - บ้าน${VILLAGE_NAMES[6]}`,
     priority: 'MEDIUM',
     status: 'SURVEY_COMPLETE',
     assignee: 'Field Officer',
-    dueDate: '2025-11-14',
+    dueDate: new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0],
     description: 'สำรวจพื้นที่เสร็จแล้ว รอสร้างรายงาน',
-    location: 'หมู่บ้านดอยสูง หมู่ 7',
-    surveyDate: '2025-11-12 14:30',
+    location: `${VILLAGE_NAMES[6]} หมู่ 7 ${TAMBON_INFO.fullName}`,
+    surveyDate: new Date(Date.now() - 86400000).toISOString().replace('T', ' ').split('.')[0],
   },
   {
     id: 4,

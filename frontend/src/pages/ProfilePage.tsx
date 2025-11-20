@@ -14,30 +14,31 @@ import './ProfilePage.css';
 export default function ProfilePage() {
   const user = useAuthStore((state) => state.user);
   const updateUser = useAuthStore((state) => state.updateUser);
-  
+
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'info' | 'password' | 'activity'>('info');
-  
+
   // Profile edit state
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<UpdateProfileDto>({
     firstName: '',
     lastName: '',
     phone: '',
+    department: '',
   });
-  
+
   // Password change state
   const [passwordForm, setPasswordForm] = useState<ChangePasswordDto>({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
-  
+
   // Activity logs state
   const [activityLogs, setActivityLogs] = useState<ActivityLog[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
-  
+
   // Profile image state
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -56,6 +57,7 @@ export default function ProfilePage() {
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone || '',
+        department: data.department || '',
       });
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -90,7 +92,7 @@ export default function ProfilePage() {
       const updatedProfile = await profileService.updateProfile(editForm);
       setProfile(updatedProfile);
       setIsEditing(false);
-      
+
       // Update auth store
       if (user) {
         updateUser({
@@ -99,7 +101,7 @@ export default function ProfilePage() {
           lastName: updatedProfile.lastName,
         });
       }
-      
+
       toast.success('อัปเดตข้อมูลโปรไฟล์สำเร็จ');
     } catch (error: any) {
       console.error('Error updating profile:', error);
@@ -126,16 +128,16 @@ export default function ProfilePage() {
 
     try {
       await profileService.changePassword(passwordForm);
-      
+
       // Reset form
       setPasswordForm({
         currentPassword: '',
         newPassword: '',
         confirmPassword: '',
       });
-      
+
       toast.success('เปลี่ยนรหัสผ่านสำเร็จ');
-      
+
       // Show success dialog
       Swal.fire({
         title: '✅ เปลี่ยนรหัสผ่านสำเร็จ',
@@ -168,7 +170,7 @@ export default function ProfilePage() {
     try {
       setUploadingImage(true);
       const result = await profileService.uploadProfileImage(file);
-      
+
       // Update profile
       if (profile) {
         setProfile({
@@ -176,7 +178,7 @@ export default function ProfilePage() {
           profileImage: result.imageUrl,
         });
       }
-      
+
       toast.success('อัปโหลดรูปโปรไฟล์สำเร็จ');
     } catch (error: any) {
       console.error('Error uploading image:', error);
@@ -206,7 +208,7 @@ export default function ProfilePage() {
     if (result.isConfirmed) {
       try {
         await profileService.deleteProfileImage();
-        
+
         // Update profile
         if (profile) {
           setProfile({
@@ -214,7 +216,7 @@ export default function ProfilePage() {
             profileImage: undefined,
           });
         }
-        
+
         toast.success('ลบรูปโปรไฟล์สำเร็จ');
       } catch (error: any) {
         console.error('Error deleting image:', error);
@@ -341,7 +343,7 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-            
+
             <div className="avatar-actions">
               <input
                 ref={fileInputRef}
@@ -431,6 +433,7 @@ export default function ProfilePage() {
                           firstName: profile.firstName,
                           lastName: profile.lastName,
                           phone: profile.phone || '',
+                          department: profile.department || '',
                         });
                       }}
                       className="btn-cancel"
@@ -493,6 +496,20 @@ export default function ProfilePage() {
                     />
                   ) : (
                     <p>{profile.phone || '-'}</p>
+                  )}
+                </div>
+
+                <div className="info-field">
+                  <label>หน่วยงาน</label>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editForm.department}
+                      onChange={(e) => setEditForm({ ...editForm, department: e.target.value })}
+                      placeholder="ระบุหน่วยงาน"
+                    />
+                  ) : (
+                    <p>{profile.department || '-'}</p>
                   )}
                 </div>
 
@@ -589,10 +606,10 @@ export default function ProfilePage() {
                     <div key={log.id} className="activity-item">
                       <div className="activity-icon">
                         {log.action.includes('login') ? '🔐' :
-                         log.action.includes('create') ? '➕' :
-                         log.action.includes('update') ? '✏️' :
-                         log.action.includes('delete') ? '🗑️' :
-                         '📝'}
+                          log.action.includes('create') ? '➕' :
+                            log.action.includes('update') ? '✏️' :
+                              log.action.includes('delete') ? '🗑️' :
+                                '📝'}
                       </div>
                       <div className="activity-content">
                         <p className="activity-description">{log.description}</p>

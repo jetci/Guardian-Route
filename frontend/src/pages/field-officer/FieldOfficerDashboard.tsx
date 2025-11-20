@@ -7,16 +7,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import toast from 'react-hot-toast';
+import { formatThaiDateShort } from '../../utils/dateFormatter';
+import { VILLAGE_NAMES, TAMBON_INFO } from '../../data/villages';
 import './FieldOfficerDashboard.css';
 
-// Mock data - 20 villages from ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
-const VILLAGES = [
-  'หนองตุ้ม', 'ป่าบง', 'เต๋าดิน (เวียงสุทโธ)', 'สวนดอก', 'ต้นหนุน',
-  'สันทรายคองน้อย', 'แม่ใจใต้', 'แม่ใจเหนือ', 'ริมฝาง (สันป่าไหน่)',
-  'ห้วยเฮี่ยน (สันป่ายางยาง)', 'ท่าสะแล', 'โป่งถืบ', 'ห้วยบอน',
-  'เสาหิน', 'โป่งถืบใน', 'ปางผึ้ง', 'ใหม่คองน้อย', 'ศรีดอนชัย',
-  'ใหม่ชยาราม', 'สระนิคม'
-];
+const VILLAGES = VILLAGE_NAMES;
 
 const DISASTER_TYPES = ['น้ำท่วม', 'ดินถล่ม', 'ไฟไหม้ป่า', 'แผ่นดินไหว', 'ภัยแล้ง'];
 
@@ -276,7 +271,7 @@ export default function FieldOfficerDashboard() {
                         📍 {task.location}
                       </span>
                       <span className="meta-item">
-                        📅 ครบกำหนด: {new Date(task.dueDate).toLocaleDateString('th-TH')}
+                        📅 ครบกำหนด: {formatThaiDateShort(task.dueDate)}
                       </span>
                     </div>
 
@@ -334,7 +329,7 @@ export default function FieldOfficerDashboard() {
                         📍 {report.location}
                       </span>
                       <span className="meta-item">
-                        📅 {new Date(report.submittedDate).toLocaleDateString('th-TH')}
+                        📅 {formatThaiDateShort(report.submittedDate)}
                       </span>
                     </div>
 
@@ -354,9 +349,10 @@ export default function FieldOfficerDashboard() {
         {/* Location Info */}
         <div className="location-info">
           <h3>📍 พื้นที่รับผิดชอบ</h3>
-          <p>ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่</p>
-          <p>พิกัด: 19.9167°N, 99.2333°E</p>
-          <p>จำนวนหมู่บ้าน: {VILLAGES.length} หมู่บ้าน</p>
+          <p>{TAMBON_INFO.fullName}</p>
+          <p>พิกัด: {TAMBON_INFO.centerLat}°N, {TAMBON_INFO.centerLng}°E</p>
+          <p>จำนวนหมู่บ้าน: {TAMBON_INFO.totalVillages} หมู่บ้าน</p>
+          <p>ประชากรรวม: {TAMBON_INFO.totalPopulation.toLocaleString()} คน</p>
         </div>
       </div>
     </DashboardLayout>

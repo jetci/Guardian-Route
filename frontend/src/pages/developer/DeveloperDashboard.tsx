@@ -1,821 +1,316 @@
-import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
-import toast from 'react-hot-toast';
-import { usersApi, type User, type CreateUserDto, type UpdateUserDto } from '../../services/userService';
-import statisticsService from '../../services/statisticsService';
-import '../admin/AdminDashboard.css';
-
-// Removed mock users - using real API
-/* const mockUsers = [
-  {
-    id: 1,
-    username: 'admin',
-    email: 'admin@obtwiang.go.th',
-    firstName: 'Admin',
-    lastName: 'System',
-    role: 'ADMIN',
-    status: 'ACTIVE',
-    phone: '081-234-5678',
-    createdAt: '2025-01-15'
-  },
-  {
-    id: 2,
-    username: 'executive',
-    email: 'executive@obtwiang.go.th',
-    firstName: 'Somkid',
-    lastName: 'Executive',
-    role: 'EXECUTIVE',
-    status: 'ACTIVE',
-    phone: '081-234-5681',
-    createdAt: '2025-01-20'
-  },
-  {
-    id: 3,
-    username: 'supervisor',
-    email: 'supervisor@obtwiang.go.th',
-    firstName: 'Somchai',
-    lastName: 'Supervisor',
-    role: 'SUPERVISOR',
-    status: 'ACTIVE',
-    phone: '081-234-5679',
-    createdAt: '2025-02-01'
-  },
-  {
-    id: 4,
-    username: 'field1',
-    email: 'field1@obtwiang.go.th',
-    firstName: 'Somsri',
-    lastName: 'Field',
-    role: 'FIELD_OFFICER',
-    status: 'ACTIVE',
-    phone: '081-234-5680',
-    createdAt: '2025-02-10'
-  },
-  {
-    id: 5,
-    username: 'field2',
-    email: 'field2@obtwiang.go.th',
-    firstName: 'Somying',
-    lastName: 'Rakdee',
-    role: 'FIELD_OFFICER',
-    status: 'ACTIVE',
-    phone: '081-234-5682',
-    createdAt: '2025-02-15'
-  },
-  {
-    id: 6,
-    username: 'field3',
-    email: 'field3@obtwiang.go.th',
-    firstName: 'Prasit',
-    lastName: 'Mankong',
-    role: 'FIELD_OFFICER',
-    status: 'INACTIVE',
-    phone: '081-234-5683',
-    createdAt: '2025-03-01'
-  }
-];
-
-// Removed mock activity logs - using real API
-/* const mockActivityLogs = [
-  {
-    id: 1,
-    user: 'admin@obtwiang.go.th',
-    action: 'Created User',
-    target: 'field3@obtwiang.go.th',
-    timestamp: '2025-11-13 08:30:15',
-    status: 'SUCCESS'
-  },
-  {
-    id: 2,
-    user: 'supervisor@obtwiang.go.th',
-    action: 'Updated Incident',
-    target: 'INC-2025-001',
-    timestamp: '2025-11-13 08:15:42',
-    status: 'SUCCESS'
-  },
-  {
-    id: 3,
-    user: 'field1@obtwiang.go.th',
-    action: 'Submitted Report',
-    target: 'RPT-2025-045',
-    timestamp: '2025-11-13 07:45:20',
-    status: 'SUCCESS'
-  },
-  {
-    id: 4,
-    user: 'admin@obtwiang.go.th',
-    action: 'Changed Role',
-    target: 'field2@obtwiang.go.th',
-    timestamp: '2025-11-13 07:30:10',
-    status: 'SUCCESS'
-  },
-  {
-    id: 5,
-    user: 'executive@obtwiang.go.th',
-    action: 'Approved Report',
-    target: 'RPT-2025-044',
-    timestamp: '2025-11-13 07:00:05',
-    status: 'SUCCESS'
-  }
-]; */
-
-type UserFormData = {
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: string;
-  phone: string;
-  password?: string;
-};
+import './DeveloperDashboard.css';
 
 export default function DeveloperDashboard() {
-  // State
-  const [users, setUsers] = useState<User[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('ALL');
-  const [statusFilter, setStatusFilter] = useState('ALL');
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [formData, setFormData] = useState<UserFormData>({
-    username: '',
-    email: '',
-    firstName: '',
-    lastName: '',
-    role: 'DEVELOPER',
-    phone: '',
-    password: ''
-  });
-
-  // Loading & Error states
-  const [loading, setLoading] = useState(true);
-  const [statsLoading, setStatsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Stats state
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    activeIncidents: 0,
-    pendingReports: 0,
-    systemHealth: 0
-  });
-
-  const [activityLogs, setActivityLogs] = useState<any[]>([]);
-
-  // Fetch data on mount
-  useEffect(() => {
-    fetchUsers();
-    fetchStatistics();
-    fetchActivityLogs();
-  }, []);
-
-  // Fetch users
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const users = await usersApi.getAll();
-      setUsers(users);
-      setError(null);
-    } catch (err: any) {
-      console.warn('Failed to fetch users from API, using empty list:', err);
-      setUsers([]); // Set empty array instead of showing error
-      setError(null); // Don't show error to user
-      // toast.error('ไม่สามารถโหลดข้อมูลผู้ใช้ได้'); // Commented out
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch statistics
-  const fetchStatistics = async () => {
-    try {
-      setStatsLoading(true);
-      const [users, incidentStats, reportStats] = await Promise.all([
-        usersApi.getAll(),
-        statisticsService.getIncidentStatistics(),
-        statisticsService.getReportStatistics()
-      ]);
-
-      setStats({
-        totalUsers: users.length || 0,
-        activeIncidents: (incidentStats.byStatus?.IN_PROGRESS || 0) + (incidentStats.byStatus?.PENDING || 0),
-        pendingReports: reportStats.pending || 0,
-        systemHealth: 98 // TODO: Get from health endpoint
-      });
-    } catch (err) {
-      console.warn('Failed to fetch statistics from API, using defaults:', err);
-      // Use default values if API fails
-      setStats({
-        totalUsers: 0,
-        activeIncidents: 0,
-        pendingReports: 0,
-        systemHealth: 98
-      });
-    } finally {
-      setStatsLoading(false);
-    }
-  };
-
-  // Fetch activity logs
-  const fetchActivityLogs = async () => {
-    try {
-      const response = await statisticsService.getActivityLogs({ limit: 20 });
-      setActivityLogs(response.data);
-    } catch (err) {
-      console.warn('Failed to fetch activity logs from API, using empty list:', err);
-      setActivityLogs([]); // Set empty array if API fails
-    }
-  };
-
-  // Filter users
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = 
-      user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.lastName?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesRole = roleFilter === 'ALL' || user.role === roleFilter;
-    const matchesStatus = statusFilter === 'ALL' || (user.isActive ? 'ACTIVE' : 'INACTIVE') === statusFilter;
-    
-    return matchesSearch && matchesRole && matchesStatus;
-  });
-
-  // Role counts
-  const roleCounts = {
-    DEVELOPER: users.filter(u => u.role === 'DEVELOPER').length,
-    ADMIN: users.filter(u => u.role === 'ADMIN').length,
-    EXECUTIVE: users.filter(u => u.role === 'EXECUTIVE').length,
-    SUPERVISOR: users.filter(u => u.role === 'SUPERVISOR').length,
-    FIELD_OFFICER: users.filter(u => u.role === 'FIELD_OFFICER').length
-  };
-
-  const handleCreateUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const userData: CreateUserDto = {
-        email: formData.email,
-        password: formData.password || 'password123',
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        role: formData.role as any,
-        phone: formData.phone
-      };
-      
-      await usersApi.create(userData);
-      toast.success('สร้างผู้ใช้สำเร็จ!');
-      setShowCreateModal(false);
-      resetForm();
-      fetchUsers(); // Refresh list
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'ไม่สามารถสร้างผู้ใช้ได้');
-    }
-  };
-
-  const handleEditUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedUser) return;
-    
-    try {
-      const userData: UpdateUserDto = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        role: formData.role as any,
-        phone: formData.phone
-      };
-      
-      await usersApi.update(selectedUser.id, userData);
-      toast.success('อัพเดทผู้ใช้สำเร็จ!');
-      setShowEditModal(false);
-      resetForm();
-      fetchUsers(); // Refresh list
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'ไม่สามารถอัพเดทผู้ใช้ได้');
-    }
-  };
-
-  const handleDeleteUser = async () => {
-    if (!selectedUser) return;
-    
-    try {
-      await usersApi.delete(selectedUser.id);
-      toast.success('ลบผู้ใช้สำเร็จ!');
-      setShowDeleteModal(false);
-      setSelectedUser(null);
-      fetchUsers(); // Refresh list
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'ไม่สามารถลบผู้ใช้ได้');
-    }
-  };
-
-  const openEditModal = (user: any) => {
-    setSelectedUser(user);
-    setFormData({
-      username: user.username,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      role: user.role,
-      phone: user.phone
-    });
-    setShowEditModal(true);
-  };
-
-  const openDeleteModal = (user: any) => {
-    setSelectedUser(user);
-    setShowDeleteModal(true);
-  };
-
-  const resetForm = () => {
-    setFormData({
-      username: '',
-      email: '',
-      firstName: '',
-      lastName: '',
-      role: 'FIELD_OFFICER',
-      phone: '',
-      password: ''
-    });
-    setSelectedUser(null);
-  };
-
-  const toggleUserStatus = async (userId: string) => {
-    try {
-      await usersApi.toggleStatus(userId);
-      toast.success('เปลี่ยนสถานะผู้ใช้สำเร็จ!');
-      fetchUsers(); // Refresh list
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'ไม่สามารถเปลี่ยนสถานะได้');
-    }
-  };
-
   return (
     <DashboardLayout>
-      <div className="admin-dashboard">
-        <header>
-          <h2>👨‍💻 Developer Dashboard</h2>
-          <p>จัดการผู้ใช้และระบบ (Full Access)</p>
+      <div className="developer-dashboard">
+        {/* Header */}
+        <header className="dev-header">
+          <div className="dev-header-content">
+            <h1>👨‍💻 Developer Dashboard</h1>
+            <p>ภาพรวมและเครื่องมือทดสอบทั้งระบบ - Full System Access</p>
+          </div>
         </header>
 
-        {/* KPI Cards */}
-        <div className="kpi-grid">
-          <div className="kpi-card purple">
-            <div className="kpi-icon">👥</div>
-            <div className="kpi-content">
-              <h3>{stats.totalUsers}</h3>
-              <p>Total Users</p>
+        {/* Quick Stats */}
+        <div className="dev-stats-grid">
+          <div className="dev-stat-card purple">
+            <div className="stat-icon">🚀</div>
+            <div className="stat-content">
+              <h3>6</h3>
+              <p>Menu Sections</p>
             </div>
           </div>
-          
-          <div className="kpi-card blue">
-            <div className="kpi-icon">🚨</div>
-            <div className="kpi-content">
-              <h3>{stats.activeIncidents}</h3>
-              <p>Active Incidents</p>
+          <div className="dev-stat-card blue">
+            <div className="stat-icon">🎯</div>
+            <div className="stat-content">
+              <h3>20+</h3>
+              <p>Quick Access Links</p>
             </div>
           </div>
-          
-          <div className="kpi-card orange">
-            <div className="kpi-icon">📋</div>
-            <div className="kpi-content">
-              <h3>{stats.pendingReports}</h3>
-              <p>Pending Reports</p>
+          <div className="dev-stat-card green">
+            <div className="stat-icon">⚡</div>
+            <div className="stat-content">
+              <h3>4</h3>
+              <p>Role Views</p>
             </div>
           </div>
-          
-          <div className="kpi-card green">
-            <div className="kpi-icon">💚</div>
-            <div className="kpi-content">
-              <h3>{stats.systemHealth}%</h3>
-              <p>System Health</p>
+          <div className="dev-stat-card orange">
+            <div className="stat-icon">🧪</div>
+            <div className="stat-content">
+              <h3>2</h3>
+              <p>Testing Shortcuts</p>
             </div>
           </div>
         </div>
 
-        {/* Role Statistics */}
-        <div className="role-stats">
-          <h3>📊 Users by Role</h3>
-          <div className="role-cards">
-            <div className="role-card">
-              <span className="role-badge developer">DEVELOPER</span>
-              <span className="role-count">{roleCounts.DEVELOPER}</span>
+        {/* Main Menu Sections */}
+        <div className="dev-menu-sections">
+
+          {/* 1. Testing Forms */}
+          <section className="dev-menu-section testing">
+            <div className="section-header">
+              <h2>🧪 Testing Forms</h2>
+              <span className="badge dev-only">Dev Only</span>
             </div>
-            <div className="role-card">
-              <span className="role-badge admin">ADMIN</span>
-              <span className="role-count">{roleCounts.ADMIN}</span>
+            <p className="section-description">
+              ทางลัดเข้าถึงฟอร์มต่างๆ โดยไม่ต้องผ่าน Workflow - สำหรับทดสอบ UI และ Validation
+            </p>
+            <div className="menu-grid">
+              <Link to="/developer/test/create-report" className="menu-card">
+                <div className="menu-icon">📝</div>
+                <div className="menu-content">
+                  <h3>Test: Create Report</h3>
+                  <p>ทดสอบฟอร์มรายงานเหตุด่วนสาธารณภัย</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/developer/test/survey-form" className="menu-card">
+                <div className="menu-icon">🗺️</div>
+                <div className="menu-content">
+                  <h3>Test: Survey Form</h3>
+                  <p>ทดสอบแผนที่สำรวจและ Leaflet Draw</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
             </div>
-            <div className="role-card">
-              <span className="role-badge executive">EXECUTIVE</span>
-              <span className="role-count">{roleCounts.EXECUTIVE}</span>
+          </section>
+
+          {/* 2. Field Officer Views */}
+          <section className="dev-menu-section field-officer">
+            <div className="section-header">
+              <h2>🎯 Field Officer Views</h2>
+              <span className="badge operational">Operational Level</span>
             </div>
-            <div className="role-card">
-              <span className="role-badge supervisor">SUPERVISOR</span>
-              <span className="role-count">{roleCounts.SUPERVISOR}</span>
+            <p className="section-description">
+              มุมมองและเครื่องมือสำหรับเจ้าหน้าที่ภาคสนาม
+            </p>
+            <div className="menu-grid">
+              <Link to="/field-officer/tasks" className="menu-card">
+                <div className="menu-icon">📋</div>
+                <div className="menu-content">
+                  <h3>งานของฉัน</h3>
+                  <p>รายการงานที่ได้รับมอบหมาย</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/developer/field-officer/workflow" className="menu-card">
+                <div className="menu-icon">🔄</div>
+                <div className="menu-content">
+                  <h3>ขั้นตอนการทำงาน</h3>
+                  <p>Workflow Diagram และคำอธิบาย</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/supervisor/map" className="menu-card">
+                <div className="menu-icon">🗺️</div>
+                <div className="menu-content">
+                  <h3>แผนที่และรายงาน</h3>
+                  <p>แผนที่แสดงจุดเกิดเหตุ</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/reports" className="menu-card">
+                <div className="menu-icon">📊</div>
+                <div className="menu-content">
+                  <h3>ประวัติการรายงาน</h3>
+                  <p>ดูสถานะรายงานที่ส่งไปแล้ว</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
             </div>
-            <div className="role-card">
-              <span className="role-badge field">FIELD OFFICER</span>
-              <span className="role-count">{roleCounts.FIELD_OFFICER}</span>
+          </section>
+
+          {/* 3. Supervisor Views */}
+          <section className="dev-menu-section supervisor">
+            <div className="section-header">
+              <h2>👨‍💼 Supervisor Views</h2>
+              <span className="badge command">Command Level</span>
             </div>
-          </div>
+            <p className="section-description">
+              เครื่องมือสั่งการและบริหารจัดการทีม
+            </p>
+            <div className="menu-grid">
+              <Link to="/supervisor" className="menu-card">
+                <div className="menu-icon">🎛️</div>
+                <div className="menu-content">
+                  <h3>แดชบอร์ดบัญชาการ</h3>
+                  <p>หน้าจอ Map-based สำหรับดูสถานการณ์สด</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/supervisor/incidents" className="menu-card">
+                <div className="menu-icon">🚨</div>
+                <div className="menu-content">
+                  <h3>จัดการเหตุการณ์</h3>
+                  <p>ตารางรายการเหตุการณ์และการอนุมัติ</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/developer/supervisor/team" className="menu-card">
+                <div className="menu-icon">👥</div>
+                <div className="menu-content">
+                  <h3>ภาพรวมทีม</h3>
+                  <p>สถานะ Online/Offline ของลูกทีม</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/analysis/survey" className="menu-card">
+                <div className="menu-icon">📈</div>
+                <div className="menu-content">
+                  <h3>วิเคราะห์ข้อมูลสำรวจ</h3>
+                  <p>ซ้อนทับเลเยอร์ข้อมูลเพื่อวิเคราะห์</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+            </div>
+          </section>
+
+          {/* 4. Executive Views */}
+          <section className="dev-menu-section executive">
+            <div className="section-header">
+              <h2>💼 Executive Views</h2>
+              <span className="badge strategic">Strategic Level</span>
+            </div>
+            <p className="section-description">
+              ภาพรวมระดับผู้บริหารและรายงานสรุป
+            </p>
+            <div className="menu-grid">
+              <Link to="/executive-dashboard" className="menu-card">
+                <div className="menu-icon">📊</div>
+                <div className="menu-content">
+                  <h3>แดชบอร์ดสรุป</h3>
+                  <p>กราฟและตัวเลขสถิติภาพรวม (KPIs)</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/developer/executive/reports" className="menu-card">
+                <div className="menu-icon">📑</div>
+                <div className="menu-content">
+                  <h3>รายงานและสถิติ</h3>
+                  <p>กราฟแนวโน้มและตารางข้อมูลละเอียด</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/developer/executive/budget" className="menu-card">
+                <div className="menu-icon">💰</div>
+                <div className="menu-content">
+                  <h3>ภาพรวมงบประมาณ</h3>
+                  <p>ติดตามค่าใช้จ่ายและทรัพยากร</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+            </div>
+          </section>
+
+          {/* 5. Admin Views */}
+          <section className="dev-menu-section admin">
+            <div className="section-header">
+              <h2>⚙️ Admin Views</h2>
+              <span className="badge backoffice">Back-office</span>
+            </div>
+            <p className="section-description">
+              เครื่องมือจัดการระบบและข้อมูลพื้นฐาน
+            </p>
+            <div className="menu-grid">
+              <Link to="/admin/dashboard" className="menu-card">
+                <div className="menu-icon">🖥️</div>
+                <div className="menu-content">
+                  <h3>แดชบอร์ดระบบ</h3>
+                  <p>ดูสถานะ Server (Health Check)</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/manage-users" className="menu-card">
+                <div className="menu-icon">👥</div>
+                <div className="menu-content">
+                  <h3>จัดการผู้ใช้</h3>
+                  <p>เพิ่ม/ลบ/แก้ไข User</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/developer/admin/data" className="menu-card">
+                <div className="menu-icon">📦</div>
+                <div className="menu-content">
+                  <h3>จัดการข้อมูล</h3>
+                  <p>อัปโหลดไฟล์ GeoJSON พื้นฐาน</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/admin/villages" className="menu-card">
+                <div className="menu-icon">🗺️</div>
+                <div className="menu-content">
+                  <h3>กำหนดขอบเขตหมู่บ้าน</h3>
+                  <p>วาด/แก้ไขเส้นขอบเขตการปกครอง</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/developer/admin/settings" className="menu-card">
+                <div className="menu-icon">⚙️</div>
+                <div className="menu-content">
+                  <h3>ตั้งค่า</h3>
+                  <p>Config ระบบต่างๆ</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/admin/audit-logs" className="menu-card">
+                <div className="menu-icon">📜</div>
+                <div className="menu-content">
+                  <h3>Audit Log</h3>
+                  <p>ดูประวัติการใช้งานระบบ</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+            </div>
+          </section>
+
+          {/* 6. Documentation */}
+          <section className="dev-menu-section documentation">
+            <div className="section-header">
+              <h2>📚 Documentation</h2>
+              <span className="badge docs">Docs</span>
+            </div>
+            <p className="section-description">
+              เอกสารและคู่มือสำหรับนักพัฒนา
+            </p>
+            <div className="menu-grid">
+              <Link to="/developer-handbook" className="menu-card">
+                <div className="menu-icon">📖</div>
+                <div className="menu-content">
+                  <h3>คู่มือนักพัฒนา</h3>
+                  <p>Tech Stack, Coding Standard และ Architecture</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+
+              <Link to="/developer/api-docs" className="menu-card">
+                <div className="menu-icon">🔌</div>
+                <div className="menu-content">
+                  <h3>API Documentation</h3>
+                  <p>REST API Endpoints และ Examples</p>
+                </div>
+                <div className="menu-arrow">→</div>
+              </Link>
+            </div>
+          </section>
+
         </div>
-
-        {/* User Management */}
-        <div className="user-management">
-          <div className="section-header">
-            <h3>👥 User Management</h3>
-            <button className="btn-primary" onClick={() => setShowCreateModal(true)}>
-              ➕ Create User
-            </button>
-          </div>
-
-          {/* Filters */}
-          <div className="filters">
-            <input
-              type="text"
-              placeholder="🔍 Search users..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-            
-            <select 
-              value={roleFilter} 
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="ALL">All Roles</option>
-              <option value="ADMIN">Admin</option>
-              <option value="EXECUTIVE">Executive</option>
-              <option value="SUPERVISOR">Supervisor</option>
-              <option value="FIELD_OFFICER">Field Officer</option>
-            </select>
-
-            <select 
-              value={statusFilter} 
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="ALL">All Status</option>
-              <option value="ACTIVE">Active</option>
-              <option value="INACTIVE">Inactive</option>
-            </select>
-          </div>
-
-          {/* Users Table */}
-          <div className="table-container">
-            {loading ? (
-              <div className="loading-state">
-                <div className="spinner"></div>
-                <p>Loading users...</p>
-              </div>
-            ) : error ? (
-              <div className="error-state">
-                <p>❌ {error}</p>
-                <button onClick={fetchUsers} className="btn-secondary">Retry</button>
-              </div>
-            ) : (
-              <table className="users-table">
-                <thead>
-                  <tr>
-                    <th>Username</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Phone</th>
-                    <th>Created</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.length === 0 ? (
-                    <tr>
-                      <td colSpan={8} className="empty-state">
-                        No users found
-                      </td>
-                    </tr>
-                  ) : (
-                  filteredUsers.map(user => (
-                    <tr key={user.id}>
-                      <td><strong>{user.username}</strong></td>
-                      <td>{user.firstName} {user.lastName}</td>
-                      <td>{user.email}</td>
-                      <td>
-                        <span className={`role-badge ${user.role.toLowerCase()}`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          className={`status-badge ${user.isActive ? 'active' : 'inactive'}`}
-                          onClick={() => toggleUserStatus(user.id)}
-                        >
-                          {user.isActive ? 'ACTIVE' : 'INACTIVE'}
-                        </button>
-                      </td>
-                      <td>{user.phone || '-'}</td>
-                      <td>{user.createdAt}</td>
-                      <td>
-                        <div className="action-buttons">
-                          <button 
-                            className="btn-icon edit"
-                            onClick={() => openEditModal(user)}
-                            title="Edit"
-                          >
-                            ✏️
-                          </button>
-                          <button 
-                            className="btn-icon delete"
-                            onClick={() => openDeleteModal(user)}
-                            title="Delete"
-                          >
-                            🗑️
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                  )}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-
-        {/* Activity Logs */}
-        <div className="activity-logs">
-          <h3>📜 Recent Activity</h3>
-          <div className="table-container">
-            <table className="logs-table">
-              <thead>
-                <tr>
-                  <th>Timestamp</th>
-                  <th>User</th>
-                  <th>Action</th>
-                  <th>Target</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {activityLogs.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="empty-state">
-                      No activity logs found
-                    </td>
-                  </tr>
-                ) : (
-                  activityLogs.map((log: any) => (
-                    <tr key={log.id}>
-                      <td>{new Date(log.timestamp).toLocaleString('th-TH')}</td>
-                      <td>{log.user?.email || 'Unknown'}</td>
-                      <td><strong>{log.action}</strong></td>
-                      <td>{log.target || '-'}</td>
-                      <td>
-                        <span className={`status-badge ${log.status.toLowerCase()}`}>
-                          {log.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Create User Modal */}
-        {showCreateModal && (
-          <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3>➕ Create New User</h3>
-                <button onClick={() => setShowCreateModal(false)}>✕</button>
-              </div>
-              
-              <form onSubmit={handleCreateUser}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Username *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.username}
-                      onChange={(e) => setFormData({...formData, username: e.target.value})}
-                      placeholder="username"
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Email *</label>
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                      placeholder="email@obtwiang.go.th"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>First Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.firstName}
-                      onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                      placeholder="First name"
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Last Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.lastName}
-                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                      placeholder="Last name"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Role *</label>
-                    <select
-                      required
-                      value={formData.role}
-                      onChange={(e) => setFormData({...formData, role: e.target.value})}
-                    >
-                      <option value="FIELD_OFFICER">Field Officer</option>
-                      <option value="SUPERVISOR">Supervisor</option>
-                      <option value="EXECUTIVE">Executive</option>
-                      <option value="ADMIN">Admin</option>
-                    </select>
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Phone *</label>
-                    <input
-                      type="tel"
-                      required
-                      value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                      placeholder="081-234-5678"
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>Password *</label>
-                  <input
-                    type="password"
-                    required
-                    value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                    placeholder="Enter password"
-                  />
-                </div>
-                
-                <div className="modal-actions">
-                  <button type="button" className="btn-cancel" onClick={() => setShowCreateModal(false)}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn-primary">
-                    ✅ Create User
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Edit User Modal */}
-        {showEditModal && selectedUser && (
-          <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3>✏️ Edit User</h3>
-                <button onClick={() => setShowEditModal(false)}>✕</button>
-              </div>
-              
-              <form onSubmit={handleEditUser}>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Username *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.username}
-                      onChange={(e) => setFormData({...formData, username: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Email *</label>
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>First Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.firstName}
-                      onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                    />
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Last Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.lastName}
-                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>Role *</label>
-                    <select
-                      required
-                      value={formData.role}
-                      onChange={(e) => setFormData({...formData, role: e.target.value})}
-                    >
-                      <option value="FIELD_OFFICER">Field Officer</option>
-                      <option value="SUPERVISOR">Supervisor</option>
-                      <option value="EXECUTIVE">Executive</option>
-                      <option value="ADMIN">Admin</option>
-                    </select>
-                  </div>
-                  
-                  <div className="form-group">
-                    <label>Phone *</label>
-                    <input
-                      type="tel"
-                      required
-                      value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    />
-                  </div>
-                </div>
-                
-                <div className="modal-actions">
-                  <button type="button" className="btn-cancel" onClick={() => setShowEditModal(false)}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn-primary">
-                    💾 Save Changes
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Delete Confirmation Modal */}
-        {showDeleteModal && selectedUser && (
-          <div className="modal-overlay" onClick={() => setShowDeleteModal(false)}>
-            <div className="modal small" onClick={(e) => e.stopPropagation()}>
-              <div className="modal-header">
-                <h3>🗑️ Delete User</h3>
-                <button onClick={() => setShowDeleteModal(false)}>✕</button>
-              </div>
-              
-              <div className="delete-confirmation">
-                <p>Are you sure you want to delete this user?</p>
-                <div className="user-info">
-                  <strong>{selectedUser.firstName} {selectedUser.lastName}</strong>
-                  <span>{selectedUser.email}</span>
-                </div>
-                <p className="warning">⚠️ This action cannot be undone!</p>
-              </div>
-              
-              <div className="modal-actions">
-                <button className="btn-cancel" onClick={() => setShowDeleteModal(false)}>
-                  Cancel
-                </button>
-                <button className="btn-danger" onClick={handleDeleteUser}>
-                  🗑️ Delete User
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </DashboardLayout>
   );

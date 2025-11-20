@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../stores/authStore';
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import toast from 'react-hot-toast';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { VILLAGES as VILLAGE_DATA, TAMBON_INFO } from '../../data/villages';
+import './ExecutiveGeospatialAnalysis.css';
 
 // Village data from ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
 interface Village {
@@ -17,57 +18,25 @@ interface Village {
   lastIncident: string;
 }
 
-const VILLAGES: Village[] = [
-  { id: 1, name: 'หนองตุ้ม', lat: 20.02, lng: 99.25, riskLevel: 'สูง', incidents: 8, population: 450, lastIncident: '2025-11-12' },
-  { id: 2, name: 'ป่าบง', lat: 19.95, lng: 99.28, riskLevel: 'สูง', incidents: 7, population: 520, lastIncident: '2025-11-11' },
-  { id: 3, name: 'ริมฝาง (สันป่าไหน่)', lat: 19.96, lng: 99.12, riskLevel: 'สูง', incidents: 6, population: 380, lastIncident: '2025-11-10' },
-  { id: 4, name: 'โป่งถืบ', lat: 19.94, lng: 99.25, riskLevel: 'กลาง', incidents: 5, population: 410, lastIncident: '2025-11-08' },
-  { id: 5, name: 'แม่ใจใต้', lat: 19.93, lng: 99.20, riskLevel: 'กลาง', incidents: 5, population: 390, lastIncident: '2025-11-07' },
-  { id: 6, name: 'เต๋าดิน (เวียงสุทโธ)', lat: 19.92, lng: 99.30, riskLevel: 'กลาง', incidents: 4, population: 360, lastIncident: '2025-11-05' },
-  { id: 7, name: 'ท่าสะแล', lat: 19.82, lng: 99.22, riskLevel: 'กลาง', incidents: 4, population: 340, lastIncident: '2025-11-04' },
-  { id: 8, name: 'แม่ใจเหนือ', lat: 19.98, lng: 99.18, riskLevel: 'ต่ำ', incidents: 3, population: 320, lastIncident: '2025-11-02' },
-  { id: 9, name: 'สวนดอก', lat: 19.88, lng: 99.32, riskLevel: 'ต่ำ', incidents: 3, population: 300, lastIncident: '2025-10-30' },
-  { id: 10, name: 'ต้นหนุน', lat: 19.90, lng: 99.35, riskLevel: 'ต่ำ', incidents: 3, population: 280, lastIncident: '2025-10-28' },
-  { id: 11, name: 'สันทรายคองน้อย', lat: 19.85, lng: 99.28, riskLevel: 'ต่ำ', incidents: 2, population: 260, lastIncident: '2025-10-25' },
-  { id: 12, name: 'ห้วยเฮี่ยน (สันป่ายางยาง)', lat: 19.87, lng: 99.15, riskLevel: 'ต่ำ', incidents: 2, population: 240, lastIncident: '2025-10-22' },
-  { id: 13, name: 'ห้วยบอน', lat: 19.86, lng: 99.25, riskLevel: 'ต่ำ', incidents: 2, population: 220, lastIncident: '2025-10-20' },
-  { id: 14, name: 'เสาหิน', lat: 19.80, lng: 99.30, riskLevel: 'ต่ำ', incidents: 2, population: 200, lastIncident: '2025-10-18' },
-  { id: 15, name: 'โป่งถืบใน', lat: 19.91, lng: 99.23, riskLevel: 'ต่ำ', incidents: 2, population: 180, lastIncident: '2025-10-15' },
-  { id: 16, name: 'ปางผึ้ง', lat: 19.89, lng: 99.36, riskLevel: 'ต่ำ', incidents: 1, population: 160, lastIncident: '2025-10-12' },
-  { id: 17, name: 'ใหม่คองน้อย', lat: 19.84, lng: 99.26, riskLevel: 'ต่ำ', incidents: 1, population: 140, lastIncident: '2025-10-10' },
-  { id: 18, name: 'ศรีดอนชัย', lat: 19.81, lng: 99.28, riskLevel: 'ต่ำ', incidents: 1, population: 120, lastIncident: '2025-10-08' },
-  { id: 19, name: 'ใหม่ชยาราม', lat: 19.88, lng: 99.24, riskLevel: 'ต่ำ', incidents: 1, population: 100, lastIncident: '2025-10-05' },
-  { id: 20, name: 'สระนิคม', lat: 19.79, lng: 99.25, riskLevel: 'ต่ำ', incidents: 1, population: 80, lastIncident: '2025-10-02' },
-];
+// สร้างข้อมูลความเสี่ยงจากข้อมูลหมู่บ้านจริง
+const VILLAGES: Village[] = VILLAGE_DATA.map((v, i) => ({
+  id: v.id,
+  name: v.name,
+  lat: v.lat,
+  lng: v.lng,
+  riskLevel: i < 3 ? 'สูง' : i < 10 ? 'กลาง' : 'ต่ำ',
+  incidents: Math.max(2, 10 - i),
+  population: v.population || 300,
+  lastIncident: new Date(Date.now() - i * 86400000).toISOString().split('T')[0]
+}));
 
 export default function ExecutiveGeospatialAnalysis() {
-  const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
-  const [activeMenu, setActiveMenu] = useState('geospatial');
   const [selectedRiskLevels, setSelectedRiskLevels] = useState<string[]>(['สูง', 'กลาง', 'ต่ำ']);
   const [selectedVillages, setSelectedVillages] = useState<number[]>([]);
   const [timeRange, setTimeRange] = useState('3months');
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  const menuItems = [
-    { id: 'dashboard', icon: '📈', label: 'แดชบอร์ดสรุป', path: '/dashboard/executive' },
-    { id: 'analytics', icon: '📊', label: 'รายงานและสถิติ', path: '/executive/analytics' },
-    { id: 'budget', icon: '💰', label: 'งบประมาณและทรัพยากร', path: '/executive/budget-resources' },
-    { id: 'geospatial', icon: '🗺️', label: 'วิเคราะห์เชิงพื้นที่', path: '/executive/geospatial-analysis' },
-  ];
-
-  const handleMenuClick = (item: any) => {
-    setActiveMenu(item.id);
-    if (item.path === '/executive/geospatial-analysis') return;
-    navigate(item.path);
-  };
 
   const toggleRiskLevel = (level: string) => {
     setSelectedRiskLevels(prev =>
@@ -94,7 +63,8 @@ export default function ExecutiveGeospatialAnalysis() {
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
-    const map = L.map(mapRef.current).setView([19.9167, 99.2333], 13);
+    // Initialize map centered on Fang District
+    const map = L.map(mapRef.current).setView([TAMBON_INFO.centerLat, TAMBON_INFO.centerLng], 12);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
@@ -189,94 +159,11 @@ export default function ExecutiveGeospatialAnalysis() {
   const highRiskCount = filteredVillages.filter(v => v.riskLevel === 'สูง').length;
 
   return (
-    <div style={{
-      display: 'flex',
-      minHeight: '100vh',
-      margin: 0,
-      padding: 0,
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      background: '#f7fafc'
-    }}>
-      {/* Sidebar */}
+    <DashboardLayout>
       <div style={{
-        width: '260px',
-        minWidth: '260px',
-        background: 'linear-gradient(180deg, #1e3a8a 0%, #3b82f6 100%)',
-        color: 'white',
-        padding: '20px',
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        height: '100vh',
-        overflowY: 'auto',
-        boxShadow: '2px 0 10px rgba(0,0,0,0.1)'
-      }}>
-        <h2 style={{ margin: '0 0 30px 0', fontSize: '20px' }}>🛡️ Guardian Route</h2>
-        
-        <div style={{
-          background: 'rgba(255,255,255,0.15)',
-          padding: '15px',
-          borderRadius: '12px',
-          marginBottom: '30px'
-        }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '5px' }}>
-            {user?.firstName} {user?.lastName}
-          </div>
-          <div style={{ fontSize: '12px', opacity: 0.9 }}>
-            ผู้บริหาร (Executive)
-          </div>
-        </div>
-
-        <nav style={{ marginBottom: '30px' }}>
-          {menuItems.map(item => (
-            <button
-              key={item.id}
-              onClick={() => handleMenuClick(item)}
-              style={{
-                width: '100%',
-                padding: '12px 16px',
-                background: activeMenu === item.id ? 'rgba(255,255,255,0.25)' : 'transparent',
-                border: 'none',
-                borderRadius: '10px',
-                color: 'white',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: activeMenu === item.id ? '600' : '500',
-                marginBottom: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                textAlign: 'left',
-                transition: 'all 0.2s'
-              }}
-            >
-              <span style={{ fontSize: '18px' }}>{item.icon}</span>
-              <span style={{ flex: 1 }}>{item.label}</span>
-            </button>
-          ))}
-        </nav>
-
-        <button onClick={handleLogout} style={{
-          width: '100%',
-          padding: '12px',
-          background: 'rgba(255,255,255,0.2)',
-          border: 'none',
-          borderRadius: '10px',
-          color: 'white',
-          cursor: 'pointer',
-          fontSize: '14px',
-          fontWeight: '500'
-        }}>
-          🚪 Logout
-        </button>
-      </div>
-
-      {/* Main Content */}
-      <div style={{
-        marginLeft: '260px',
-        flex: 1,
         display: 'flex',
-        minHeight: '100vh'
+        gap: '24px',
+        height: 'calc(100vh - 100px)'
       }}>
         {/* Left Panel - Controls & Statistics */}
         <div style={{
@@ -531,6 +418,6 @@ export default function ExecutiveGeospatialAnalysis() {
           </div>
         </div>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

@@ -33,6 +33,7 @@ model User {
   createdSurveys     Survey[]         @relation("CreatedSurveys")
   assignedTasks      Task[]           @relation("AssignedTo")
   createdTasks       Task[]           @relation("TaskCreator")
+  userNotifications  UserNotification[]
 
   @@map("users")
 }
@@ -416,4 +417,32 @@ model Settings {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("settings")
+}
+
+model Notification {
+  id          String   @id @default(uuid())
+  title       String
+  message     String
+  type        String   // 'info', 'warning', 'error', 'success'
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  userNotifications UserNotification[]
+  
+  @@map("notifications")
+}
+
+model UserNotification {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  notificationId String   @map("notification_id")
+  isRead         Boolean  @default(false) @map("is_read")
+  readAt         DateTime? @map("read_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  
+  user         User         @relation(fields: [userId], references: [id])
+  notification Notification @relation(fields: [notificationId], references: [id])
+  
+  @@index([userId])
+  @@index([notificationId])
+  @@map("user_notifications")
 }
