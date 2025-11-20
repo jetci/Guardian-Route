@@ -40,6 +40,29 @@ const villages = villagesData.map(v => {
   };
 });
 
+// Helper function to format number with fixed decimals
+function formatCoord(num) {
+  return num.toFixed(4);
+}
+
+// Helper function to format village object
+function formatVillage(v) {
+  const boundaryStr = v.boundary 
+    ? `[\n      ${v.boundary.map(coord => `[${formatCoord(coord[0])}, ${formatCoord(coord[1])}]`).join(',\n      ')}\n    ]`
+    : 'undefined';
+  
+  return `  {
+    id: ${v.id},
+    name: '${v.name}',
+    moo: ${v.moo},
+    lat: ${formatCoord(v.lat)},
+    lng: ${formatCoord(v.lng)},
+    population: ${v.population},
+    households: ${v.households},
+    boundary: ${boundaryStr}
+  }`;
+}
+
 // Generate TypeScript file content
 const tsContent = `/**
  * ข้อมูลหมู่บ้านในตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
@@ -66,7 +89,9 @@ export interface Village {
 /**
  * รายชื่อหมู่บ้านทั้ง ${villages.length} หมู่ ในตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
  */
-export const VILLAGES: Village[] = ${JSON.stringify(villages, null, 2)};
+export const VILLAGES: Village[] = [
+${villages.map(formatVillage).join(',\n')}
+];
 
 /**
  * รายชื่อหมู่บ้าน (ชื่ออย่างเดียว)
