@@ -1,9 +1,12 @@
 /**
  * ข้อมูลหมู่บ้านในตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
- * ทั้งหมด 20 หมู่บ้าน
+ * ทั้งหมด 20 หมู่บ้าน พร้อมขอบเขต (boundary)
  * 
  * ข้อมูลอ้างอิงจาก: กรมการปกครอง กระทรวงมหาดไทย
  * พิกัดศูนย์กลางตำบล: 19.9167°N, 99.2333°E
+ * 
+ * ⚠️ Auto-generated from backend data
+ * ⚠️ DO NOT EDIT MANUALLY - Run: node scripts/generate-villages-data.js
  */
 
 export interface Village {
@@ -21,46 +24,650 @@ export interface Village {
  * รายชื่อหมู่บ้านทั้ง 20 หมู่ ในตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
  */
 export const VILLAGES: Village[] = [
-  { 
-    id: 1, 
-    name: 'หนองตุ้ม', 
-    moo: 1, 
-    lat: 19.9300, 
-    lng: 99.2145, 
-    population: 450, 
-    households: 120,
-    boundary: [
-      [19.9350, 99.2080],  // [lat, lng] - แปลงจาก GeoJSON [lng, lat]
-      [19.9350, 99.2180],
-      [19.9280, 99.2180],
-      [19.9250, 99.2120],
-      [19.9280, 99.2080],
-      [19.9350, 99.2080]
+  {
+    "id": 1,
+    "name": "หนองตุ้ม",
+    "moo": 1,
+    "lat": 19.93,
+    "lng": 99.2145,
+    "population": 450,
+    "households": 120,
+    "boundary": [
+      [
+        19.935,
+        99.208
+      ],
+      [
+        19.935,
+        99.218
+      ],
+      [
+        19.928,
+        99.218
+      ],
+      [
+        19.925,
+        99.212
+      ],
+      [
+        19.928,
+        99.208
+      ],
+      [
+        19.935,
+        99.208
+      ]
     ]
   },
-  { id: 2, name: 'ป่าบง', moo: 2, lat: 19.9500, lng: 99.2100, population: 520, households: 145 },
-  { id: 3, name: 'เต๋าดิน (เวียงสุทโธ)', moo: 3, lat: 19.9422, lng: 99.2195, population: 380, households: 95 },
-  { id: 4, name: 'สวนดอก', moo: 4, lat: 19.9450, lng: 99.2300, population: 410, households: 110 },
-  { id: 5, name: 'ต้นหนุน', moo: 5, lat: 19.9350, lng: 99.2150, population: 390, households: 105 },
-  { id: 6, name: 'สันทรายคองน้อย', moo: 6, lat: 19.9400, lng: 99.2050, population: 340, households: 88 },
-  { id: 7, name: 'แม่ใจใต้', moo: 7, lat: 19.9300, lng: 99.2200, population: 360, households: 92 },
-  { id: 8, name: 'แม่ใจเหนือ', moo: 8, lat: 19.9330, lng: 99.2250, population: 320, households: 85 },
-  { id: 9, name: 'ริมฝาง (สันป่าไหน่)', moo: 9, lat: 19.9600, lng: 99.2200, population: 480, households: 125 },
-  { id: 10, name: 'ห้วยเฮี่ยน (สันป่ายางยาง)', moo: 10, lat: 19.9570, lng: 99.2100, population: 350, households: 90 },
-  { id: 11, name: 'ท่าสะแล', moo: 11, lat: 19.9250, lng: 99.2100, population: 420, households: 115 },
-  { id: 12, name: 'โป่งถืบ', moo: 12, lat: 19.9280, lng: 99.2350, population: 380, households: 100 },
-  { id: 13, name: 'ห้วยบอน', moo: 13, lat: 19.9150, lng: 99.2200, population: 310, households: 82 },
-  { id: 14, name: 'เสาหิน', moo: 14, lat: 19.9200, lng: 99.2400, population: 290, households: 75 },
-  { id: 15, name: 'โป่งถืบใน', moo: 15, lat: 19.9320, lng: 99.2450, population: 270, households: 70 },
-  { id: 16, name: 'ปางผึ้ง', moo: 16, lat: 19.9100, lng: 99.2300, population: 330, households: 87 },
-  { id: 17, name: 'ใหม่คองน้อย', moo: 17, lat: 19.9050, lng: 99.2150, population: 360, households: 95 },
-  { id: 18, name: 'ศรีดอนชัย', moo: 18, lat: 19.9650, lng: 99.2150, population: 400, households: 108 },
-  { id: 19, name: 'ใหม่ชยาราม', moo: 19, lat: 19.9230, lng: 99.2250, population: 320, households: 84 },
-  { id: 20, name: 'สระนิคม', moo: 20, lat: 19.9470, lng: 99.2400, population: 350, households: 92 },
+  {
+    "id": 2,
+    "name": "ป่าบง",
+    "moo": 2,
+    "lat": 19.92,
+    "lng": 99.24,
+    "population": 380,
+    "households": 95,
+    "boundary": [
+      [
+        19.925,
+        99.215
+      ],
+      [
+        19.925,
+        99.225
+      ],
+      [
+        19.918,
+        99.225
+      ],
+      [
+        19.915,
+        99.22
+      ],
+      [
+        19.918,
+        99.215
+      ],
+      [
+        19.925,
+        99.215
+      ]
+    ]
+  },
+  {
+    "id": 3,
+    "name": "เต๋าดิน",
+    "moo": 3,
+    "lat": 19.9167,
+    "lng": 99.25,
+    "population": 520,
+    "households": 150,
+    "boundary": [
+      [
+        19.922,
+        99.224
+      ],
+      [
+        19.922,
+        99.236
+      ],
+      [
+        19.914,
+        99.236
+      ],
+      [
+        19.911,
+        99.23
+      ],
+      [
+        19.914,
+        99.224
+      ],
+      [
+        19.922,
+        99.224
+      ]
+    ]
+  },
+  {
+    "id": 4,
+    "name": "สวนดอก",
+    "moo": 4,
+    "lat": 19.91,
+    "lng": 99.225,
+    "population": 420,
+    "households": 110,
+    "boundary": [
+      [
+        19.915,
+        99.2
+      ],
+      [
+        19.915,
+        99.21
+      ],
+      [
+        19.908,
+        99.21
+      ],
+      [
+        19.905,
+        99.205
+      ],
+      [
+        19.908,
+        99.2
+      ],
+      [
+        19.915,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 5,
+    "name": "ต้นหนุน",
+    "moo": 5,
+    "lat": 19.92,
+    "lng": 99.215,
+    "population": 340,
+    "households": 85,
+    "boundary": [
+      [
+        19.924,
+        99.19
+      ],
+      [
+        19.924,
+        99.2
+      ],
+      [
+        19.918,
+        99.2
+      ],
+      [
+        19.916,
+        99.195
+      ],
+      [
+        19.918,
+        99.19
+      ],
+      [
+        19.924,
+        99.19
+      ]
+    ]
+  },
+  {
+    "id": 6,
+    "name": "สันทรายคองน้อย",
+    "moo": 6,
+    "lat": 19.925,
+    "lng": 99.26,
+    "population": 480,
+    "households": 130,
+    "boundary": [
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 7,
+    "name": "แม่ใจใต้",
+    "moo": 7,
+    "lat": 19.9,
+    "lng": 99.22,
+    "population": 510,
+    "households": 140,
+    "boundary": [
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.895,
+        99.2
+      ],
+      [
+        19.895,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 8,
+    "name": "แม่ใจเหนือ",
+    "moo": 8,
+    "lat": 19.905,
+    "lng": 99.23,
+    "population": 465,
+    "households": 125,
+    "boundary": [
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 9,
+    "name": "ริมฝาง",
+    "moo": 9,
+    "lat": 19.93,
+    "lng": 99.245,
+    "population": 580,
+    "households": 160,
+    "boundary": [
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 10,
+    "name": "ห้วยเฮี่ยน",
+    "moo": 10,
+    "lat": 19.93,
+    "lng": 99.21,
+    "population": 410,
+    "households": 105,
+    "boundary": [
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 11,
+    "name": "ท่าสะแล",
+    "moo": 11,
+    "lat": 19.895,
+    "lng": 99.235,
+    "population": 440,
+    "households": 115,
+    "boundary": [
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.89,
+        99.2
+      ],
+      [
+        19.89,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 12,
+    "name": "โป่งถืบ",
+    "moo": 12,
+    "lat": 19.91,
+    "lng": 99.255,
+    "population": 495,
+    "households": 135,
+    "boundary": [
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 13,
+    "name": "ห้วยบอน",
+    "moo": 13,
+    "lat": 19.91,
+    "lng": 99.205,
+    "population": 360,
+    "households": 90,
+    "boundary": [
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 14,
+    "name": "เสาหิน",
+    "moo": 14,
+    "lat": 19.9,
+    "lng": 99.24,
+    "population": 390,
+    "households": 100,
+    "boundary": [
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.896,
+        99.2
+      ],
+      [
+        19.896,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 15,
+    "name": "โป่งถืบใน",
+    "moo": 15,
+    "lat": 19.905,
+    "lng": 99.265,
+    "population": 320,
+    "households": 80,
+    "boundary": [
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 16,
+    "name": "ปางผึ้ง",
+    "moo": 16,
+    "lat": 19.89,
+    "lng": 99.25,
+    "population": 375,
+    "households": 95,
+    "boundary": [
+      [
+        19.894,
+        99.245
+      ],
+      [
+        19.894,
+        99.2
+      ],
+      [
+        19.886,
+        99.2
+      ],
+      [
+        19.886,
+        99.2
+      ],
+      [
+        19.894,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 17,
+    "name": "ใหม่คองน้อย",
+    "moo": 17,
+    "lat": 19.92,
+    "lng": 99.27,
+    "population": 425,
+    "households": 110,
+    "boundary": [
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 18,
+    "name": "ศรีดอนชัย",
+    "moo": 18,
+    "lat": 19.89,
+    "lng": 99.215,
+    "population": 455,
+    "households": 120,
+    "boundary": [
+      [
+        19.895,
+        99.21
+      ],
+      [
+        19.895,
+        99.2
+      ],
+      [
+        19.885,
+        99.2
+      ],
+      [
+        19.885,
+        99.2
+      ],
+      [
+        19.895,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 19,
+    "name": "ใหม่ชยาราม",
+    "moo": 19,
+    "lat": 19.885,
+    "lng": 99.225,
+    "population": 405,
+    "households": 105,
+    "boundary": [
+      [
+        19.889,
+        99.22
+      ],
+      [
+        19.889,
+        99.2
+      ],
+      [
+        19.881,
+        99.2
+      ],
+      [
+        19.881,
+        99.2
+      ],
+      [
+        19.889,
+        99.2
+      ]
+    ]
+  },
+  {
+    "id": 20,
+    "name": "สระนิคม",
+    "moo": 20,
+    "lat": 19.895,
+    "lng": 99.26,
+    "population": 470,
+    "households": 125,
+    "boundary": [
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ],
+      [
+        19.89,
+        99.2
+      ],
+      [
+        19.89,
+        99.2
+      ],
+      [
+        19.9,
+        99.2
+      ]
+    ]
+  }
 ];
 
 /**
- * รายชื่อหมู่บ้านเป็น array ของ string (สำหรับ dropdown)
+ * รายชื่อหมู่บ้าน (ชื่ออย่างเดียว)
  */
 export const VILLAGE_NAMES = VILLAGES.map(v => v.name);
 
@@ -75,27 +682,6 @@ export const TAMBON_INFO = {
   centerLat: 19.9167,
   centerLng: 99.2333,
   totalVillages: 20,
-  totalPopulation: VILLAGES.reduce((sum, v) => sum + (v.population || 0), 0),
-  totalHouseholds: VILLAGES.reduce((sum, v) => sum + (v.households || 0), 0),
+  totalPopulation: 8690,
+  totalHouseholds: 2295,
 };
-
-/**
- * หาหมู่บ้านจาก ID
- */
-export function getVillageById(id: number): Village | undefined {
-  return VILLAGES.find(v => v.id === id);
-}
-
-/**
- * หาหมู่บ้านจากชื่อ
- */
-export function getVillageByName(name: string): Village | undefined {
-  return VILLAGES.find(v => v.name === name);
-}
-
-/**
- * หาหมู่บ้านจากหมู่ที่
- */
-export function getVillageByMoo(moo: number): Village | undefined {
-  return VILLAGES.find(v => v.moo === moo);
-}
