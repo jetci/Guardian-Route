@@ -30,7 +30,7 @@ export const VILLAGES: Village[] = [
     population: 450, 
     households: 120,
     boundary: [
-      [19.9350, 99.2080],
+      [19.9350, 99.2080],  // [lat, lng] - แปลงจาก GeoJSON [lng, lat]
       [19.9350, 99.2180],
       [19.9280, 99.2180],
       [19.9250, 99.2120],
