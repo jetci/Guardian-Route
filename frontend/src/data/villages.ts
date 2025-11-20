@@ -21,7 +21,23 @@ export interface Village {
  * รายชื่อหมู่บ้านทั้ง 20 หมู่ ในตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
  */
 export const VILLAGES: Village[] = [
-  { id: 1, name: 'หนองตุ้ม', moo: 1, lat: 19.9550, lng: 99.2250, population: 450, households: 120 },
+  { 
+    id: 1, 
+    name: 'หนองตุ้ม', 
+    moo: 1, 
+    lat: 19.9300, 
+    lng: 99.2145, 
+    population: 450, 
+    households: 120,
+    boundary: [
+      [19.9350, 99.2080],
+      [19.9350, 99.2180],
+      [19.9280, 99.2180],
+      [19.9250, 99.2120],
+      [19.9280, 99.2080],
+      [19.9350, 99.2080]
+    ]
+  },
   { id: 2, name: 'ป่าบง', moo: 2, lat: 19.9500, lng: 99.2100, population: 520, households: 145 },
   { id: 3, name: 'เต๋าดิน (เวียงสุทโธ)', moo: 3, lat: 19.9422, lng: 99.2195, population: 380, households: 95 },
   { id: 4, name: 'สวนดอก', moo: 4, lat: 19.9450, lng: 99.2300, population: 410, households: 110 },
