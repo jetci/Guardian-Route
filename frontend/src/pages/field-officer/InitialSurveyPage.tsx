@@ -6,7 +6,8 @@ import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { mockTasks } from '../../mocks/dashboardData';
-import { VILLAGE_NAMES, TAMBON_INFO, VILLAGES } from '../../data/villages';
+import { VILLAGE_NAMES, TAMBON_INFO } from '../../data/villages';
+import { fetchVillages, type Village } from '../../services/villageService';
 import ThaiDatePicker from '../../components/ThaiDatePicker';
 import './InitialSurveyPage.css';
 
@@ -55,6 +56,9 @@ export function InitialSurveyPage() {
   
   // Village boundary marker
   const villageBoundaryRef = useRef<L.Circle | L.Polygon | null>(null);
+  
+  // Villages data from API
+  const [villages, setVillages] = useState<Village[]>([]);
 
   // Initialize map
   useEffect(() => {
@@ -172,6 +176,22 @@ export function InitialSurveyPage() {
     };
   }, []);
 
+  // Load villages from API
+  useEffect(() => {
+    const loadVillages = async () => {
+      try {
+        const data = await fetchVillages();
+        setVillages(data);
+        console.log('✅ Loaded villages from API:', data.length);
+      } catch (error) {
+        console.error('❌ Error loading villages:', error);
+        // Fallback to empty array if API fails
+        setVillages([]);
+      }
+    };
+    loadVillages();
+  }, []);
+
   // Show village boundary when village is selected
   useEffect(() => {
     if (!mapRef.current || !village) {
@@ -184,7 +204,7 @@ export function InitialSurveyPage() {
     }
 
     // Find selected village data
-    const selectedVillage = VILLAGES.find(v => v.name === village);
+    const selectedVillage = villages.find(v => v.name === village);
     if (!selectedVillage) return;
 
     // Remove existing boundary
@@ -509,9 +529,9 @@ export function InitialSurveyPage() {
                   required
                 >
                   <option value="">เลือกหมู่บ้าน</option>
-                  {VILLAGE_NAMES.map((name, index) => (
-                    <option key={index} value={name}>
-                      {name} (หมู่ {index + 1})
+                  {villages.map((v) => (
+                    <option key={v.id} value={v.name}>
+                      {v.name} (หมู่ {v.moo})
                     </option>
                   ))}
                 </select>
