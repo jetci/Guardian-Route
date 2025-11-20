@@ -50,6 +50,9 @@ export default function VillageBoundariesPage() {
   const [inputLng, setInputLng] = useState('');
   const [markerLabel, setMarkerLabel] = useState('');
   const [flyToMarker, setFlyToMarker] = useState<CoordinateMarker | null>(null);
+  
+  // Selected village to view on map
+  const [selectedVillageToView, setSelectedVillageToView] = useState<VillageBoundary | null>(null);
 
   // Load village boundaries
   useEffect(() => {
@@ -653,6 +656,8 @@ export default function VillageBoundariesPage() {
                   onFlyToComplete={() => setFlyToMarker(null)}
                   mapLayerType={mapLayerType}
                   showLegendOnMap={false}
+                  selectedVillageToView={selectedVillageToView}
+                  onViewComplete={() => setSelectedVillageToView(null)}
                 />
               </div>
 
@@ -887,9 +892,12 @@ export default function VillageBoundariesPage() {
                           className="btn-action btn-view"
                           onClick={() => {
                             // Center map on this village
-                            if (boundary.centerPoint) {
+                            if (boundary.centerPoint || boundary.boundary) {
+                              setSelectedVillageToView(boundary);
                               setActiveTab('map');
-                              toast('📍 แสดงตำแหน่งหมู่ ' + boundary.villageNo, { icon: '🗺️' });
+                              toast('📍 แสดงตำแหน่งหมู่ ' + boundary.villageNo + ' - ' + boundary.name, { icon: '🗺️' });
+                            } else {
+                              toast.error('หมู่บ้านนี้ยังไม่มีข้อมูลตำแหน่ง');
                             }
                           }}
                           title="ดูบนแผนที่"

@@ -47,6 +47,8 @@ interface VillageBoundaryMapProps {
   onFlyToComplete?: () => void;
   mapLayerType?: 'street' | 'satellite' | 'hybrid';
   showLegendOnMap?: boolean;
+  selectedVillageToView?: any | null;
+  onViewComplete?: () => void;
 }
 
 export default function VillageBoundaryMap({
@@ -62,6 +64,8 @@ export default function VillageBoundaryMap({
   onFlyToComplete,
   mapLayerType = 'street',
   showLegendOnMap = true,
+  selectedVillageToView = null,
+  onViewComplete,
 }: VillageBoundaryMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
@@ -575,6 +579,46 @@ export default function VillageBoundaryMap({
 
     return () => clearTimeout(timeout);
   }, [flyToMarker, isReady, onFlyToComplete]);
+
+  // Handle selected village to view
+  useEffect(() => {
+    if (!isReady || !mapRef.current || !selectedVillageToView) return;
+
+    const map = mapRef.current;
+    const village = selectedVillageToView;
+
+    // Get coordinates from centerPoint or boundary
+    let lat, lng, zoomLevel = 15;
+
+    if (village.centerPoint && village.centerPoint.coordinates) {
+      // GeoJSON format: [lng, lat]
+      lng = village.centerPoint.coordinates[0];
+      lat = village.centerPoint.coordinates[1];
+    } else if (village.boundary && village.boundary.coordinates && village.boundary.coordinates[0]) {
+      // Calculate center from boundary
+      const coords = village.boundary.coordinates[0];
+      const lats = coords.map((c: number[]) => c[1]);
+      const lngs = coords.map((c: number[]) => c[0]);
+      lat = (Math.min(...lats) + Math.max(...lats)) / 2;
+      lng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+    } else {
+      console.warn('Village has no centerPoint or boundary:', village);
+      onViewComplete?.();
+      return;
+    }
+
+    // Fly to village
+    map.flyTo([lat, lng], zoomLevel, {
+      duration: 1.5,
+    });
+
+    // Call onViewComplete after animation
+    const timeout = setTimeout(() => {
+      onViewComplete?.();
+    }, 1500);
+
+    return () => clearTimeout(timeout);
+  }, [selectedVillageToView, isReady, onViewComplete]);
 
   // Handle map layer type changes
   useEffect(() => {
