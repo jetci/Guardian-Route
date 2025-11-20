@@ -368,7 +368,18 @@ export function InitialSurveyPage() {
           </div>
 
           {/* Right: Form */}
-          <div className="form-section">
+          <div style={{
+            position: 'fixed',
+            top: '70px',
+            right: 0,
+            bottom: 0,
+            width: '380px',
+            background: 'white',
+            borderLeft: '1px solid #e2e8f0',
+            overflowY: 'auto',
+            padding: '24px',
+            zIndex: 2
+          }}>
             
             {/* Map Controls - Moved here */}
             <div className="form-map-controls">
