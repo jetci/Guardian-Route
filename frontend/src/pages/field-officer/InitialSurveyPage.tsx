@@ -197,8 +197,6 @@ export function InitialSurveyPage() {
     
     if (selectedVillage.boundary && selectedVillage.boundary.length > 0) {
       // Use actual boundary polygon
-      console.log('Village:', selectedVillage.name);
-      console.log('Boundary:', selectedVillage.boundary);
       boundary = L.polygon(selectedVillage.boundary, {
         color: '#3b82f6',
         fillColor: '#3b82f6',
