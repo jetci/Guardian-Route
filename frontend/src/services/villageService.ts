@@ -56,16 +56,22 @@ export async function fetchVillages(): Promise<Village[]> {
       }
     });
     
-    return response.data.map(v => ({
-      id: v.villageNo,
-      name: v.name,
-      moo: v.villageNo,
-      lat: v.centerPoint.coordinates[1], // GeoJSON: [lng, lat]
-      lng: v.centerPoint.coordinates[0],
-      population: v.population,
-      households: v.households,
-      boundary: convertBoundary(v.boundary)
-    }));
+    return response.data.map(v => {
+      // Default coordinates (Tambon center) if centerPoint is missing
+      const lat = v.centerPoint?.coordinates?.[1] || 19.9167;
+      const lng = v.centerPoint?.coordinates?.[0] || 99.2333;
+      
+      return {
+        id: v.villageNo,
+        name: v.name,
+        moo: v.villageNo,
+        lat: lat,
+        lng: lng,
+        population: v.population,
+        households: v.households,
+        boundary: convertBoundary(v.boundary)
+      };
+    });
   } catch (error) {
     console.error('Error fetching villages:', error);
     throw error;
@@ -85,12 +91,15 @@ export async function fetchVillageByNo(villageNo: number): Promise<Village | nul
     });
     
     const v = response.data;
+    const lat = v.centerPoint?.coordinates?.[1] || 19.9167;
+    const lng = v.centerPoint?.coordinates?.[0] || 99.2333;
+    
     return {
       id: v.villageNo,
       name: v.name,
       moo: v.villageNo,
-      lat: v.centerPoint.coordinates[1],
-      lng: v.centerPoint.coordinates[0],
+      lat: lat,
+      lng: lng,
       population: v.population,
       households: v.households,
       boundary: convertBoundary(v.boundary)
