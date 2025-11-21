@@ -128,15 +128,26 @@ export default function SurveyAreaPage() {
       try {
         const villagesData = await fetchVillages();
         setVillages(villagesData);
-        console.log('✅ Loaded villages:', villagesData.length);
+        console.log('✅ Loaded villages from API:', villagesData.length);
         
         // Display boundaries on map after a short delay
         setTimeout(() => {
           displayVillageBoundaries(villagesData);
         }, 500);
       } catch (error) {
-        console.error('Error loading villages:', error);
-        toast.error('ไม่สามารถโหลดข้อมูลหมู่บ้านได้');
+        console.error('Error loading villages from API:', error);
+        
+        // Fallback to mock data
+        console.log('⚠️ Using mock village data');
+        const mockVillages: Village[] = [
+          { id: 1, name: 'บ้านทุ่งยาว', moo: 1, lat: 19.9200, lng: 99.2150, households: 150, boundary: undefined },
+          { id: 2, name: 'บ้านสันต้นดู่', moo: 2, lat: 19.9250, lng: 99.2200, households: 120, boundary: undefined },
+          { id: 3, name: 'บ้านป่าไผ่', moo: 3, lat: 19.9150, lng: 99.2100, households: 100, boundary: undefined },
+          { id: 4, name: 'บ้านสันกลาง', moo: 4, lat: 19.9300, lng: 99.2250, households: 130, boundary: undefined },
+          { id: 5, name: 'บ้านห้วยไคร้', moo: 5, lat: 19.9100, lng: 99.2050, households: 90, boundary: undefined },
+        ];
+        setVillages(mockVillages);
+        toast('⚠️ ใช้ข้อมูลหมู่บ้านชั่วคราว', { icon: 'ℹ️', duration: 3000 });
       }
     };
     
