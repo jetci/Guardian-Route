@@ -77,6 +77,9 @@ export default function VillageBoundariesPage() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const MAX_HISTORY = 20; // จำกัดประวัติไม่เกิน 20 ขั้นตอน
 
+  // Track if user has made changes (for edit mode)
+  const [hasUserChanges, setHasUserChanges] = useState(false);
+
   // Load village boundaries
   useEffect(() => {
     loadBoundaries();
@@ -143,6 +146,7 @@ export default function VillageBoundariesPage() {
   const handleBoundaryDrawn = (geojson: any) => {
     setDrawnBoundary(geojson);
     addToHistory(geojson);
+    setHasUserChanges(true); // Mark that user has made changes
     toast.success('วาดขอบเขตเรียบร้อย กรุณากรอกข้อมูลและบันทึก');
   };
 
@@ -205,6 +209,7 @@ export default function VillageBoundariesPage() {
   const handleClearDrawing = () => {
     setDrawnBoundary(null);
     clearHistory();
+    setHasUserChanges(false);
     toast.success('🗑️ ล้างการวาดแล้ว - วาดใหม่ได้เลย');
     console.log('🗑️ Cleared drawing for redraw');
   };
@@ -216,6 +221,7 @@ export default function VillageBoundariesPage() {
     setSelectedVillageNo('');
     setEditingBoundaryId(null);
     clearHistory();
+    setHasUserChanges(false);
     toast('❌ ยกเลิกการวาดแล้ว', { icon: 'ℹ️' });
     console.log('❌ Cancelled drawing');
   };
@@ -422,6 +428,7 @@ export default function VillageBoundariesPage() {
         setEditingBoundaryId(villageId);
         setBoundaryName(villageName);
         setSelectedVillageNo(villageNo);
+        setHasUserChanges(false); // Reset - user hasn't made changes yet
         
         // Load existing boundary if available
         if (existingBoundary) {
@@ -434,7 +441,7 @@ export default function VillageBoundariesPage() {
         }
         
         setActiveTab('map');
-        toast('โหมดแก้ไข: ขอบเขตเดิมถูกโหลดแล้ว', { 
+        toast('โหมดแก้ไข: ขอบเขตเดิมถูกโหลดแล้ว - แก้ไขแล้วกด "บันทึก"', { 
           icon: '✏️',
           duration: 5000 
         });
@@ -451,6 +458,7 @@ export default function VillageBoundariesPage() {
       setEditingBoundaryId('tambon-wiang');
       setBoundaryName('ตำบลเวียง');
       setSelectedVillageNo('tambon' as any);
+      setHasUserChanges(false); // Reset - user hasn't made changes yet
       
       // Try to load existing tambon boundary
       const loadingToast = toast.loading('กำลังโหลดขอบเขตตำบล...');
@@ -460,7 +468,7 @@ export default function VillageBoundariesPage() {
           setDrawnBoundary(tambonData.geojson);
           addToHistory(tambonData.geojson);
           toast.dismiss(loadingToast);
-          toast.success('✅ โหลดขอบเขตตำบลเดิมแล้ว - สามารถแก้ไขได้เลย');
+          toast.success('✅ โหลดขอบเขตตำบลเดิมแล้ว - แก้ไขแล้วกด "บันทึก"');
           console.log('✅ Loaded existing tambon boundary:', tambonData.geojson);
         } else {
           toast.dismiss(loadingToast);
@@ -484,6 +492,7 @@ export default function VillageBoundariesPage() {
     setDrawnBoundary(null);
     setBoundaryName('');
     setSelectedVillageNo('');
+    setHasUserChanges(false);
     toast('ยกเลิกการแก้ไข', { icon: 'ℹ️' });
   };
 
@@ -1103,7 +1112,20 @@ export default function VillageBoundariesPage() {
                 />
               </div>
 
-              {drawnBoundary && (
+              {/* Edit Mode Banner - แสดงเมื่ออยู่ในโหมดแก้ไขแต่ยังไม่มีการเปลี่ยนแปลง */}
+              {drawnBoundary && editingBoundaryId && !hasUserChanges && (
+                <div className="edit-mode-info-banner">
+                  <div className="banner-content">
+                    <span className="banner-icon">✏️</span>
+                    <div className="banner-text">
+                      <strong>โหมดแก้ไข</strong>
+                      <p>ขอบเขตเดิมแสดงบนแผนที่แล้ว - แก้ไขขอบเขตแล้วกด "บันทึก"</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {drawnBoundary && (!editingBoundaryId || hasUserChanges) && (
                 <div className="save-form">
                   <div className="save-form-header">
                     <h3>💾 บันทึกขอบเขตที่วาด</h3>
