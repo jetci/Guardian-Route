@@ -50,9 +50,6 @@ interface VillageBoundaryMapProps {
   selectedVillageToView?: any | null;
   onViewComplete?: () => void;
   editingBoundaryId?: string | null;
-  onMapReady?: (map: L.Map) => void;
-  pendingZoom?: { lat: number; lng: number; zoom: number } | null;
-  onZoomComplete?: () => void;
 }
 
 export default function VillageBoundaryMap({
@@ -71,9 +68,6 @@ export default function VillageBoundaryMap({
   showLegendOnMap = true,
   selectedVillageToView = null,
   onViewComplete,
-  onMapReady,
-  pendingZoom = null,
-  onZoomComplete,
 }: VillageBoundaryMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
@@ -255,12 +249,6 @@ export default function VillageBoundaryMap({
 
       mapRef.current = map;
       setIsReady(true);
-      
-      // Notify parent that map is ready
-      if (onMapReady) {
-        console.log('✅ VillageBoundaryMap: Calling onMapReady callback');
-        onMapReady(map);
-      }
     }
 
     return () => {
@@ -719,29 +707,6 @@ export default function VillageBoundaryMap({
 
     return () => clearTimeout(timeout);
   }, [selectedVillageToView, isReady, onViewComplete]);
-
-  // Handle pending zoom (for zoom after tab switch)
-  useEffect(() => {
-    if (pendingZoom && mapRef.current && isReady) {
-      console.log('🎯 VillageBoundaryMap: Executing pendingZoom:', pendingZoom);
-      
-      setTimeout(() => {
-        if (mapRef.current) {
-          mapRef.current.setView(
-            [pendingZoom.lat, pendingZoom.lng],
-            pendingZoom.zoom,
-            { animate: true, duration: 1.5 }
-          );
-          
-          toast.success('📍 ซูมไปศูนย์กลางตำบลเวียง - กรุณาวาดขอบเขตใหม่');
-          
-          if (onZoomComplete) {
-            onZoomComplete();
-          }
-        }
-      }, 300); // รอให้ map render เสร็จ
-    }
-  }, [pendingZoom, isReady, onZoomComplete]);
 
   // Handle map layer type changes
   useEffect(() => {

@@ -10,7 +10,6 @@ import GeoJSONUploader from '../../components/GeoJSONUploader';
 import boundariesService, { type VillageBoundary, type CreateBoundaryDto, type UpdateBoundaryDto } from '../../services/boundariesService';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
-import L from 'leaflet';
 import './VillageBoundariesPage.css';
 
 interface CoordinateMarker {
@@ -81,12 +80,6 @@ export default function VillageBoundariesPage() {
   // Track if user has made changes (for edit mode)
   const [hasUserChanges, setHasUserChanges] = useState(false);
 
-  // Map instance ref for direct zoom control
-  const mapInstanceRef = useRef<L.Map | null>(null);
-
-  // Pending zoom state (for zoom after tab switch)
-  const [pendingZoom, setPendingZoom] = useState<{lat: number, lng: number, zoom: number} | null>(null);
-
   // Preview modal state
   const [showPreview, setShowPreview] = useState(false);
   const [previewData, setPreviewData] = useState<{
@@ -102,8 +95,6 @@ export default function VillageBoundariesPage() {
     loadBoundaries();
   }, []);
 
-  // Note: pendingZoom is now handled by VillageBoundaryMap component via props
-  
   // Keyboard shortcuts for Undo/Redo
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -222,13 +213,6 @@ export default function VillageBoundariesPage() {
     setDrawHistory([]);
     setHistoryIndex(-1);
     console.log('🗑️ History cleared');
-  };
-
-  // Handle map ready callback
-  const handleMapReady = (map: L.Map) => {
-    mapInstanceRef.current = map;
-    console.log('✅ VillageBoundariesPage: Map instance received and stored');
-    // Note: pendingZoom is now handled by VillageBoundaryMap component
   };
 
   // ล้างการวาดและวาดใหม่
@@ -521,12 +505,55 @@ export default function VillageBoundariesPage() {
         } else {
           console.warn('⚠️ No existing boundary found, user will draw new one');
           
-          // Set pending zoom (will execute when map is ready after tab switch)
-          console.log('📍 Setting pending zoom to tambon center');
-          setPendingZoom({ lat: 19.9200, lng: 99.2150, zoom: 14 });
-          
-          // Switch to map tab (map will mount and call onMapReady)
+          // Switch to map tab first
           setActiveTab('map');
+          
+          // Force zoom using interval retry (more reliable than setTimeout)
+          let attempts = 0;
+          const maxAttempts = 15; // Try for 4.5 seconds
+          const tambonCenter = { lat: 19.9200, lng: 99.2150 };
+          
+          const zoomInterval = setInterval(() => {
+            attempts++;
+            console.log(`🔍 Zoom attempt ${attempts}/${maxAttempts}`);
+            
+            // Try multiple selectors
+            const mapElement = document.querySelector('.leaflet-container') || 
+                              document.querySelector('[class*="leaflet"]');
+            
+            if (mapElement) {
+              // Try multiple ways to get map instance
+              const map = (mapElement as any)._leaflet_map || 
+                         (mapElement as any).__leaflet_map__ ||
+                         (window as any).leafletMap;
+              
+              if (map && typeof map.setView === 'function') {
+                clearInterval(zoomInterval);
+                console.log('✅ Map found! Zooming to:', tambonCenter);
+                
+                try {
+                  map.setView([tambonCenter.lat, tambonCenter.lng], 14, { 
+                    animate: true,
+                    duration: 1.5
+                  });
+                  
+                  toast.success('📍 ซูมไปศูนย์กลางตำบลเวียง - กรุณาวาดขอบเขตใหม่');
+                  console.log('✅ Zoom successful!');
+                } catch (err) {
+                  console.error('❌ Zoom error:', err);
+                  toast.error('ไม่สามารถซูมได้ กรุณาเลื่อนไปที่ตำบลเวียงเอง');
+                }
+                return;
+              }
+            }
+            
+            // Give up after max attempts
+            if (attempts >= maxAttempts) {
+              clearInterval(zoomInterval);
+              console.error(`❌ Failed to zoom after ${maxAttempts} attempts`);
+              toast.error('ไม่สามารถซูมได้ กรุณาเลื่อนไปที่ตำบลเวียงเอง');
+            }
+          }, 300); // Check every 300ms
         }
         
         // Switch to map tab (already done above for new boundary)
@@ -1198,9 +1225,6 @@ export default function VillageBoundariesPage() {
                   selectedVillageToView={selectedVillageToView}
                   onViewComplete={() => setSelectedVillageToView(null)}
                   editingBoundaryId={editingBoundaryId}
-                  onMapReady={handleMapReady}
-                  pendingZoom={pendingZoom}
-                  onZoomComplete={() => setPendingZoom(null)}
                 />
               </div>
 
