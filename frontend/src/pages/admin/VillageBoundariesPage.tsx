@@ -61,6 +61,16 @@ export default function VillageBoundariesPage() {
   // Export selection state
   const [showExportModal, setShowExportModal] = useState(false);
   const [selectedVillagesForExport, setSelectedVillagesForExport] = useState<string[]>([]);
+  
+  // Import batch state
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importFiles, setImportFiles] = useState<File[]>([]);
+  const [importProgress, setImportProgress] = useState<{
+    current: number;
+    total: number;
+    status: 'idle' | 'processing' | 'completed' | 'error';
+    results: Array<{ file: string; status: 'success' | 'error'; error?: string }>;
+  }>({ current: 0, total: 0, status: 'idle', results: [] });
 
   // Load village boundaries
   useEffect(() => {
@@ -552,6 +562,122 @@ export default function VillageBoundariesPage() {
     setSelectedVillagesForExport([]);
   };
 
+  // Import batch functions
+  const handleFilesSelected = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    const fileArray = Array.from(files);
+    const validFiles = fileArray.filter(f => 
+      f.name.endsWith('.json') || f.name.endsWith('.geojson')
+    );
+    
+    if (validFiles.length === 0) {
+      toast.error('กรุณาเลือกไฟล์ GeoJSON (.json หรือ .geojson)');
+      return;
+    }
+    
+    if (validFiles.length !== fileArray.length) {
+      toast(`เลือกเฉพาะไฟล์ GeoJSON ${validFiles.length}/${fileArray.length} ไฟล์`, { icon: '⚠️' });
+    }
+    
+    setImportFiles(validFiles);
+    setImportProgress({ current: 0, total: 0, status: 'idle', results: [] });
+    console.log('📁 Selected files:', validFiles.map(f => f.name));
+  };
+
+  const validateGeoJSON = (data: any): boolean => {
+    try {
+      if (!data || typeof data !== 'object') return false;
+      
+      // Check if it's a Feature or FeatureCollection
+      if (data.type === 'Feature' && data.geometry) return true;
+      if (data.type === 'FeatureCollection' && Array.isArray(data.features)) return true;
+      if (data.type === 'Polygon' && Array.isArray(data.coordinates)) return true;
+      
+      return false;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const handleBatchImport = async () => {
+    if (importFiles.length === 0) {
+      toast.error('กรุณาเลือกไฟล์ก่อน');
+      return;
+    }
+
+    setImportProgress({
+      current: 0,
+      total: importFiles.length,
+      status: 'processing',
+      results: []
+    });
+
+    const results: Array<{ file: string; status: 'success' | 'error'; error?: string }> = [];
+
+    for (let i = 0; i < importFiles.length; i++) {
+      const file = importFiles[i];
+      
+      try {
+        console.log(`📥 Importing ${i + 1}/${importFiles.length}: ${file.name}`);
+        
+        const text = await file.text();
+        const geojson = JSON.parse(text);
+        
+        // Validate GeoJSON
+        if (!validateGeoJSON(geojson)) {
+          throw new Error('รูปแบบ GeoJSON ไม่ถูกต้อง');
+        }
+        
+        // Import to backend
+        const data: CreateBoundaryDto = {
+          name: file.name.replace(/\.(geo)?json$/i, ''),
+          type: 'custom',
+          geojson: geojson,
+        };
+        
+        await boundariesService.uploadGeoJSON(data);
+        
+        results.push({ file: file.name, status: 'success' });
+        console.log(`✅ Imported: ${file.name}`);
+        
+      } catch (error: any) {
+        const errorMsg = error.response?.data?.message || error.message || 'เกิดข้อผิดพลาด';
+        results.push({ file: file.name, status: 'error', error: errorMsg });
+        console.error(`❌ Failed: ${file.name}`, error);
+      }
+      
+      setImportProgress({
+        current: i + 1,
+        total: importFiles.length,
+        status: 'processing',
+        results: [...results]
+      });
+    }
+
+    setImportProgress(prev => ({ ...prev, status: 'completed' }));
+
+    // Show summary
+    const successCount = results.filter(r => r.status === 'success').length;
+    const errorCount = results.filter(r => r.status === 'error').length;
+    
+    if (successCount > 0) {
+      toast.success(`นำเข้าสำเร็จ ${successCount}/${importFiles.length} ไฟล์`);
+    }
+    if (errorCount > 0) {
+      toast.error(`นำเข้าล้มเหลว ${errorCount}/${importFiles.length} ไฟล์`);
+    }
+
+    // Reload boundaries
+    await loadBoundaries();
+  };
+
+  const handleCloseImportModal = () => {
+    setShowImportModal(false);
+    setImportFiles([]);
+    setImportProgress({ current: 0, total: 0, status: 'idle', results: [] });
+  };
+
   return (
     <DashboardLayout>
       <div className="village-boundaries-page">
@@ -593,6 +719,14 @@ export default function VillageBoundariesPage() {
           <div className="header-actions">
             <button className="btn-edit-tambon" onClick={handleEditTambonBoundary}>
               🏛️ แก้ไขขอบเขตตำบล
+            </button>
+            <button 
+              className="btn-import" 
+              onClick={() => setShowImportModal(true)}
+              title="นำเข้าไฟล์ GeoJSON หลายไฟล์พร้อมกัน"
+              style={{ cursor: 'pointer', pointerEvents: 'auto' }}
+            >
+              📁 นำเข้า GeoJSON
             </button>
             <button 
               className="btn-export" 
@@ -1239,6 +1373,133 @@ export default function VillageBoundariesPage() {
                 >
                   📥 ส่งออก {selectedVillagesForExport.length > 0 ? `(${selectedVillagesForExport.length} หมู่)` : 'ทั้งหมด'}
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Import Batch Modal */}
+        {showImportModal && (
+          <div className="modal-overlay" onClick={handleCloseImportModal}>
+            <div className="modal-content import-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>📁 นำเข้า GeoJSON แบบ Batch</h2>
+                <button className="modal-close" onClick={handleCloseImportModal}>✕</button>
+              </div>
+              
+              <div className="modal-body">
+                <p className="modal-description">
+                  เลือกไฟล์ GeoJSON หลายไฟล์เพื่อนำเข้าพร้อมกัน
+                </p>
+                
+                {/* File Input */}
+                <div className="file-input-container">
+                  <input
+                    type="file"
+                    id="batch-import-input"
+                    multiple
+                    accept=".json,.geojson"
+                    onChange={(e) => handleFilesSelected(e.target.files)}
+                    style={{ display: 'none' }}
+                  />
+                  <label htmlFor="batch-import-input" className="file-input-label">
+                    📂 เลือกไฟล์ GeoJSON
+                  </label>
+                  {importFiles.length > 0 && (
+                    <span className="file-count">
+                      เลือกแล้ว: <strong>{importFiles.length}</strong> ไฟล์
+                    </span>
+                  )}
+                </div>
+
+                {/* Files List */}
+                {importFiles.length > 0 && (
+                  <div className="import-files-list">
+                    {importFiles.map((file, index) => {
+                      const result = importProgress.results.find(r => r.file === file.name);
+                      const isProcessing = importProgress.status === 'processing' && index === importProgress.current - 1;
+                      const isDone = result !== undefined;
+                      
+                      return (
+                        <div 
+                          key={index} 
+                          className={`import-file-item ${isDone ? (result.status === 'success' ? 'success' : 'error') : ''} ${isProcessing ? 'processing' : ''}`}
+                        >
+                          <div className="file-icon">
+                            {isDone ? (
+                              result.status === 'success' ? '✅' : '❌'
+                            ) : isProcessing ? (
+                              '⏳'
+                            ) : (
+                              '📄'
+                            )}
+                          </div>
+                          <div className="file-details">
+                            <strong>{file.name}</strong>
+                            <span className="file-size">
+                              {(file.size / 1024).toFixed(2)} KB
+                            </span>
+                            {result && result.status === 'error' && (
+                              <span className="error-message">{result.error}</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Progress Bar */}
+                {importProgress.status === 'processing' && (
+                  <div className="progress-container">
+                    <div className="progress-bar">
+                      <div 
+                        className="progress-fill" 
+                        style={{ width: `${(importProgress.current / importProgress.total) * 100}%` }}
+                      />
+                    </div>
+                    <span className="progress-text">
+                      กำลังนำเข้า {importProgress.current} / {importProgress.total}
+                    </span>
+                  </div>
+                )}
+
+                {/* Results Summary */}
+                {importProgress.status === 'completed' && importProgress.results.length > 0 && (
+                  <div className="import-results">
+                    <div className="result-item success-result">
+                      ✅ สำเร็จ: {importProgress.results.filter(r => r.status === 'success').length} ไฟล์
+                    </div>
+                    {importProgress.results.filter(r => r.status === 'error').length > 0 && (
+                      <div className="result-item error-result">
+                        ❌ ล้มเหลว: {importProgress.results.filter(r => r.status === 'error').length} ไฟล์
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-footer">
+                <button 
+                  className="btn-cancel" 
+                  onClick={handleCloseImportModal}
+                  disabled={importProgress.status === 'processing'}
+                >
+                  {importProgress.status === 'completed' ? '✅ ปิด' : '❌ ยกเลิก'}
+                </button>
+                {importProgress.status !== 'completed' && (
+                  <button 
+                    className="btn-import-confirm" 
+                    onClick={handleBatchImport}
+                    disabled={importFiles.length === 0 || importProgress.status === 'processing'}
+                  >
+                    {importProgress.status === 'processing' ? (
+                      <>⏳ กำลังนำเข้า...</>
+                    ) : (
+                      <>📁 นำเข้าทั้งหมด ({importFiles.length} ไฟล์)</>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </div>
