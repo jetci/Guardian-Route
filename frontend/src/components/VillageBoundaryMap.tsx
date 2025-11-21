@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import 'leaflet-draw/dist/leaflet.draw.css';
-import 'leaflet-draw';
+import '@geoman-io/leaflet-geoman-free';
+import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import toast from 'react-hot-toast';
 import './VillageBoundaryMap.css';
 import { tambonWiangBoundary, tambonBoundaryStyle } from '../data/mapData';
@@ -194,57 +194,88 @@ export default function VillageBoundaryMap({
       map.addLayer(existingBoundariesLayer);
       existingBoundariesLayerRef.current = existingBoundariesLayer;
 
-      // Add drawing controls
-      const drawControl = new L.Control.Draw({
-        edit: {
-          featureGroup: drawnItems,
-        },
-        draw: {
-          polygon: {
-            allowIntersection: false,
-            showArea: false, // Disable to avoid 'type is not defined' error
-            metric: false,
-          },
-          polyline: false,
-          circle: false,
-          circlemarker: false,
-          marker: {},
-          rectangle: {},
-        },
+      // Add Leaflet-Geoman controls (modern drawing tools)
+      map.pm.addControls({
+        position: 'topleft',
+        drawMarker: true,
+        drawCircle: false,
+        drawCircleMarker: false,
+        drawPolyline: false,
+        drawRectangle: true,
+        drawPolygon: true,
+        editMode: true,
+        dragMode: true,
+        cutPolygon: true,
+        removalMode: true,
+        rotateMode: true,
       });
-      map.addControl(drawControl);
 
-      // Handle draw created
-      map.on(L.Draw.Event.CREATED, (e: any) => {
+      // Set Geoman to work with our feature group
+      map.pm.setGlobalOptions({
+        layerGroup: drawnItems,
+      });
+
+      // Handle shape created
+      map.on('pm:create', (e: any) => {
         const layer = e.layer;
         drawnItems.addLayer(layer);
 
         // Convert to GeoJSON
         const geojson = layer.toGeoJSON();
         
-        toast.success('ขอบเขตถูกวาดเรียบร้อย');
+        toast.success('✅ วาดขอบเขตเรียบร้อย');
+        console.log('🎨 Shape created:', geojson);
         
         if (onBoundaryDrawn) {
           onBoundaryDrawn(geojson);
         }
       });
 
-      // Handle draw edited
-      map.on(L.Draw.Event.EDITED, (e: any) => {
-        toast.success('แก้ไขขอบเขตเรียบร้อย');
+      // Handle shape edited
+      map.on('pm:edit', (e: any) => {
+        toast.success('✏️ แก้ไขขอบเขตเรียบร้อย');
         
-        const layers = e.layers;
-        layers.eachLayer((layer: any) => {
-          const geojson = layer.toGeoJSON();
-          if (onBoundaryDrawn) {
-            onBoundaryDrawn(geojson);
-          }
-        });
+        const layer = e.layer;
+        const geojson = layer.toGeoJSON();
+        console.log('✏️ Shape edited:', geojson);
+        
+        if (onBoundaryDrawn) {
+          onBoundaryDrawn(geojson);
+        }
       });
 
-      // Handle draw deleted
-      map.on(L.Draw.Event.DELETED, () => {
-        toast.success('ลบขอบเขตเรียบร้อย');
+      // Handle shape removed
+      map.on('pm:remove', (e: any) => {
+        toast.success('🗑️ ลบขอบเขตเรียบร้อย');
+        console.log('🗑️ Shape removed:', e.layer);
+      });
+
+      // Handle shape cut
+      map.on('pm:cut', (e: any) => {
+        toast.success('✂️ ตัดขอบเขตเรียบร้อย');
+        console.log('✂️ Shape cut:', e);
+      });
+
+      // Handle shape rotated
+      map.on('pm:rotate', (e: any) => {
+        toast.success('↻ หมุนขอบเขตเรียบร้อย');
+        console.log('↻ Shape rotated:', e.layer);
+        
+        const geojson = e.layer.toGeoJSON();
+        if (onBoundaryDrawn) {
+          onBoundaryDrawn(geojson);
+        }
+      });
+
+      // Handle shape dragged
+      map.on('pm:dragend', (e: any) => {
+        toast.success('⊕ ย้ายขอบเขตเรียบร้อย');
+        console.log('⊕ Shape dragged:', e.layer);
+        
+        const geojson = e.layer.toGeoJSON();
+        if (onBoundaryDrawn) {
+          onBoundaryDrawn(geojson);
+        }
       });
 
       mapRef.current = map;
