@@ -11,6 +11,7 @@ import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import 'leaflet/dist/leaflet.css';
 import toast from 'react-hot-toast';
 import { VILLAGE_NAMES, TAMBON_INFO } from '../../data/villages';
+import { fetchVillages, type Village } from '../../services/villageService';
 
 const VILLAGES = VILLAGE_NAMES;
 
@@ -19,12 +20,15 @@ export default function SurveyAreaPage() {
   const mapInstanceRef = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
   const gpsMarkerRef = useRef<L.Marker | null>(null);
+  const villageBoundariesRef = useRef<Map<number, L.GeoJSON>>(new Map());
   
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
   const [drawnArea, setDrawnArea] = useState<any>(null);
   const [areaSize, setAreaSize] = useState<number | null>(null);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [villages, setVillages] = useState<Village[]>([]);
+  const [selectedVillage, setSelectedVillage] = useState<Village | null>(null);
   const [formData, setFormData] = useState({
     disasterType: '',
     severity: '',
@@ -117,6 +121,156 @@ export default function SurveyAreaPage() {
       }
     };
   }, []);
+
+  // Fetch villages and display boundaries
+  useEffect(() => {
+    const loadVillages = async () => {
+      try {
+        const villagesData = await fetchVillages();
+        setVillages(villagesData);
+        console.log('✅ Loaded villages:', villagesData.length);
+        
+        // Display boundaries on map after a short delay
+        setTimeout(() => {
+          displayVillageBoundaries(villagesData);
+        }, 500);
+      } catch (error) {
+        console.error('Error loading villages:', error);
+        toast.error('ไม่สามารถโหลดข้อมูลหมู่บ้านได้');
+      }
+    };
+    
+    loadVillages();
+  }, []);
+
+  // Display village boundaries on map
+  const displayVillageBoundaries = (villagesData: Village[]) => {
+    if (!mapInstanceRef.current) return;
+    
+    const map = mapInstanceRef.current;
+    
+    villagesData.forEach(village => {
+      if (village.boundary && village.boundary.length > 0) {
+        // Create GeoJSON layer
+        const geoJsonLayer = L.geoJSON({
+          type: 'Feature',
+          properties: {
+            villageId: village.id,
+            villageName: village.name,
+            villageNo: village.moo
+          },
+          geometry: {
+            type: 'Polygon',
+            coordinates: [village.boundary.map(coord => [coord[1], coord[0]])] // [lat, lng] -> [lng, lat]
+          }
+        }, {
+          style: {
+            color: '#3388ff',
+            weight: 2,
+            opacity: 0.6,
+            fillOpacity: 0.1
+          }
+        });
+        
+        // Bind popup
+        geoJsonLayer.bindPopup(`
+          <div style="text-align: center;">
+            <strong style="font-size: 16px;">หมู่ ${village.moo}</strong><br/>
+            <span style="font-size: 14px;">${village.name}</span><br/>
+            <span style="font-size: 12px; color: #666;">👥 ${village.households || 0} ครัวเรือน</span>
+          </div>
+        `);
+        
+        // Bind tooltip
+        geoJsonLayer.bindTooltip(`หมู่ ${village.moo}`, {
+          permanent: false,
+          direction: 'center',
+          className: 'village-tooltip'
+        });
+        
+        // Click event
+        geoJsonLayer.on('click', () => {
+          handleVillageClick(village);
+        });
+        
+        geoJsonLayer.addTo(map);
+        villageBoundariesRef.current.set(village.moo, geoJsonLayer);
+      }
+    });
+    
+    console.log('✅ Displayed', villageBoundariesRef.current.size, 'village boundaries');
+  };
+
+  // Handle village selection from dropdown
+  const handleVillageSelect = (villageId: string) => {
+    if (!villageId) {
+      setSelectedVillage(null);
+      resetHighlight();
+      return;
+    }
+    
+    const village = villages.find(v => v.id === parseInt(villageId));
+    if (village) {
+      setSelectedVillage(village);
+      setFormData({...formData, village: village.name});
+      highlightVillage(village);
+      zoomToVillage(village);
+      toast.success(`เลือกหมู่ ${village.moo} - ${village.name}`);
+    }
+  };
+
+  // Handle village click from map
+  const handleVillageClick = (village: Village) => {
+    setSelectedVillage(village);
+    setFormData({...formData, village: village.name});
+    highlightVillage(village);
+    zoomToVillage(village);
+    toast.success(`เลือกหมู่ ${village.moo} - ${village.name}`);
+  };
+
+  // Highlight selected village
+  const highlightVillage = (village: Village) => {
+    // Reset all styles
+    resetHighlight();
+    
+    // Highlight selected village
+    const layer = villageBoundariesRef.current.get(village.moo);
+    if (layer) {
+      layer.setStyle({
+        color: '#ff6b6b',
+        weight: 3,
+        opacity: 1,
+        fillOpacity: 0.3
+      });
+      layer.bringToFront();
+    }
+  };
+
+  // Reset highlight
+  const resetHighlight = () => {
+    villageBoundariesRef.current.forEach(layer => {
+      layer.setStyle({
+        color: '#3388ff',
+        weight: 2,
+        opacity: 0.6,
+        fillOpacity: 0.1
+      });
+    });
+  };
+
+  // Zoom to village
+  const zoomToVillage = (village: Village) => {
+    if (!mapInstanceRef.current) return;
+    
+    const layer = villageBoundariesRef.current.get(village.moo);
+    if (layer) {
+      const bounds = layer.getBounds();
+      mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
+    } else if (village.lat && village.lng) {
+      // Fallback to center point
+      mapInstanceRef.current.setView([village.lat, village.lng], 15);
+    }
+  };
 
   // Get current location
   const handleGetLocation = () => {
@@ -294,6 +448,39 @@ export default function SurveyAreaPage() {
           <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px' }}>📝 บันทึกข้อมูลการสำรวจ</h2>
           
           <form onSubmit={handleSubmit}>
+            {/* Village Selector */}
+            <div style={{ marginBottom: '20px', padding: '16px', background: '#f0f9ff', borderRadius: '8px', border: '2px solid #bfdbfe' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e40af' }}>
+                🏘️ เลือกหมู่บ้าน *
+              </label>
+              <select
+                value={selectedVillage?.id || ''}
+                onChange={(e) => handleVillageSelect(e.target.value)}
+                style={{ 
+                  width: '100%', 
+                  padding: '12px', 
+                  border: '2px solid #3b82f6', 
+                  borderRadius: '8px', 
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  background: 'white'
+                }}
+                required
+              >
+                <option value="">-- เลือกหมู่บ้าน หรือคลิกบนแผนที่ --</option>
+                {villages.map(v => (
+                  <option key={v.id} value={v.id}>
+                    หมู่ {v.moo} - {v.name} {v.households ? `(${v.households} ครัวเรือน)` : ''}
+                  </option>
+                ))}
+              </select>
+              {selectedVillage && (
+                <div style={{ marginTop: '12px', padding: '10px', background: 'white', borderRadius: '6px', fontSize: '13px' }}>
+                  <strong style={{ color: '#1e40af' }}>✅ เลือกแล้ว:</strong> หมู่ {selectedVillage.moo} - {selectedVillage.name}
+                </div>
+              )}
+            </div>
+            
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '20px' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>ประเภทภัย *</label>
@@ -326,21 +513,6 @@ export default function SurveyAreaPage() {
                   <option value="3">3 - รุนแรง</option>
                   <option value="4">4 - รุนแรงมาก</option>
                   <option value="5">5 - ภัยพิบัติ</option>
-                </select>
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>หมู่บ้าน *</label>
-                <select
-                  value={formData.village}
-                  onChange={(e) => setFormData({...formData, village: e.target.value})}
-                  style={{ width: '100%', padding: '10px', border: '2px solid #e2e8f0', borderRadius: '8px', fontSize: '14px' }}
-                  required
-                >
-                  <option value="">เลือกหมู่บ้าน</option>
-                  {VILLAGES.map((v, i) => (
-                    <option key={i} value={v}>{v}</option>
-                  ))}
                 </select>
               </div>
               
