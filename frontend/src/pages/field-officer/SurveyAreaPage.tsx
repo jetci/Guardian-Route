@@ -405,6 +405,39 @@ export default function SurveyAreaPage() {
             </button>
           </div>
           
+          {/* Village Selector */}
+          <div style={{ marginBottom: '16px', padding: '16px', background: '#f0f9ff', borderRadius: '8px', border: '2px solid #bfdbfe' }}>
+            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e40af' }}>
+              🏘️ เลือกหมู่บ้าน *
+            </label>
+            <select
+              value={selectedVillage?.id || ''}
+              onChange={(e) => handleVillageSelect(e.target.value)}
+              style={{ 
+                width: '100%', 
+                padding: '12px', 
+                border: '2px solid #3b82f6', 
+                borderRadius: '8px', 
+                fontSize: '14px',
+                fontWeight: '500',
+                background: 'white'
+              }}
+              required
+            >
+              <option value="">-- เลือกหมู่บ้าน หรือคลิกบนแผนที่ --</option>
+              {villages.map(v => (
+                <option key={v.id} value={v.id}>
+                  หมู่ {v.moo} - {v.name} {v.households ? `(${v.households} ครัวเรือน)` : ''}
+                </option>
+              ))}
+            </select>
+            {selectedVillage && (
+              <div style={{ marginTop: '12px', padding: '10px', background: 'white', borderRadius: '6px', fontSize: '13px' }}>
+                <strong style={{ color: '#1e40af' }}>✅ เลือกแล้ว:</strong> หมู่ {selectedVillage.moo} - {selectedVillage.name}
+              </div>
+            )}
+          </div>
+          
           {currentLocation && (
             <div style={{ padding: '12px', background: '#f0fdf4', borderRadius: '8px', marginBottom: '16px', border: '1px solid #86efac' }}>
               <strong style={{ color: '#16a34a' }}>✅ ตำแหน่งปัจจุบัน:</strong>
@@ -448,39 +481,6 @@ export default function SurveyAreaPage() {
           <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '20px' }}>📝 บันทึกข้อมูลการสำรวจ</h2>
           
           <form onSubmit={handleSubmit}>
-            {/* Village Selector */}
-            <div style={{ marginBottom: '20px', padding: '16px', background: '#f0f9ff', borderRadius: '8px', border: '2px solid #bfdbfe' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e40af' }}>
-                🏘️ เลือกหมู่บ้าน *
-              </label>
-              <select
-                value={selectedVillage?.id || ''}
-                onChange={(e) => handleVillageSelect(e.target.value)}
-                style={{ 
-                  width: '100%', 
-                  padding: '12px', 
-                  border: '2px solid #3b82f6', 
-                  borderRadius: '8px', 
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  background: 'white'
-                }}
-                required
-              >
-                <option value="">-- เลือกหมู่บ้าน หรือคลิกบนแผนที่ --</option>
-                {villages.map(v => (
-                  <option key={v.id} value={v.id}>
-                    หมู่ {v.moo} - {v.name} {v.households ? `(${v.households} ครัวเรือน)` : ''}
-                  </option>
-                ))}
-              </select>
-              {selectedVillage && (
-                <div style={{ marginTop: '12px', padding: '10px', background: 'white', borderRadius: '6px', fontSize: '13px' }}>
-                  <strong style={{ color: '#1e40af' }}>✅ เลือกแล้ว:</strong> หมู่ {selectedVillage.moo} - {selectedVillage.name}
-                </div>
-              )}
-            </div>
-            
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '20px' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>ประเภทภัย *</label>
