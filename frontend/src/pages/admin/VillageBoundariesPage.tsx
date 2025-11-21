@@ -505,61 +505,30 @@ export default function VillageBoundariesPage() {
         } else {
           console.warn('⚠️ No existing boundary found, user will draw new one');
           
-          // Switch to map tab first
-          setActiveTab('map');
-          
-          // Force zoom using interval retry (more reliable than setTimeout)
-          let attempts = 0;
-          const maxAttempts = 15; // Try for 4.5 seconds
-          const tambonCenter = { lat: 19.9200, lng: 99.2150 };
-          
-          const zoomInterval = setInterval(() => {
-            attempts++;
-            console.log(`🔍 Zoom attempt ${attempts}/${maxAttempts}`);
-            
-            // Try multiple selectors
-            const mapElement = document.querySelector('.leaflet-container') || 
-                              document.querySelector('[class*="leaflet"]');
-            
-            if (mapElement) {
-              // Try multiple ways to get map instance
-              const map = (mapElement as any)._leaflet_map || 
-                         (mapElement as any).__leaflet_map__ ||
-                         (window as any).leafletMap;
-              
-              if (map && typeof map.setView === 'function') {
-                clearInterval(zoomInterval);
-                console.log('✅ Map found! Zooming to:', tambonCenter);
-                
-                try {
-                  map.setView([tambonCenter.lat, tambonCenter.lng], 14, { 
-                    animate: true,
-                    duration: 1.5
-                  });
-                  
-                  toast.success('📍 ซูมไปศูนย์กลางตำบลเวียง - กรุณาวาดขอบเขตใหม่');
-                  console.log('✅ Zoom successful!');
-                } catch (err) {
-                  console.error('❌ Zoom error:', err);
-                  toast.error('ไม่สามารถซูมได้ กรุณาเลื่อนไปที่ตำบลเวียงเอง');
-                }
-                return;
-              }
+          // Use the same mechanism as existing boundaries - setSelectedVillageToView
+          // But with tambon center point instead of boundary
+          const tambonCenterVillage: VillageBoundary = {
+            id: 'tambon-center-' + villageId,
+            name: villageName,
+            villageNo: villageNo,
+            boundary: null,
+            centerPoint: {
+              type: 'Point',
+              coordinates: [99.2150, 19.9200]  // lng, lat (GeoJSON format)
             }
-            
-            // Give up after max attempts
-            if (attempts >= maxAttempts) {
-              clearInterval(zoomInterval);
-              console.error(`❌ Failed to zoom after ${maxAttempts} attempts`);
-              toast.error('ไม่สามารถซูมได้ กรุณาเลื่อนไปที่ตำบลเวียงเอง');
-            }
-          }, 300); // Check every 300ms
+          };
+          
+          console.log('📍 Setting tambon center to view for new boundary:', tambonCenterVillage);
+          setSelectedVillageToView(tambonCenterVillage);
+          
+          toast('📍 ซูมไปศูนย์กลางตำบลเวียง - กรุณาวาดขอบเขตใหม่', { 
+            icon: '🗺️',
+            duration: 5000
+          });
         }
         
-        // Switch to map tab (already done above for new boundary)
-        if (existingBoundary) {
-          setActiveTab('map');
-        }
+        // Switch to map tab
+        setActiveTab('map');
       }
     } catch (error) {
       console.error('Error loading boundary for edit:', error);
