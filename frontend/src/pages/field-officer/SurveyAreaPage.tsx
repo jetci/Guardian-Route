@@ -17,8 +17,14 @@ const VILLAGES = VILLAGE_NAMES;
 export default function SurveyAreaPage() {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
+  const gpsMarkerRef = useRef<L.Marker | null>(null);
+  
   const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
   const [drawnArea, setDrawnArea] = useState<any>(null);
+  const [areaSize, setAreaSize] = useState<number | null>(null);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     disasterType: '',
     severity: '',
@@ -40,6 +46,11 @@ export default function SurveyAreaPage() {
       maxZoom: 18,
     }).addTo(map);
 
+    // Add FeatureGroup for drawn items
+    const drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+    drawnItemsRef.current = drawnItems;
+
     // Add Geoman controls
     map.pm.addControls({
       position: 'topleft',
@@ -55,17 +66,45 @@ export default function SurveyAreaPage() {
       removalMode: true,
     });
 
+    // Set Geoman to work with our feature group
+    map.pm.setGlobalOptions({
+      layerGroup: drawnItems,
+    });
+
     // Listen for drawn shapes
     map.on('pm:create', (e: any) => {
       const layer = e.layer;
       if (layer && typeof layer.toGeoJSON === 'function') {
-        setDrawnArea(layer.toGeoJSON());
-        toast.success('✅ วาดขอบเขตพื้นที่เรียบร้อย');
+        const geojson = layer.toGeoJSON();
+        setDrawnArea(geojson);
+        
+        // Calculate area for Polygon/Rectangle
+        if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
+          const latlngs = layer.getLatLngs()[0] as L.LatLng[];
+          let area = 0;
+          
+          // Simple area calculation using Shoelace formula
+          for (let i = 0; i < latlngs.length; i++) {
+            const j = (i + 1) % latlngs.length;
+            area += latlngs[i].lat * latlngs[j].lng;
+            area -= latlngs[j].lat * latlngs[i].lng;
+          }
+          area = Math.abs(area / 2);
+          
+          // Convert to km² (rough approximation)
+          const areaKm2 = area * 111 * 111 * Math.cos(latlngs[0].lat * Math.PI / 180);
+          setAreaSize(parseFloat(areaKm2.toFixed(4)));
+          
+          toast.success(`✅ วาดขอบเขตพื้นที่เรียบร้อย (${areaKm2.toFixed(4)} ตร.กม.)`);
+        } else {
+          toast.success('✅ วาดขอบเขตพื้นที่เรียบร้อย');
+        }
       }
     });
 
     map.on('pm:remove', () => {
       setDrawnArea(null);
+      setAreaSize(null);
       toast('ลบขอบเขตพื้นที่แล้ว', { icon: 'ℹ️' });
     });
 
@@ -96,8 +135,13 @@ export default function SurveyAreaPage() {
         if (mapInstanceRef.current) {
           mapInstanceRef.current.setView([latitude, longitude], 15);
           
-          // Add marker
-          L.marker([latitude, longitude], {
+          // Remove old GPS marker if exists
+          if (gpsMarkerRef.current) {
+            mapInstanceRef.current.removeLayer(gpsMarkerRef.current);
+          }
+          
+          // Add new marker
+          const newMarker = L.marker([latitude, longitude], {
             icon: L.divIcon({
               className: 'custom-marker',
               html: '<div style="background: #3b82f6; color: white; padding: 8px 12px; border-radius: 20px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">📍 ตำแหน่งปัจจุบัน</div>',
@@ -105,6 +149,8 @@ export default function SurveyAreaPage() {
               iconAnchor: [75, 40]
             })
           }).addTo(mapInstanceRef.current);
+          
+          gpsMarkerRef.current = newMarker;
         }
         
         toast.dismiss();
@@ -135,12 +181,41 @@ export default function SurveyAreaPage() {
       return;
     }
     
-    toast.success('✅ บันทึกข้อมูลการสำรวจเรียบร้อย');
+    // Log data (TODO: Send to API)
     console.log('Survey Data:', {
       location: currentLocation,
       area: drawnArea,
+      areaSize: areaSize,
+      images: selectedImages,
       ...formData
     });
+    
+    toast.success('✅ บันทึกข้อมูลการสำรวจเรียบร้อย');
+    
+    // Reset form
+    setFormData({
+      disasterType: '',
+      severity: '',
+      village: '',
+      description: '',
+      estimatedHouseholds: ''
+    });
+    setDrawnArea(null);
+    setAreaSize(null);
+    setCurrentLocation(null);
+    setSelectedImages([]);
+    setImagePreviews([]);
+    
+    // Clear map layers
+    if (drawnItemsRef.current) {
+      drawnItemsRef.current.clearLayers();
+    }
+    
+    // Remove GPS marker
+    if (gpsMarkerRef.current && mapInstanceRef.current) {
+      mapInstanceRef.current.removeLayer(gpsMarkerRef.current);
+      gpsMarkerRef.current = null;
+    }
   };
 
   return (
@@ -181,6 +256,15 @@ export default function SurveyAreaPage() {
               <strong style={{ color: '#16a34a' }}>✅ ตำแหน่งปัจจุบัน:</strong>
               <span style={{ marginLeft: '8px', color: '#166534' }}>
                 Lat: {currentLocation.lat.toFixed(6)}, Lng: {currentLocation.lng.toFixed(6)}
+              </span>
+            </div>
+          )}
+          
+          {areaSize && (
+            <div style={{ padding: '12px', background: '#eff6ff', borderRadius: '8px', marginBottom: '16px', border: '1px solid #93c5fd' }}>
+              <strong style={{ color: '#1e40af' }}>📏 พื้นที่ที่วาด:</strong>
+              <span style={{ marginLeft: '8px', color: '#1e3a8a', fontSize: '16px', fontWeight: '600' }}>
+                {areaSize} ตร.กม.
               </span>
             </div>
           )}
@@ -289,8 +373,74 @@ export default function SurveyAreaPage() {
                 type="file"
                 accept="image/*"
                 multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  setSelectedImages(files);
+                  
+                  // Create previews
+                  const previews = files.map(file => URL.createObjectURL(file));
+                  setImagePreviews(previews);
+                  
+                  if (files.length > 0) {
+                    toast.success(`✅ เลือก ${files.length} รูปภาพ`);
+                  }
+                }}
                 style={{ width: '100%', padding: '10px', border: '2px solid #e2e8f0', borderRadius: '8px', fontSize: '14px' }}
               />
+              
+              {imagePreviews.length > 0 && (
+                <div style={{ marginTop: '16px' }}>
+                  <strong style={{ fontSize: '14px', color: '#4a5568', marginBottom: '8px', display: 'block' }}>
+                    📸 ภาพที่เลือก ({imagePreviews.length} รูป)
+                  </strong>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '12px' }}>
+                    {imagePreviews.map((preview, i) => (
+                      <div key={i} style={{ position: 'relative' }}>
+                        <img 
+                          src={preview} 
+                          alt={`Preview ${i+1}`} 
+                          style={{ 
+                            width: '100%', 
+                            height: '150px', 
+                            objectFit: 'cover', 
+                            borderRadius: '8px',
+                            border: '2px solid #e2e8f0'
+                          }} 
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newImages = selectedImages.filter((_, idx) => idx !== i);
+                            const newPreviews = imagePreviews.filter((_, idx) => idx !== i);
+                            setSelectedImages(newImages);
+                            setImagePreviews(newPreviews);
+                            toast('ลบรูปภาพแล้ว', { icon: 'ℹ️' });
+                          }}
+                          style={{
+                            position: 'absolute',
+                            top: '8px',
+                            right: '8px',
+                            background: '#ef4444',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '50%',
+                            width: '28px',
+                            height: '28px',
+                            cursor: 'pointer',
+                            fontSize: '16px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             
             <button
