@@ -1707,3 +1707,120 @@
     flex: 0 0 auto;
   }
 }
+
+/* Drawing Action Buttons */
+.drawing-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.action-buttons-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-clear,
+.btn-cancel-drawing {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-clear {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-clear:hover {
+  background: #d97706;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.btn-clear:active {
+  transform: translateY(0);
+}
+
+.btn-cancel-drawing {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-cancel-drawing:hover {
+  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.btn-cancel-drawing:active {
+  transform: translateY(0);
+}
+
+.btn-save-full {
+  width: 100%;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-save-full:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.btn-save-full:active {
+  transform: translateY(0);
+}
+
+.btn-cancel-edit {
+  width: 100%;
+  padding: 12px 16px;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel-edit:hover {
+  background: #4b5563;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
+}
+
+.btn-cancel-edit:active {
+  transform: translateY(0);
+}
+
+/* Responsive for drawing actions */
+@media (max-width: 768px) {
+  .action-buttons-row {
+    flex-direction: column;
+  }
+
+  .btn-clear,
+  .btn-cancel-drawing {
+    width: 100%;
+  }
+}

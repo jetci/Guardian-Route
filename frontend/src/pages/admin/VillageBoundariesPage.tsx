@@ -201,6 +201,25 @@ export default function VillageBoundariesPage() {
     console.log('🗑️ History cleared');
   };
 
+  // ล้างการวาดและวาดใหม่
+  const handleClearDrawing = () => {
+    setDrawnBoundary(null);
+    clearHistory();
+    toast.success('🗑️ ล้างการวาดแล้ว - วาดใหม่ได้เลย');
+    console.log('🗑️ Cleared drawing for redraw');
+  };
+
+  // ยกเลิกการวาดทั้งหมด
+  const handleCancelDrawing = () => {
+    setDrawnBoundary(null);
+    setBoundaryName('');
+    setSelectedVillageNo('');
+    setEditingBoundaryId(null);
+    clearHistory();
+    toast('❌ ยกเลิกการวาดแล้ว', { icon: 'ℹ️' });
+    console.log('❌ Cancelled drawing');
+  };
+
   const handleSaveDrawnBoundary = async () => {
     // Validation
     if (!drawnBoundary) {
@@ -1101,13 +1120,36 @@ export default function VillageBoundariesPage() {
                       </optgroup>
                     </select>
                   </div>
-                  <div className="button-group">
-                    <button className="btn-save" onClick={handleSaveDrawnBoundary}>
+                  
+                  {/* Action Buttons */}
+                  <div className="drawing-actions">
+                    {/* Clear and Cancel Buttons */}
+                    <div className="action-buttons-row">
+                      <button 
+                        className="btn-clear"
+                        onClick={handleClearDrawing}
+                        title="ล้างการวาดและวาดใหม่"
+                      >
+                        🗑️ ล้างและวาดใหม่
+                      </button>
+                      <button 
+                        className="btn-cancel-drawing"
+                        onClick={handleCancelDrawing}
+                        title="ยกเลิกการวาดทั้งหมด"
+                      >
+                        ❌ ยกเลิก
+                      </button>
+                    </div>
+                    
+                    {/* Save Button */}
+                    <button className="btn-save-full" onClick={handleSaveDrawnBoundary}>
                       {editingBoundaryId ? '✏️ บันทึกการแก้ไข' : '💾 บันทึกขอบเขต'}
                     </button>
+                    
+                    {/* Cancel Edit Button (only when editing) */}
                     {editingBoundaryId && (
-                      <button className="btn-cancel" onClick={handleCancelEdit}>
-                        ❌ ยกเลิก
+                      <button className="btn-cancel-edit" onClick={handleCancelEdit}>
+                        🔙 ยกเลิกการแก้ไข
                       </button>
                     )}
                   </div>
