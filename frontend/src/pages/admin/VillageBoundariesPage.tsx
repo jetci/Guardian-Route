@@ -222,23 +222,30 @@ export default function VillageBoundariesPage() {
     // Calculate proper center point from polygon
     const calculateCenterPoint = (coordinates: number[][][]): [number, number] => {
       try {
+        // Validate coordinates
+        if (!coordinates || !Array.isArray(coordinates) || coordinates.length === 0) {
+          throw new Error('Invalid coordinates: empty or undefined');
+        }
+        
         const coords = coordinates[0];
-        if (!coords || coords.length === 0) {
-          throw new Error('Invalid coordinates');
+        if (!coords || !Array.isArray(coords) || coords.length === 0) {
+          throw new Error('Invalid coordinates: no points');
         }
         
         // Calculate centroid
         let sumLat = 0, sumLng = 0;
         coords.forEach(coord => {
-          sumLng += coord[0];
-          sumLat += coord[1];
+          if (coord && coord.length >= 2) {
+            sumLng += coord[0];
+            sumLat += coord[1];
+          }
         });
         
         return [sumLng / coords.length, sumLat / coords.length];
       } catch (error) {
         console.error('Error calculating center:', error);
-        // Fallback to first coordinate
-        return [coordinates[0][0][0], coordinates[0][0][1]];
+        // Fallback to safe default (center of Thailand)
+        return [99.0, 18.8];
       }
     };
 
@@ -260,6 +267,11 @@ export default function VillageBoundariesPage() {
         toast.success('บันทึกขอบเขตตำบลสำเร็จ');
       } else if (editingBoundaryId && editingBoundaryId !== 'tambon-wiang') {
         // Update village boundary
+        if (!drawnBoundary.geometry?.coordinates) {
+          toast.dismiss(loadingToast);
+          toast.error('ข้อมูลขอบเขตไม่ถูกต้อง: ไม่มีพิกัด');
+          return;
+        }
         const [lng, lat] = calculateCenterPoint(drawnBoundary.geometry.coordinates);
         const centerPoint = {
           type: 'Point',
@@ -284,6 +296,11 @@ export default function VillageBoundariesPage() {
         }
 
         // Calculate center point from boundary
+        if (!drawnBoundary.geometry?.coordinates) {
+          toast.dismiss(loadingToast);
+          toast.error('ข้อมูลขอบเขตไม่ถูกต้อง: ไม่มีพิกัด');
+          return;
+        }
         const [lng, lat] = calculateCenterPoint(drawnBoundary.geometry.coordinates);
         const centerPoint = {
           type: 'Point',
@@ -1295,7 +1312,7 @@ export default function VillageBoundariesPage() {
                         <strong>{boundary.name}</strong>
                       </td>
                       <td className="coordinates">
-                        {boundary.centerPoint ? (
+                        {boundary.centerPoint?.coordinates && boundary.centerPoint.coordinates.length >= 2 ? (
                           <span className="coord-text">
                             {boundary.centerPoint.coordinates[1].toFixed(4)}, {boundary.centerPoint.coordinates[0].toFixed(4)}
                           </span>
