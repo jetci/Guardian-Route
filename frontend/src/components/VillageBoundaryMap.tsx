@@ -365,43 +365,96 @@ export default function VillageBoundaryMap({
 
   // Load existing boundaries with color-coded villages
   useEffect(() => {
-    if (isReady && drawnItemsRef.current && existingBoundaries.length > 0) {
-      drawnItemsRef.current.clearLayers();
+    if (!isReady || !drawnItemsRef.current) return;
 
+    // Clear all existing layers first
+    drawnItemsRef.current.clearLayers();
+
+    // If no boundaries, exit early
+    if (existingBoundaries.length === 0) return;
+
+    try {
       existingBoundaries.forEach((boundary) => {
-        if (boundary.boundary || boundary.geojson) {
-          const geojson = boundary.boundary || boundary.geojson;
-          const villageColor = boundary.villageNo ? getVillageColor(boundary.villageNo) : '#3388ff';
-          
-          const layer = L.geoJSON(geojson, {
-            style: {
-              color: villageColor,
-              weight: 3,
-              opacity: 0.8,
-              fillOpacity: 0.2,
-            },
+        // Validate boundary data
+        if (!boundary.boundary && !boundary.geojson) {
+          console.warn('Boundary missing geojson data:', boundary);
+          return;
+        }
+
+        const geojson = boundary.boundary || boundary.geojson;
+        const villageColor = boundary.villageNo ? getVillageColor(boundary.villageNo) : '#3388ff';
+        
+        // Create layer with improved styling
+        const layer = L.geoJSON(geojson, {
+          style: {
+            color: villageColor,
+            weight: 2.5,
+            opacity: 0.9,
+            fillColor: villageColor,
+            fillOpacity: 0.25,
+            className: 'village-boundary-layer',
+          },
+        });
+
+        // Add layer to map
+        if (drawnItemsRef.current) {
+          layer.eachLayer((l) => {
+            drawnItemsRef.current!.addLayer(l);
           });
+        }
 
-          if (drawnItemsRef.current) {
-            layer.eachLayer((l) => {
-              drawnItemsRef.current!.addLayer(l);
-            });
-          }
-
-          // Add popup with village info and color indicator
-          if (boundary.name) {
-            layer.bindPopup(`
-              <div style="font-family: sans-serif;">
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                  <div style="width: 16px; height: 16px; background: ${villageColor}; border-radius: 3px; border: 2px solid white; box-shadow: 0 0 3px rgba(0,0,0,0.3);"></div>
-                  <strong style="font-size: 16px;">${boundary.name}</strong>
-                </div>
-                ${boundary.villageNo ? `<span style="color: #666; font-size: 14px;">หมู่ ${boundary.villageNo}</span>` : ''}
-              </div>
-            `);
+        // Calculate area if available
+        let areaText = '';
+        if (boundary.boundary && boundary.boundary.coordinates) {
+          try {
+            const coords = boundary.boundary.coordinates[0];
+            if (coords && coords.length > 0) {
+              // Simple area calculation (approximate)
+              const area = Math.abs(coords.reduce((sum: number, coord: number[], i: number) => {
+                const j = (i + 1) % coords.length;
+                return sum + (coord[0] * coords[j][1] - coords[j][0] * coord[1]);
+              }, 0) / 2);
+              // Convert to square kilometers (rough approximation)
+              const areaKm2 = (area * 111 * 111 / 1000000).toFixed(2);
+              areaText = `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+                <span style="color: #718096; font-size: 13px;">📏 พื้นที่โดยประมาณ: ${areaKm2} ตร.กม.</span>
+              </div>`;
+            }
+          } catch (e) {
+            console.warn('Error calculating area:', e);
           }
         }
+
+        // Add enhanced popup with village info
+        if (boundary.name) {
+          layer.bindPopup(`
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; min-width: 200px;">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <div style="width: 20px; height: 20px; background: ${villageColor}; border-radius: 4px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); flex-shrink: 0;"></div>
+                <div>
+                  <strong style="font-size: 16px; color: #2d3748;">${boundary.name}</strong>
+                  ${boundary.villageNo ? `<div style="color: #718096; font-size: 13px; margin-top: 2px;">หมู่ ${boundary.villageNo}</div>` : ''}
+                </div>
+              </div>
+              ${boundary.centerPoint ? `
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+                  <span style="color: #718096; font-size: 12px;">📍 พิกัดกลาง:</span><br>
+                  <span style="color: #4a5568; font-size: 12px; font-family: monospace;">
+                    ${boundary.centerPoint.coordinates[1].toFixed(6)}, ${boundary.centerPoint.coordinates[0].toFixed(6)}
+                  </span>
+                </div>
+              ` : ''}
+              ${areaText}
+            </div>
+          `, {
+            maxWidth: 300,
+            className: 'village-boundary-popup'
+          });
+        }
       });
+    } catch (error) {
+      console.error('Error loading boundaries:', error);
+      toast.error('เกิดข้อผิดพลาดในการแสดงขอบเขต');
     }
   }, [isReady, existingBoundaries]);
 

@@ -33,6 +33,10 @@ export default function VillageBoundariesPage() {
   const [mapLayerType, setMapLayerType] = useState<'street' | 'satellite' | 'hybrid'>('street');
   const [showVillageLegend, setShowVillageLegend] = useState(true);
   
+  // Search and sort state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'no' | 'name' | 'status'>('no');
+  
   // Georeference overlay state
   const [georeferenceImage, setGeoreferenceImage] = useState<{
     url: string;
@@ -53,6 +57,10 @@ export default function VillageBoundariesPage() {
   
   // Selected village to view on map
   const [selectedVillageToView, setSelectedVillageToView] = useState<VillageBoundary | null>(null);
+  
+  // Export selection state
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [selectedVillagesForExport, setSelectedVillagesForExport] = useState<string[]>([]);
 
   // Load village boundaries
   useEffect(() => {
@@ -104,6 +112,7 @@ export default function VillageBoundariesPage() {
   };
 
   const handleSaveDrawnBoundary = async () => {
+    // Validation
     if (!drawnBoundary) {
       toast.error('กรุณาวาดขอบเขตก่อน');
       return;
@@ -114,7 +123,38 @@ export default function VillageBoundariesPage() {
       return;
     }
 
+    // Validate geometry
+    if (!drawnBoundary.geometry || !drawnBoundary.geometry.coordinates) {
+      toast.error('ข้อมูลขอบเขตไม่ถูกต้อง');
+      return;
+    }
+
+    // Calculate proper center point from polygon
+    const calculateCenterPoint = (coordinates: number[][][]): [number, number] => {
+      try {
+        const coords = coordinates[0];
+        if (!coords || coords.length === 0) {
+          throw new Error('Invalid coordinates');
+        }
+        
+        // Calculate centroid
+        let sumLat = 0, sumLng = 0;
+        coords.forEach(coord => {
+          sumLng += coord[0];
+          sumLat += coord[1];
+        });
+        
+        return [sumLng / coords.length, sumLat / coords.length];
+      } catch (error) {
+        console.error('Error calculating center:', error);
+        // Fallback to first coordinate
+        return [coordinates[0][0][0], coordinates[0][0][1]];
+      }
+    };
+
     try {
+      const loadingToast = toast.loading('กำลังบันทึก...');
+
       // Check if this is tambon boundary
       if (editingBoundaryId === 'tambon-wiang' || selectedVillageNo === 'tambon') {
         // Save tambon boundary
@@ -126,15 +166,14 @@ export default function VillageBoundariesPage() {
             province: 'จังหวัดเชียงใหม่',
           },
         });
+        toast.dismiss(loadingToast);
         toast.success('บันทึกขอบเขตตำบลสำเร็จ');
       } else if (editingBoundaryId && editingBoundaryId !== 'tambon-wiang') {
         // Update village boundary
+        const [lng, lat] = calculateCenterPoint(drawnBoundary.geometry.coordinates);
         const centerPoint = {
           type: 'Point',
-          coordinates: [
-            drawnBoundary.geometry.coordinates[0][0][0],
-            drawnBoundary.geometry.coordinates[0][0][1],
-          ],
+          coordinates: [lng, lat],
         };
         
         await boundariesService.updateVillageBoundary(
@@ -142,24 +181,23 @@ export default function VillageBoundariesPage() {
           drawnBoundary.geometry,
           centerPoint
         );
+        toast.dismiss(loadingToast);
         toast.success('แก้ไขขอบเขตหมู่บ้านสำเร็จ');
       } else if (selectedVillageNo && typeof selectedVillageNo === 'number') {
         // Create new village boundary
-        // Find village by villageNo
         const village = villageBoundaries.find(v => v.villageNo === selectedVillageNo);
         
         if (!village) {
+          toast.dismiss(loadingToast);
           toast.error(`ไม่พบข้อมูลหมู่ ${selectedVillageNo}`);
           return;
         }
 
         // Calculate center point from boundary
+        const [lng, lat] = calculateCenterPoint(drawnBoundary.geometry.coordinates);
         const centerPoint = {
           type: 'Point',
-          coordinates: [
-            drawnBoundary.geometry.coordinates[0][0][0],
-            drawnBoundary.geometry.coordinates[0][0][1],
-          ],
+          coordinates: [lng, lat],
         };
         
         // Save to specific village
@@ -168,6 +206,7 @@ export default function VillageBoundariesPage() {
           drawnBoundary.geometry,
           centerPoint
         );
+        toast.dismiss(loadingToast);
         toast.success(`บันทึกขอบเขตหมู่ ${selectedVillageNo} สำเร็จ`);
       } else {
         // Create generic boundary (no village selected)
@@ -179,6 +218,7 @@ export default function VillageBoundariesPage() {
         };
 
         await boundariesService.saveDrawnBoundary(data);
+        toast.dismiss(loadingToast);
         toast.success('บันทึกขอบเขตสำเร็จ');
       }
       
@@ -189,15 +229,24 @@ export default function VillageBoundariesPage() {
       setEditingBoundaryId(null);
       
       // Reload boundaries
-      loadBoundaries();
+      await loadBoundaries();
     } catch (error: any) {
       console.error('Error saving boundary:', error);
-      toast.error(editingBoundaryId ? 'ไม่สามารถแก้ไขขอบเขตได้' : 'ไม่สามารถบันทึกขอบเขตได้');
+      const errorMessage = error.response?.data?.message || error.message || 'เกิดข้อผิดพลาด';
+      toast.error(editingBoundaryId ? `ไม่สามารถแก้ไขขอบเขตได้: ${errorMessage}` : `ไม่สามารถบันทึกขอบเขตได้: ${errorMessage}`);
     }
   };
 
   const handleGeoJSONUpload = async (geojson: any, filename: string) => {
     try {
+      // Validate GeoJSON structure
+      if (!geojson || typeof geojson !== 'object') {
+        toast.error('ไฟล์ GeoJSON ไม่ถูกต้อง');
+        return;
+      }
+
+      const loadingToast = toast.loading('กำลังอัปโหลด...');
+
       const data: CreateBoundaryDto = {
         name: filename.replace(/\.(geo)?json$/i, ''),
         type: 'custom',
@@ -205,23 +254,50 @@ export default function VillageBoundariesPage() {
       };
 
       await boundariesService.uploadGeoJSON(data);
+      toast.dismiss(loadingToast);
       toast.success('อัปโหลด GeoJSON สำเร็จ');
-      loadBoundaries();
+      await loadBoundaries();
     } catch (error: any) {
       console.error('Error uploading GeoJSON:', error);
-      toast.error('ไม่สามารถอัปโหลด GeoJSON ได้');
+      const errorMessage = error.response?.data?.message || error.message || 'เกิดข้อผิดพลาด';
+      toast.error(`ไม่สามารถอัปโหลด GeoJSON ได้: ${errorMessage}`);
     }
   };
 
   const handleEditBoundary = async (villageId: string, villageName: string, villageNo: number) => {
     try {
-      // In real app, fetch the full boundary data
-      // For now, we'll set edit mode and let user redraw
-      setEditingBoundaryId(villageId);
-      setBoundaryName(villageName);
-      setSelectedVillageNo(villageNo);
-      setActiveTab('map');
-      toast('กรุณาวาดขอบเขตใหม่เพื่อแก้ไข', { icon: 'ℹ️' });
+      // Confirm before editing
+      const result = await Swal.fire({
+        title: '✏️ แก้ไขขอบเขต',
+        html: `
+          <p>คุณต้องการแก้ไขขอบเขตของ:</p>
+          <div style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3b82f6;">
+            <strong style="font-size: 18px; color: #3b82f6;">หมู่ ${villageNo} - ${villageName}</strong>
+          </div>
+          <div style="margin-top: 15px; padding: 12px; background: #e3f2fd; border-radius: 8px;">
+            <small style="color: #1976d2;">
+              ℹ️ กรุณาวาดขอบเขตใหม่บนแผนที่
+            </small>
+          </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3b82f6',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '✏️ เริ่มแก้ไข',
+        cancelButtonText: '❌ ยกเลิก',
+      });
+
+      if (result.isConfirmed) {
+        setEditingBoundaryId(villageId);
+        setBoundaryName(villageName);
+        setSelectedVillageNo(villageNo);
+        setActiveTab('map');
+        toast('โหมดแก้ไข: วาดขอบเขตใหม่บนแผนที่', { 
+          icon: '✏️',
+          duration: 5000 
+        });
+      }
     } catch (error) {
       console.error('Error loading boundary for edit:', error);
       toast.error('ไม่สามารถโหลดข้อมูลขอบเขตได้');
@@ -402,18 +478,41 @@ export default function VillageBoundariesPage() {
   };
 
   const handleExportGeoJSON = () => {
-    if (villageBoundaries.length === 0) {
+    console.log('🔍 Export button clicked!');
+    console.log('📊 Total villages:', villageBoundaries.length);
+    
+    const withBoundaries = villageBoundaries.filter(v => v.boundary);
+    console.log('✅ Villages with boundaries:', withBoundaries.length);
+    
+    if (withBoundaries.length === 0) {
       toast.error('ไม่มีข้อมูลขอบเขตให้ส่งออก');
+      return;
+    }
+
+    // Show export modal for selection
+    setSelectedVillagesForExport([]);
+    setShowExportModal(true);
+    console.log('✅ Modal should open now!');
+  };
+
+  const handleConfirmExport = () => {
+    const villagesToExport = selectedVillagesForExport.length > 0
+      ? villageBoundaries.filter(v => selectedVillagesForExport.includes(v.id) && v.boundary)
+      : villageBoundaries.filter(v => v.boundary);
+
+    if (villagesToExport.length === 0) {
+      toast.error('กรุณาเลือกหมู่บ้านที่ต้องการส่งออก');
       return;
     }
 
     const featureCollection = {
       type: 'FeatureCollection',
-      features: villageBoundaries.map(v => ({
+      features: villagesToExport.map(v => ({
         type: 'Feature',
         properties: {
           villageNo: v.villageNo,
           name: v.name,
+          id: v.id,
         },
         geometry: v.boundary,
       })),
@@ -425,11 +524,32 @@ export default function VillageBoundariesPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `village-boundaries-${new Date().toISOString().split('T')[0]}.geojson`;
+    const filename = selectedVillagesForExport.length > 0
+      ? `village-boundaries-selected-${villagesToExport.length}-${new Date().toISOString().split('T')[0]}.geojson`
+      : `village-boundaries-all-${new Date().toISOString().split('T')[0]}.geojson`;
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
     
-    toast.success('ส่งออก GeoJSON สำเร็จ');
+    setShowExportModal(false);
+    toast.success(`ส่งออก ${villagesToExport.length} หมู่บ้านสำเร็จ`);
+  };
+
+  const toggleVillageSelection = (villageId: string) => {
+    setSelectedVillagesForExport(prev => 
+      prev.includes(villageId)
+        ? prev.filter(id => id !== villageId)
+        : [...prev, villageId]
+    );
+  };
+
+  const selectAllVillages = () => {
+    const allIds = villageBoundaries.filter(v => v.boundary).map(v => v.id);
+    setSelectedVillagesForExport(allIds);
+  };
+
+  const deselectAllVillages = () => {
+    setSelectedVillagesForExport([]);
   };
 
   return (
@@ -439,12 +559,47 @@ export default function VillageBoundariesPage() {
           <div>
             <h1>🌐 กำหนดขอบเขตหมู่บ้าน</h1>
             <p className="subtitle">เครื่องมือเชิงแผนที่สำหรับวาดและแก้ไขขอบเขตหมู่บ้าน</p>
+            {/* Statistics Summary */}
+            <div style={{ marginTop: '1rem', display: 'flex', gap: '1.5rem', fontSize: '0.95rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>📊 ทั้งหมด:</span>
+                <strong style={{ color: '#fff', fontSize: '1.1rem' }}>{villageBoundaries.length}</strong>
+                <span style={{ color: 'rgba(255, 255, 255, 0.8)' }}>หมู่</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>✅ มีขอบเขต:</span>
+                <strong style={{ color: '#4ade80', fontSize: '1.1rem' }}>
+                  {villageBoundaries.filter(v => v.boundary).length}
+                </strong>
+                <span style={{ color: 'rgba(255, 255, 255, 0.8)' }}>หมู่</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>⚠️ ยังไม่มี:</span>
+                <strong style={{ color: '#fbbf24', fontSize: '1.1rem' }}>
+                  {villageBoundaries.filter(v => !v.boundary).length}
+                </strong>
+                <span style={{ color: 'rgba(255, 255, 255, 0.8)' }}>หมู่</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ color: 'rgba(255, 255, 255, 0.9)' }}>📈 ความสมบูรณ์:</span>
+                <strong style={{ color: '#fff', fontSize: '1.1rem' }}>
+                  {villageBoundaries.length > 0 
+                    ? Math.round((villageBoundaries.filter(v => v.boundary).length / villageBoundaries.length) * 100)
+                    : 0}%
+                </strong>
+              </div>
+            </div>
           </div>
           <div className="header-actions">
             <button className="btn-edit-tambon" onClick={handleEditTambonBoundary}>
               🏛️ แก้ไขขอบเขตตำบล
             </button>
-            <button className="btn-export" onClick={handleExportGeoJSON}>
+            <button 
+              className="btn-export" 
+              onClick={handleExportGeoJSON}
+              title="ส่งออกขอบเขตหมู่บ้านเป็นไฟล์ GeoJSON"
+              style={{ cursor: 'pointer', pointerEvents: 'auto' }}
+            >
               📥 ส่งออก GeoJSON
             </button>
           </div>
@@ -792,24 +947,29 @@ export default function VillageBoundariesPage() {
 
         <div className="boundaries-list">
           <div className="list-header">
-            <h2>📋 รายการขอบเขตที่บันทึกแล้ว ({villageBoundaries.length})</h2>
+            <h2>📋 รายการขอบเขตที่บันทึกแล้ว ({(() => {
+              const filtered = villageBoundaries.filter(b => 
+                b.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                b.villageNo.toString().includes(searchQuery)
+              );
+              return filtered.length;
+            })()})</h2>
             <div className="list-controls">
               <input
                 type="text"
                 className="search-input"
                 placeholder="🔍 ค้นหาหมู่บ้าน..."
-                onChange={(e) => {
-                  const search = e.target.value.toLowerCase();
-                  const filtered = villageBoundaries.filter(b => 
-                    b.name.toLowerCase().includes(search) || 
-                    b.villageNo.toString().includes(search)
-                  );
-                  // Update filtered list (implement state if needed)
-                }}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <select className="sort-select">
+              <select 
+                className="sort-select"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'no' | 'name' | 'status')}
+              >
                 <option value="no">เรียงตามหมู่</option>
                 <option value="name">เรียงตามชื่อ</option>
+                <option value="status">เรียงตามสถานะ</option>
               </select>
             </div>
           </div>
@@ -834,7 +994,29 @@ export default function VillageBoundariesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {villageBoundaries.map((boundary) => {
+                  {(() => {
+                    // Filter boundaries based on search query
+                    let filtered = villageBoundaries.filter(b => 
+                      b.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                      b.villageNo.toString().includes(searchQuery)
+                    );
+                    
+                    // Sort boundaries
+                    filtered = filtered.sort((a, b) => {
+                      if (sortBy === 'no') {
+                        return a.villageNo - b.villageNo;
+                      } else if (sortBy === 'name') {
+                        return a.name.localeCompare(b.name, 'th');
+                      } else if (sortBy === 'status') {
+                        const aHasBoundary = a.boundary ? 1 : 0;
+                        const bHasBoundary = b.boundary ? 1 : 0;
+                        return bHasBoundary - aHasBoundary; // มีขอบเขตก่อน
+                      }
+                      return 0;
+                    });
+                    
+                    return filtered;
+                  })().map((boundary) => {
                     // Function to get village color (same as map)
                     const getVillageColor = (villageNo: number): string => {
                       const colors = [
@@ -938,13 +1120,17 @@ export default function VillageBoundariesPage() {
                             });
 
                             if (result.isConfirmed) {
+                              const loadingToast = toast.loading('กำลังลบขอบเขต...');
                               try {
                                 await boundariesService.deleteVillageBoundary(boundary.id);
+                                toast.dismiss(loadingToast);
                                 toast.success(`ลบขอบเขต ${boundary.name} สำเร็จ`);
-                                loadBoundaries();
-                              } catch (error) {
+                                await loadBoundaries();
+                              } catch (error: any) {
+                                toast.dismiss(loadingToast);
                                 console.error('Error deleting boundary:', error);
-                                toast.error('ไม่สามารถลบขอบเขตได้');
+                                const errorMessage = error.response?.data?.message || error.message || 'เกิดข้อผิดพลาด';
+                                toast.error(`ไม่สามารถลบขอบเขตได้: ${errorMessage}`);
                               }
                             }
                           }}
@@ -961,6 +1147,102 @@ export default function VillageBoundariesPage() {
             </div>
           )}
         </div>
+
+        {/* Export Selection Modal */}
+        {showExportModal && (
+          <div className="modal-overlay" onClick={() => setShowExportModal(false)}>
+            <div className="modal-content export-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>📥 ส่งออกขอบเขตหมู่บ้าน</h2>
+                <button className="modal-close" onClick={() => setShowExportModal(false)}>✕</button>
+              </div>
+              
+              <div className="modal-body">
+                <p className="modal-description">
+                  เลือกหมู่บ้านที่ต้องการส่งออก หรือส่งออกทั้งหมด
+                </p>
+                
+                <div className="selection-controls">
+                  <button 
+                    className="btn-select-all" 
+                    onClick={selectAllVillages}
+                  >
+                    ✅ เลือกทั้งหมด
+                  </button>
+                  <button 
+                    className="btn-deselect-all" 
+                    onClick={deselectAllVillages}
+                  >
+                    ❌ ยกเลิกทั้งหมด
+                  </button>
+                  <span className="selection-count">
+                    เลือกแล้ว: <strong>{selectedVillagesForExport.length}</strong> / {villageBoundaries.filter(v => v.boundary).length} หมู่
+                  </span>
+                </div>
+
+                <div className="villages-selection-list">
+                  {villageBoundaries
+                    .filter(v => v.boundary)
+                    .sort((a, b) => a.villageNo - b.villageNo)
+                    .map((village) => {
+                      const getVillageColor = (villageNo: number): string => {
+                        const colors = [
+                          '#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6',
+                          '#1abc9c', '#e67e22', '#34495e', '#16a085', '#c0392b',
+                          '#27ae60', '#2980b9', '#8e44ad', '#f1c40f', '#d35400',
+                          '#7f8c8d', '#e91e63', '#00bcd4', '#4caf50', '#ff5722',
+                        ];
+                        return colors[(villageNo - 1) % colors.length];
+                      };
+                      
+                      const isSelected = selectedVillagesForExport.includes(village.id);
+                      const color = getVillageColor(village.villageNo);
+                      
+                      return (
+                        <div 
+                          key={village.id} 
+                          className={`village-selection-item ${isSelected ? 'selected' : ''}`}
+                          onClick={() => toggleVillageSelection(village.id)}
+                        >
+                          <div className="village-checkbox">
+                            <input 
+                              type="checkbox" 
+                              checked={isSelected}
+                              onChange={() => {}}
+                            />
+                          </div>
+                          <div 
+                            className="village-color-indicator" 
+                            style={{ backgroundColor: color }}
+                          />
+                          <div className="village-info">
+                            <strong>หมู่ {village.villageNo}</strong>
+                            <span>{village.name}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button 
+                  className="btn-cancel" 
+                  onClick={() => setShowExportModal(false)}
+                >
+                  ❌ ยกเลิก
+                </button>
+                <button 
+                  className="btn-export-confirm" 
+                  onClick={handleConfirmExport}
+                  disabled={selectedVillagesForExport.length === 0}
+                >
+                  📥 ส่งออก {selectedVillagesForExport.length > 0 ? `(${selectedVillagesForExport.length} หมู่)` : 'ทั้งหมด'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
