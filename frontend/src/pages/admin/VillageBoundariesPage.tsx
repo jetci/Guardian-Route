@@ -445,11 +445,13 @@ export default function VillageBoundariesPage() {
             boundary: existingBoundary,
             centerPoint: null
           };
+          console.log('🔍 Setting village to view:', villageToView);
           setSelectedVillageToView(villageToView);
         } else {
           console.warn('⚠️ No existing boundary found, user will draw new one');
         }
         
+        // Switch to map tab
         setActiveTab('map');
         toast('โหมดแก้ไข: ขอบเขตเดิมถูกโหลดแล้ว - แก้ไขแล้วกด "บันทึก"', { 
           icon: '✏️',
@@ -1132,6 +1134,13 @@ export default function VillageBoundariesPage() {
                       <strong>โหมดแก้ไข: {boundaryName}</strong>
                       <p>กำลังแก้ไขขอบเขต หมู่ {selectedVillageNo === 'tambon' ? 'ตำบล' : selectedVillageNo} - แก้ไขแล้วกด "บันทึก"</p>
                     </div>
+                    <button 
+                      className="cancel-edit-button"
+                      onClick={handleCancelDrawing}
+                      title="ยกเลิกการแก้ไข"
+                    >
+                      ❌ ยกเลิก
+                    </button>
                   </div>
                 </div>
               )}

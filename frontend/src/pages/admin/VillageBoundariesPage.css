@@ -1852,6 +1852,32 @@
   flex: 1;
 }
 
+.cancel-edit-button {
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.cancel-edit-button:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  transform: translateY(-2px);
+}
+
+.cancel-edit-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
 .banner-text strong {
   display: block;
   font-size: 1.1rem;
@@ -1892,6 +1918,11 @@
     padding: 1rem;
   }
 
+  .banner-content {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
   .banner-icon {
     font-size: 1.5rem;
   }
@@ -1902,5 +1933,11 @@
 
   .banner-text p {
     font-size: 0.875rem;
+  }
+
+  .cancel-edit-button {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.9rem;
   }
 }

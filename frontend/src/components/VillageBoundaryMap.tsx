@@ -657,6 +657,8 @@ export default function VillageBoundaryMap({
 
     const map = mapRef.current;
     const village = selectedVillageToView;
+    
+    console.log('🗺️ VillageBoundaryMap: Attempting to zoom to village:', village);
 
     // Get coordinates from centerPoint or boundary
     let lat, lng, zoomLevel = 15;
@@ -668,12 +670,14 @@ export default function VillageBoundaryMap({
     } else if (village.boundary?.coordinates && Array.isArray(village.boundary.coordinates) && village.boundary.coordinates.length > 0 && village.boundary.coordinates[0]) {
       // Calculate center from boundary
       const coords = village.boundary.coordinates[0];
+      console.log('📍 Calculating center from boundary coords:', coords);
       if (coords && coords.length > 0) {
         const lats = coords.map((c: number[]) => c[1]).filter((v: number) => v !== undefined);
         const lngs = coords.map((c: number[]) => c[0]).filter((v: number) => v !== undefined);
         if (lats.length > 0 && lngs.length > 0) {
           lat = (Math.min(...lats) + Math.max(...lats)) / 2;
           lng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+          console.log('✅ Calculated center:', { lat, lng });
         } else {
           console.warn('Village boundary has invalid coordinates:', village);
           onViewComplete?.();
@@ -691,6 +695,7 @@ export default function VillageBoundaryMap({
     }
 
     // Fly to village
+    console.log('🚀 Flying to:', { lat, lng, zoomLevel });
     map.flyTo([lat, lng], zoomLevel, {
       duration: 1.5,
     });
