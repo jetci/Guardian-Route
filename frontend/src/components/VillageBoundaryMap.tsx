@@ -50,6 +50,7 @@ interface VillageBoundaryMapProps {
   selectedVillageToView?: any | null;
   onViewComplete?: () => void;
   editingBoundaryId?: string | null;
+  onMapReady?: (map: L.Map) => void;
 }
 
 export default function VillageBoundaryMap({
@@ -68,6 +69,7 @@ export default function VillageBoundaryMap({
   showLegendOnMap = true,
   selectedVillageToView = null,
   onViewComplete,
+  onMapReady,
 }: VillageBoundaryMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
@@ -249,6 +251,12 @@ export default function VillageBoundaryMap({
 
       mapRef.current = map;
       setIsReady(true);
+      
+      // Notify parent that map is ready
+      if (onMapReady) {
+        console.log('✅ VillageBoundaryMap: Calling onMapReady callback');
+        onMapReady(map);
+      }
     }
 
     return () => {

@@ -10,6 +10,7 @@ import GeoJSONUploader from '../../components/GeoJSONUploader';
 import boundariesService, { type VillageBoundary, type CreateBoundaryDto, type UpdateBoundaryDto } from '../../services/boundariesService';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
+import L from 'leaflet';
 import './VillageBoundariesPage.css';
 
 interface CoordinateMarker {
@@ -79,6 +80,9 @@ export default function VillageBoundariesPage() {
 
   // Track if user has made changes (for edit mode)
   const [hasUserChanges, setHasUserChanges] = useState(false);
+
+  // Map instance ref for direct zoom control
+  const mapInstanceRef = useRef<L.Map | null>(null);
 
   // Preview modal state
   const [showPreview, setShowPreview] = useState(false);
@@ -213,6 +217,12 @@ export default function VillageBoundariesPage() {
     setDrawHistory([]);
     setHistoryIndex(-1);
     console.log('🗑️ History cleared');
+  };
+
+  // Handle map ready callback
+  const handleMapReady = (map: L.Map) => {
+    mapInstanceRef.current = map;
+    console.log('✅ VillageBoundariesPage: Map instance received and stored');
   };
 
   // ล้างการวาดและวาดใหม่
@@ -508,52 +518,28 @@ export default function VillageBoundariesPage() {
           // Switch to map tab first
           setActiveTab('map');
           
-          // Force zoom using interval retry (more reliable than setTimeout)
-          let attempts = 0;
-          const maxAttempts = 15; // Try for 4.5 seconds
+          // Use React ref for reliable zoom (correct way)
           const tambonCenter = { lat: 19.9200, lng: 99.2150 };
           
-          const zoomInterval = setInterval(() => {
-            attempts++;
-            console.log(`🔍 Zoom attempt ${attempts}/${maxAttempts}`);
-            
-            // Try multiple selectors
-            const mapElement = document.querySelector('.leaflet-container') || 
-                              document.querySelector('[class*="leaflet"]');
-            
-            if (mapElement) {
-              // Try multiple ways to get map instance
-              const map = (mapElement as any)._leaflet_map || 
-                         (mapElement as any).__leaflet_map__ ||
-                         (window as any).leafletMap;
-              
-              if (map && typeof map.setView === 'function') {
-                clearInterval(zoomInterval);
-                console.log('✅ Map found! Zooming to:', tambonCenter);
-                
-                try {
-                  map.setView([tambonCenter.lat, tambonCenter.lng], 14, { 
-                    animate: true,
-                    duration: 1.5
-                  });
-                  
-                  toast.success('📍 ซูมไปศูนย์กลางตำบลเวียง - กรุณาวาดขอบเขตใหม่');
-                  console.log('✅ Zoom successful!');
-                } catch (err) {
-                  console.error('❌ Zoom error:', err);
-                  toast.error('ไม่สามารถซูมได้ กรุณาเลื่อนไปที่ตำบลเวียงเอง');
-                }
-                return;
+          setTimeout(() => {
+            if (mapInstanceRef.current) {
+              console.log('✅ Using mapInstanceRef to zoom to:', tambonCenter);
+              try {
+                mapInstanceRef.current.setView([tambonCenter.lat, tambonCenter.lng], 14, { 
+                  animate: true,
+                  duration: 1.5
+                });
+                toast.success('📍 ซูมไปศูนย์กลางตำบลเวียง - กรุณาวาดขอบเขตใหม่');
+                console.log('✅ Zoom successful using React ref!');
+              } catch (err) {
+                console.error('❌ Zoom error:', err);
+                toast.error('ไม่สามารถซูมได้ กรุณาเลื่อนไปที่ตำบลเวียงเอง');
               }
+            } else {
+              console.error('❌ mapInstanceRef.current is null - map not ready yet');
+              toast.error('Map ยังไม่พร้อม กรุณาลองใหม่อีกครั้ง');
             }
-            
-            // Give up after max attempts
-            if (attempts >= maxAttempts) {
-              clearInterval(zoomInterval);
-              console.error(`❌ Failed to zoom after ${maxAttempts} attempts`);
-              toast.error('ไม่สามารถซูมได้ กรุณาเลื่อนไปที่ตำบลเวียงเอง');
-            }
-          }, 300); // Check every 300ms
+          }, 500);
         }
         
         // Switch to map tab (already done above for new boundary)
@@ -1225,6 +1211,7 @@ export default function VillageBoundariesPage() {
                   selectedVillageToView={selectedVillageToView}
                   onViewComplete={() => setSelectedVillageToView(null)}
                   editingBoundaryId={editingBoundaryId}
+                  onMapReady={handleMapReady}
                 />
               </div>
 
