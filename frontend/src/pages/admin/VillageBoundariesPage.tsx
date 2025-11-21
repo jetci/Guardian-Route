@@ -446,25 +446,30 @@ export default function VillageBoundariesPage() {
 
   const handleEditBoundary = async (villageId: string, villageName: string, villageNo: number, existingBoundary?: any) => {
     try {
+      // Check if boundary exists
+      const hasBoundary = existingBoundary !== null && existingBoundary !== undefined;
+      
       // Confirm before editing
       const result = await Swal.fire({
-        title: '✏️ แก้ไขขอบเขต',
+        title: hasBoundary ? '✏️ แก้ไขขอบเขต' : '➕ เพิ่มขอบเขตใหม่',
         html: `
-          <p>คุณต้องการแก้ไขขอบเขตของ:</p>
-          <div style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #3b82f6;">
-            <strong style="font-size: 18px; color: #3b82f6;">หมู่ ${villageNo} - ${villageName}</strong>
+          <p>คุณต้องการ${hasBoundary ? 'แก้ไข' : 'เพิ่ม'}ขอบเขตของ:</p>
+          <div style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid ${hasBoundary ? '#3b82f6' : '#10b981'};">
+            <strong style="font-size: 18px; color: ${hasBoundary ? '#3b82f6' : '#10b981'};">หมู่ ${villageNo} - ${villageName}</strong>
           </div>
-          <div style="margin-top: 15px; padding: 12px; background: #e3f2fd; border-radius: 8px;">
-            <small style="color: #1976d2;">
-              ℹ️ ขอบเขตเดิมจะถูกโหลดมาให้ คุณสามารถแก้ไขได้เลย
+          <div style="margin-top: 15px; padding: 12px; background: ${hasBoundary ? '#e3f2fd' : '#d1fae5'}; border-radius: 8px;">
+            <small style="color: ${hasBoundary ? '#1976d2' : '#065f46'};">
+              ${hasBoundary 
+                ? 'ℹ️ ขอบเขตเดิมจะถูกโหลดมาให้ คุณสามารถแก้ไขได้เลย' 
+                : 'ℹ️ กรุณาวาดขอบเขตใหม่บนแผนที่'}
             </small>
           </div>
         `,
-        icon: 'question',
+        icon: hasBoundary ? 'question' : 'info',
         showCancelButton: true,
-        confirmButtonColor: '#3b82f6',
+        confirmButtonColor: hasBoundary ? '#3b82f6' : '#10b981',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: '✏️ เริ่มแก้ไข',
+        confirmButtonText: hasBoundary ? '✏️ เริ่มแก้ไข' : '➕ เริ่มวาด',
         cancelButtonText: '❌ ยกเลิก',
       });
 
@@ -492,16 +497,35 @@ export default function VillageBoundariesPage() {
           };
           console.log('🔍 Setting village to view:', villageToView);
           setSelectedVillageToView(villageToView);
+          
+          toast('โหมดแก้ไข: ขอบเขตเดิมถูกโหลดแล้ว - แก้ไขแล้วกด "บันทึก"', { 
+            icon: '✏️',
+            duration: 5000 
+          });
         } else {
           console.warn('⚠️ No existing boundary found, user will draw new one');
+          
+          // Zoom to tambon center for new boundary
+          const tambonCenter: VillageBoundary = {
+            id: 'tambon-center',
+            name: 'ศูนย์กลางตำบลเวียง',
+            villageNo: 0,
+            boundary: null,
+            centerPoint: {
+              type: 'Point',
+              coordinates: [99.2333, 19.9167] // [lng, lat]
+            }
+          };
+          setSelectedVillageToView(tambonCenter);
+          
+          toast('📍 ซูมไปศูนย์กลางตำบลเวียง - กรุณาวาดขอบเขตใหม่', {
+            icon: 'ℹ️',
+            duration: 5000
+          });
         }
         
         // Switch to map tab
         setActiveTab('map');
-        toast('โหมดแก้ไข: ขอบเขตเดิมถูกโหลดแล้ว - แก้ไขแล้วกด "บันทึก"', { 
-          icon: '✏️',
-          duration: 5000 
-        });
       }
     } catch (error) {
       console.error('Error loading boundary for edit:', error);
