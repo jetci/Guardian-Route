@@ -102,23 +102,8 @@ export default function VillageBoundariesPage() {
     loadBoundaries();
   }, []);
 
-  // Execute pending zoom when map is ready (backup mechanism)
-  useEffect(() => {
-    if (pendingZoom && mapInstanceRef.current) {
-      console.log('🎯 Executing pending zoom via useEffect:', pendingZoom);
-      setTimeout(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.setView([pendingZoom.lat, pendingZoom.lng], pendingZoom.zoom, { 
-            animate: true,
-            duration: 1.5
-          });
-          toast.success('📍 ซูมไปศูนย์กลางตำบลเวียง - กรุณาวาดขอบเขตใหม่');
-          setPendingZoom(null);
-        }
-      }, 300);
-    }
-  }, [pendingZoom]);
-
+  // Note: pendingZoom is now handled by VillageBoundaryMap component via props
+  
   // Keyboard shortcuts for Undo/Redo
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -243,19 +228,7 @@ export default function VillageBoundariesPage() {
   const handleMapReady = (map: L.Map) => {
     mapInstanceRef.current = map;
     console.log('✅ VillageBoundariesPage: Map instance received and stored');
-    
-    // ถ้ามี pending zoom → ซูมทันที
-    if (pendingZoom) {
-      console.log('🎯 Executing pending zoom:', pendingZoom);
-      setTimeout(() => {
-        map.setView([pendingZoom.lat, pendingZoom.lng], pendingZoom.zoom, { 
-          animate: true,
-          duration: 1.5
-        });
-        toast.success('📍 ซูมไปศูนย์กลางตำบลเวียง - กรุณาวาดขอบเขตใหม่');
-        setPendingZoom(null);
-      }, 300); // รอให้ map render เสร็จ
-    }
+    // Note: pendingZoom is now handled by VillageBoundaryMap component
   };
 
   // ล้างการวาดและวาดใหม่
@@ -1226,6 +1199,8 @@ export default function VillageBoundariesPage() {
                   onViewComplete={() => setSelectedVillageToView(null)}
                   editingBoundaryId={editingBoundaryId}
                   onMapReady={handleMapReady}
+                  pendingZoom={pendingZoom}
+                  onZoomComplete={() => setPendingZoom(null)}
                 />
               </div>
 
