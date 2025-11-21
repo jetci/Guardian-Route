@@ -84,6 +84,9 @@ export default function VillageBoundariesPage() {
   // Map instance ref for direct zoom control
   const mapInstanceRef = useRef<L.Map | null>(null);
 
+  // Pending zoom state (for zoom after tab switch)
+  const [pendingZoom, setPendingZoom] = useState<{lat: number, lng: number, zoom: number} | null>(null);
+
   // Preview modal state
   const [showPreview, setShowPreview] = useState(false);
   const [previewData, setPreviewData] = useState<{
@@ -98,6 +101,23 @@ export default function VillageBoundariesPage() {
   useEffect(() => {
     loadBoundaries();
   }, []);
+
+  // Execute pending zoom when map is ready (backup mechanism)
+  useEffect(() => {
+    if (pendingZoom && mapInstanceRef.current) {
+      console.log('🎯 Executing pending zoom via useEffect:', pendingZoom);
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.setView([pendingZoom.lat, pendingZoom.lng], pendingZoom.zoom, { 
+            animate: true,
+            duration: 1.5
+          });
+          toast.success('📍 ซูมไปศูนย์กลางตำบลเวียง - กรุณาวาดขอบเขตใหม่');
+          setPendingZoom(null);
+        }
+      }, 300);
+    }
+  }, [pendingZoom]);
 
   // Keyboard shortcuts for Undo/Redo
   useEffect(() => {
@@ -223,6 +243,19 @@ export default function VillageBoundariesPage() {
   const handleMapReady = (map: L.Map) => {
     mapInstanceRef.current = map;
     console.log('✅ VillageBoundariesPage: Map instance received and stored');
+    
+    // ถ้ามี pending zoom → ซูมทันที
+    if (pendingZoom) {
+      console.log('🎯 Executing pending zoom:', pendingZoom);
+      setTimeout(() => {
+        map.setView([pendingZoom.lat, pendingZoom.lng], pendingZoom.zoom, { 
+          animate: true,
+          duration: 1.5
+        });
+        toast.success('📍 ซูมไปศูนย์กลางตำบลเวียง - กรุณาวาดขอบเขตใหม่');
+        setPendingZoom(null);
+      }, 300); // รอให้ map render เสร็จ
+    }
   };
 
   // ล้างการวาดและวาดใหม่
@@ -515,31 +548,12 @@ export default function VillageBoundariesPage() {
         } else {
           console.warn('⚠️ No existing boundary found, user will draw new one');
           
-          // Switch to map tab first
+          // Set pending zoom (will execute when map is ready after tab switch)
+          console.log('📍 Setting pending zoom to tambon center');
+          setPendingZoom({ lat: 19.9200, lng: 99.2150, zoom: 14 });
+          
+          // Switch to map tab (map will mount and call onMapReady)
           setActiveTab('map');
-          
-          // Use React ref for reliable zoom (correct way)
-          const tambonCenter = { lat: 19.9200, lng: 99.2150 };
-          
-          setTimeout(() => {
-            if (mapInstanceRef.current) {
-              console.log('✅ Using mapInstanceRef to zoom to:', tambonCenter);
-              try {
-                mapInstanceRef.current.setView([tambonCenter.lat, tambonCenter.lng], 14, { 
-                  animate: true,
-                  duration: 1.5
-                });
-                toast.success('📍 ซูมไปศูนย์กลางตำบลเวียง - กรุณาวาดขอบเขตใหม่');
-                console.log('✅ Zoom successful using React ref!');
-              } catch (err) {
-                console.error('❌ Zoom error:', err);
-                toast.error('ไม่สามารถซูมได้ กรุณาเลื่อนไปที่ตำบลเวียงเอง');
-              }
-            } else {
-              console.error('❌ mapInstanceRef.current is null - map not ready yet');
-              toast.error('Map ยังไม่พร้อม กรุณาลองใหม่อีกครั้ง');
-            }
-          }, 500);
         }
         
         // Switch to map tab (already done above for new boundary)
