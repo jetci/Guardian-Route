@@ -663,28 +663,53 @@ export default function VillageBoundaryMap({
     // Get coordinates from centerPoint or boundary
     let lat, lng, zoomLevel = 15;
 
+    console.log('🔍 Checking village data:', {
+      hasCenterPoint: !!village.centerPoint,
+      centerPoint: village.centerPoint,
+      hasBoundary: !!village.boundary,
+      boundary: village.boundary
+    });
+
     if (village.centerPoint?.coordinates && village.centerPoint.coordinates.length >= 2) {
       // GeoJSON format: [lng, lat]
       lng = village.centerPoint.coordinates[0];
       lat = village.centerPoint.coordinates[1];
-    } else if (village.boundary?.coordinates && Array.isArray(village.boundary.coordinates) && village.boundary.coordinates.length > 0 && village.boundary.coordinates[0]) {
-      // Calculate center from boundary
-      const coords = village.boundary.coordinates[0];
-      console.log('📍 Calculating center from boundary coords:', coords);
+      console.log('✅ Using centerPoint:', { lat, lng });
+    } else if (village.boundary) {
+      // Calculate center from boundary (support both GeoJSON and plain object)
+      console.log('📍 Processing boundary:', village.boundary);
+      
+      let coords;
+      if (village.boundary.type === 'Polygon' && village.boundary.coordinates) {
+        // GeoJSON Polygon format
+        coords = village.boundary.coordinates[0];
+      } else if (Array.isArray(village.boundary.coordinates) && village.boundary.coordinates.length > 0) {
+        // Plain object with coordinates array
+        coords = village.boundary.coordinates[0];
+      } else if (Array.isArray(village.boundary)) {
+        // Direct array of coordinates
+        coords = village.boundary;
+      }
+      
+      console.log('📍 Extracted coords:', coords);
+      
       if (coords && coords.length > 0) {
-        const lats = coords.map((c: number[]) => c[1]).filter((v: number) => v !== undefined);
-        const lngs = coords.map((c: number[]) => c[0]).filter((v: number) => v !== undefined);
+        const lats = coords.map((c: number[]) => c[1]).filter((v: number) => v !== undefined && !isNaN(v));
+        const lngs = coords.map((c: number[]) => c[0]).filter((v: number) => v !== undefined && !isNaN(v));
+        
+        console.log('📍 Extracted lats/lngs:', { lats, lngs });
+        
         if (lats.length > 0 && lngs.length > 0) {
           lat = (Math.min(...lats) + Math.max(...lats)) / 2;
           lng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
-          console.log('✅ Calculated center:', { lat, lng });
+          console.log('✅ Calculated center from boundary:', { lat, lng });
         } else {
-          console.warn('Village boundary has invalid coordinates:', village);
+          console.warn('❌ Village boundary has invalid coordinates:', village);
           onViewComplete?.();
           return;
         }
       } else {
-        console.warn('Village boundary coordinates are empty:', village);
+        console.warn('❌ Village boundary coordinates are empty:', village);
         onViewComplete?.();
         return;
       }
