@@ -74,6 +74,7 @@ export default function VillageBoundaryMap({
   const georeferenceMarkerRef = useRef<L.Marker | null>(null);
   const tambonLayerRef = useRef<L.GeoJSON | null>(null);
   const coordinateMarkersLayerRef = useRef<L.LayerGroup | null>(null);
+  const existingBoundariesLayerRef = useRef<L.LayerGroup | null>(null); // For non-editable boundaries
   const [isReady, setIsReady] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(zoom);
   const [tambonBoundaryData, setTambonBoundaryData] = useState<any>(null);
@@ -183,10 +184,15 @@ export default function VillageBoundaryMap({
 
       map.addControl(new fullscreenControl());
 
-      // Initialize FeatureGroup for drawn items
+      // Initialize FeatureGroup for drawn items (editable)
       const drawnItems = new L.FeatureGroup();
       map.addLayer(drawnItems);
       drawnItemsRef.current = drawnItems;
+
+      // Initialize LayerGroup for existing boundaries (non-editable)
+      const existingBoundariesLayer = new L.LayerGroup();
+      map.addLayer(existingBoundariesLayer);
+      existingBoundariesLayerRef.current = existingBoundariesLayer;
 
       // Add drawing controls
       const drawControl = new L.Control.Draw({
@@ -367,10 +373,11 @@ export default function VillageBoundaryMap({
 
   // Load existing boundaries with color-coded villages
   useEffect(() => {
-    if (!isReady || !drawnItemsRef.current) return;
+    if (!isReady || !drawnItemsRef.current || !existingBoundariesLayerRef.current) return;
 
     // Clear all existing layers first
     drawnItemsRef.current.clearLayers();
+    existingBoundariesLayerRef.current.clearLayers();
 
     // If no boundaries, exit early
     if (existingBoundaries.length === 0) return;
@@ -401,10 +408,16 @@ export default function VillageBoundaryMap({
           },
         });
 
-        // Add layer to map
-        if (drawnItemsRef.current) {
+        // Add layer to appropriate group
+        if (isEditing && drawnItemsRef.current) {
+          // Add to editable group (drawnItems) - will show edit handles
           layer.eachLayer((l) => {
             drawnItemsRef.current!.addLayer(l);
+          });
+        } else if (existingBoundariesLayerRef.current) {
+          // Add to non-editable group - no edit handles
+          layer.eachLayer((l) => {
+            existingBoundariesLayerRef.current!.addLayer(l);
           });
         }
 
