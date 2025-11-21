@@ -436,6 +436,16 @@ export default function VillageBoundariesPage() {
           // Add to history for undo/redo
           addToHistory(existingBoundary);
           console.log('✅ Loaded existing boundary for editing:', existingBoundary);
+          
+          // Zoom to the village being edited
+          const villageToView: VillageBoundary = {
+            id: villageId,
+            name: villageName,
+            villageNo: villageNo,
+            boundary: existingBoundary,
+            centerPoint: null
+          };
+          setSelectedVillageToView(villageToView);
         } else {
           console.warn('⚠️ No existing boundary found, user will draw new one');
         }
@@ -1109,6 +1119,7 @@ export default function VillageBoundariesPage() {
                   showLegendOnMap={false}
                   selectedVillageToView={selectedVillageToView}
                   onViewComplete={() => setSelectedVillageToView(null)}
+                  editingBoundaryId={editingBoundaryId}
                 />
               </div>
 
@@ -1118,8 +1129,8 @@ export default function VillageBoundariesPage() {
                   <div className="banner-content">
                     <span className="banner-icon">✏️</span>
                     <div className="banner-text">
-                      <strong>โหมดแก้ไข</strong>
-                      <p>ขอบเขตเดิมแสดงบนแผนที่แล้ว - แก้ไขขอบเขตแล้วกด "บันทึก"</p>
+                      <strong>โหมดแก้ไข: {boundaryName}</strong>
+                      <p>กำลังแก้ไขขอบเขต หมู่ {selectedVillageNo === 'tambon' ? 'ตำบล' : selectedVillageNo} - แก้ไขแล้วกด "บันทึก"</p>
                     </div>
                   </div>
                 </div>

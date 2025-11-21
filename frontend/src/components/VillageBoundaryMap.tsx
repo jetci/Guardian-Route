@@ -49,6 +49,7 @@ interface VillageBoundaryMapProps {
   showLegendOnMap?: boolean;
   selectedVillageToView?: any | null;
   onViewComplete?: () => void;
+  editingBoundaryId?: string | null;
 }
 
 export default function VillageBoundaryMap({
@@ -57,6 +58,7 @@ export default function VillageBoundaryMap({
   center = [19.9169, 99.2145], // ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่ (Fang District)
   zoom = 13,
   georeferenceOverlay,
+  editingBoundaryId = null,
   onGeoreferencePositionChange,
   loadTambonFromAPI = true,
   coordinateMarkers = [],
@@ -384,15 +386,18 @@ export default function VillageBoundaryMap({
         const geojson = boundary.boundary || boundary.geojson;
         const villageColor = boundary.villageNo ? getVillageColor(boundary.villageNo) : '#3388ff';
         
+        // Check if this is the boundary being edited
+        const isEditing = editingBoundaryId && editingBoundaryId === boundary.id;
+        
         // Create layer with improved styling
         const layer = L.geoJSON(geojson, {
           style: {
-            color: villageColor,
-            weight: 2.5,
-            opacity: 0.9,
-            fillColor: villageColor,
-            fillOpacity: 0.25,
-            className: 'village-boundary-layer',
+            color: isEditing ? '#ff0000' : villageColor,
+            weight: isEditing ? 3.5 : 2.5,
+            opacity: isEditing ? 1 : 0.3,
+            fillColor: isEditing ? '#ff0000' : villageColor,
+            fillOpacity: isEditing ? 0.4 : 0.1,
+            className: isEditing ? 'village-boundary-editing' : 'village-boundary-layer',
           },
         });
 
@@ -456,7 +461,7 @@ export default function VillageBoundaryMap({
       console.error('Error loading boundaries:', error);
       toast.error('เกิดข้อผิดพลาดในการแสดงขอบเขต');
     }
-  }, [isReady, existingBoundaries]);
+  }, [isReady, existingBoundaries, editingBoundaryId]);
 
   // Georeference overlay effect
   useEffect(() => {
