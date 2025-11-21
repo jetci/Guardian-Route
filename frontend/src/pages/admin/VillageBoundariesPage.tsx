@@ -528,7 +528,22 @@ export default function VillageBoundariesPage() {
         }
         
         // Switch to map tab
+        console.log('🔄 Switching to map tab');
         setActiveTab('map');
+        
+        // Scroll to map section after tab switch
+        setTimeout(() => {
+          const mapSection = document.querySelector('.map-wrapper') || 
+                            document.querySelector('.leaflet-container') ||
+                            document.querySelector('[id*="village-boundary-map"]');
+          
+          if (mapSection) {
+            mapSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            console.log('✅ Scrolled to map section');
+          } else {
+            console.warn('⚠️ Map section not found for scrolling');
+          }
+        }, 300); // Wait for tab switch to complete
       }
     } catch (error) {
       console.error('Error loading boundary for edit:', error);
