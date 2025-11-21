@@ -505,27 +505,33 @@ export default function VillageBoundariesPage() {
         } else {
           console.warn('⚠️ No existing boundary found, user will draw new one');
           
-          // Zoom to tambon center for new boundary
-          const tambonCenter: VillageBoundary = {
-            id: 'tambon-center',
-            name: 'ศูนย์กลางตำบลเวียง',
-            villageNo: 0,
-            boundary: null,
-            centerPoint: {
-              type: 'Point',
-              coordinates: [99.2333, 19.9167] // [lng, lat]
-            }
-          };
-          setSelectedVillageToView(tambonCenter);
+          // Switch to map tab first
+          setActiveTab('map');
           
-          toast('📍 ซูมไปศูนย์กลางตำบลเวียง - กรุณาวาดขอบเขตใหม่', {
-            icon: 'ℹ️',
-            duration: 5000
-          });
+          // Force zoom to tambon center using direct DOM access
+          setTimeout(() => {
+            const mapElement = document.querySelector('.leaflet-container');
+            if (mapElement && (mapElement as any)._leaflet_map) {
+              const map = (mapElement as any)._leaflet_map;
+              console.log('🗺️ Force zoom to tambon center:', [19.9167, 99.2333]);
+              map.setView([19.9167, 99.2333], 14, {
+                animate: true,
+                duration: 1.5
+              });
+              toast('📍 ซูมไปศูนย์กลางตำบลเวียง - กรุณาวาดขอบเขตใหม่', {
+                icon: 'ℹ️',
+                duration: 5000
+              });
+            } else {
+              console.error('❌ Map not found for zoom');
+            }
+          }, 600);
         }
         
-        // Switch to map tab
-        setActiveTab('map');
+        // Switch to map tab (already done above for new boundary)
+        if (existingBoundary) {
+          setActiveTab('map');
+        }
       }
     } catch (error) {
       console.error('Error loading boundary for edit:', error);
