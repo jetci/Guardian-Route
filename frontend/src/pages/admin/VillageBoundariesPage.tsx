@@ -71,11 +71,35 @@ export default function VillageBoundariesPage() {
     status: 'idle' | 'processing' | 'completed' | 'error';
     results: Array<{ file: string; status: 'success' | 'error'; error?: string }>;
   }>({ current: 0, total: 0, status: 'idle', results: [] });
+  
+  // Undo/Redo history state
+  const [drawHistory, setDrawHistory] = useState<any[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const MAX_HISTORY = 20; // จำกัดประวัติไม่เกิน 20 ขั้นตอน
 
   // Load village boundaries
   useEffect(() => {
     loadBoundaries();
   }, []);
+
+  // Keyboard shortcuts for Undo/Redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+Z or Cmd+Z for Undo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      }
+      // Ctrl+Y or Cmd+Y or Ctrl+Shift+Z for Redo
+      else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [historyIndex, drawHistory]);
 
   const loadBoundaries = async () => {
     try {
@@ -118,7 +142,63 @@ export default function VillageBoundariesPage() {
 
   const handleBoundaryDrawn = (geojson: any) => {
     setDrawnBoundary(geojson);
+    addToHistory(geojson);
     toast.success('วาดขอบเขตเรียบร้อย กรุณากรอกข้อมูลและบันทึก');
+  };
+
+  // Undo/Redo functions
+  const addToHistory = (geojson: any) => {
+    if (!geojson) return;
+    
+    // Remove any redo history (ถ้ามีการวาดใหม่ หลังจาก undo)
+    const newHistory = drawHistory.slice(0, historyIndex + 1);
+    
+    // Add new state
+    newHistory.push(geojson);
+    
+    // Limit history size
+    if (newHistory.length > MAX_HISTORY) {
+      newHistory.shift();
+      setDrawHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+    } else {
+      setDrawHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+    }
+    
+    console.log(`📝 Added to history. Index: ${newHistory.length - 1}, Total: ${newHistory.length}`);
+  };
+
+  const handleUndo = () => {
+    if (historyIndex <= 0) {
+      toast('ไม่มีประวัติให้ย้อนกลับ', { icon: 'ℹ️' });
+      return;
+    }
+    
+    const newIndex = historyIndex - 1;
+    setHistoryIndex(newIndex);
+    setDrawnBoundary(drawHistory[newIndex]);
+    toast('↩️ Undo', { icon: 'ℹ️', duration: 1500 });
+    console.log(`↩️ Undo to index: ${newIndex}`);
+  };
+
+  const handleRedo = () => {
+    if (historyIndex >= drawHistory.length - 1) {
+      toast('ไม่มีประวัติให้ทำซ้ำ', { icon: 'ℹ️' });
+      return;
+    }
+    
+    const newIndex = historyIndex + 1;
+    setHistoryIndex(newIndex);
+    setDrawnBoundary(drawHistory[newIndex]);
+    toast('↪️ Redo', { icon: 'ℹ️', duration: 1500 });
+    console.log(`↪️ Redo to index: ${newIndex}`);
+  };
+
+  const clearHistory = () => {
+    setDrawHistory([]);
+    setHistoryIndex(-1);
+    console.log('🗑️ History cleared');
   };
 
   const handleSaveDrawnBoundary = async () => {
@@ -237,6 +317,9 @@ export default function VillageBoundariesPage() {
       setBoundaryName('');
       setSelectedVillageNo('');
       setEditingBoundaryId(null);
+      
+      // Clear history
+      clearHistory();
       
       // Reload boundaries
       await loadBoundaries();
@@ -952,7 +1035,31 @@ export default function VillageBoundariesPage() {
 
               {drawnBoundary && (
                 <div className="save-form">
-                  <h3>💾 บันทึกขอบเขตที่วาด</h3>
+                  <div className="save-form-header">
+                    <h3>💾 บันทึกขอบเขตที่วาด</h3>
+                    {/* Undo/Redo Controls */}
+                    <div className="history-controls">
+                      <button 
+                        className="btn-history btn-undo"
+                        onClick={handleUndo}
+                        disabled={historyIndex <= 0}
+                        title="Undo (Ctrl+Z)"
+                      >
+                        ↩️ Undo
+                      </button>
+                      <button 
+                        className="btn-history btn-redo"
+                        onClick={handleRedo}
+                        disabled={historyIndex >= drawHistory.length - 1}
+                        title="Redo (Ctrl+Y)"
+                      >
+                        ↪️ Redo
+                      </button>
+                      <span className="history-info" title="ขั้นตอนปัจจุบัน / ทั้งหมด">
+                        {historyIndex + 1} / {drawHistory.length}
+                      </span>
+                    </div>
+                  </div>
                   <div className="form-group">
                     <label>ชื่อขอบเขต *</label>
                     <input
