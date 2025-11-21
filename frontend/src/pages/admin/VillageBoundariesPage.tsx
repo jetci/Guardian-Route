@@ -393,7 +393,7 @@ export default function VillageBoundariesPage() {
     }
   };
 
-  const handleEditBoundary = async (villageId: string, villageName: string, villageNo: number) => {
+  const handleEditBoundary = async (villageId: string, villageName: string, villageNo: number, existingBoundary?: any) => {
     try {
       // Confirm before editing
       const result = await Swal.fire({
@@ -405,7 +405,7 @@ export default function VillageBoundariesPage() {
           </div>
           <div style="margin-top: 15px; padding: 12px; background: #e3f2fd; border-radius: 8px;">
             <small style="color: #1976d2;">
-              ℹ️ กรุณาวาดขอบเขตใหม่บนแผนที่
+              ℹ️ ขอบเขตเดิมจะถูกโหลดมาให้ คุณสามารถแก้ไขได้เลย
             </small>
           </div>
         `,
@@ -418,11 +418,23 @@ export default function VillageBoundariesPage() {
       });
 
       if (result.isConfirmed) {
+        // Set editing mode
         setEditingBoundaryId(villageId);
         setBoundaryName(villageName);
         setSelectedVillageNo(villageNo);
+        
+        // Load existing boundary if available
+        if (existingBoundary) {
+          setDrawnBoundary(existingBoundary);
+          // Add to history for undo/redo
+          addToHistory(existingBoundary);
+          console.log('✅ Loaded existing boundary for editing:', existingBoundary);
+        } else {
+          console.warn('⚠️ No existing boundary found, user will draw new one');
+        }
+        
         setActiveTab('map');
-        toast('โหมดแก้ไข: วาดขอบเขตใหม่บนแผนที่', { 
+        toast('โหมดแก้ไข: ขอบเขตเดิมถูกโหลดแล้ว', { 
           icon: '✏️',
           duration: 5000 
         });
@@ -433,16 +445,38 @@ export default function VillageBoundariesPage() {
     }
   };
 
-  const handleEditTambonBoundary = () => {
-    // Load tambon boundary for editing
-    setEditingBoundaryId('tambon-wiang');
-    setBoundaryName('ตำบลเวียง');
-    setSelectedVillageNo('tambon' as any);
-    setActiveTab('map');
-    toast('โหมดแก้ไขขอบเขตตำบล - วาดขอบเขตใหม่บนแผนที่', { 
-      icon: '🏛️',
-      duration: 4000 
-    });
+  const handleEditTambonBoundary = async () => {
+    try {
+      // Load tambon boundary for editing
+      setEditingBoundaryId('tambon-wiang');
+      setBoundaryName('ตำบลเวียง');
+      setSelectedVillageNo('tambon' as any);
+      
+      // Try to load existing tambon boundary
+      const loadingToast = toast.loading('กำลังโหลดขอบเขตตำบล...');
+      try {
+        const tambonData = await boundariesService.getTambonBoundary();
+        if (tambonData && tambonData.geojson) {
+          setDrawnBoundary(tambonData.geojson);
+          addToHistory(tambonData.geojson);
+          toast.dismiss(loadingToast);
+          toast.success('✅ โหลดขอบเขตตำบลเดิมแล้ว - สามารถแก้ไขได้เลย');
+          console.log('✅ Loaded existing tambon boundary:', tambonData.geojson);
+        } else {
+          toast.dismiss(loadingToast);
+          toast('ℹ️ ยังไม่มีขอบเขตตำบล - กรุณาวาดใหม่', { icon: '🏛️' });
+        }
+      } catch (error) {
+        toast.dismiss(loadingToast);
+        console.warn('⚠️ No existing tambon boundary, user will draw new one');
+        toast('ℹ️ ยังไม่มีขอบเขตตำบล - กรุณาวาดใหม่', { icon: '🏛️' });
+      }
+      
+      setActiveTab('map');
+    } catch (error) {
+      console.error('Error loading tambon boundary:', error);
+      toast.error('ไม่สามารถโหลดขอบเขตตำบลได้');
+    }
   };
 
   const handleCancelEdit = () => {
@@ -1388,7 +1422,7 @@ export default function VillageBoundariesPage() {
                         </button>
                         <button 
                           className="btn-action btn-edit"
-                          onClick={() => handleEditBoundary(boundary.id, boundary.name, boundary.villageNo)}
+                          onClick={() => handleEditBoundary(boundary.id, boundary.name, boundary.villageNo, boundary.boundary)}
                           title="แก้ไข"
                         >
                           ✏️
