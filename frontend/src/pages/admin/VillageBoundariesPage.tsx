@@ -80,6 +80,16 @@ export default function VillageBoundariesPage() {
   // Track if user has made changes (for edit mode)
   const [hasUserChanges, setHasUserChanges] = useState(false);
 
+  // Preview modal state
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewData, setPreviewData] = useState<{
+    name: string;
+    villageNo: number | string;
+    area: number;
+    points: number;
+    boundary: any;
+  } | null>(null);
+
   // Load village boundaries
   useEffect(() => {
     loadBoundaries();
@@ -243,6 +253,41 @@ export default function VillageBoundariesPage() {
       toast.error('ข้อมูลขอบเขตไม่ถูกต้อง');
       return;
     }
+
+    // Calculate area and points for preview
+    const coords = drawnBoundary.geometry.coordinates[0];
+    const points = coords ? coords.length : 0;
+    
+    // Calculate area (approximate)
+    let area = 0;
+    if (coords && coords.length > 0) {
+      const areaRaw = Math.abs(coords.reduce((sum: number, coord: number[], i: number) => {
+        const j = (i + 1) % coords.length;
+        return sum + (coord[0] * coords[j][1] - coords[j][0] * coord[1]);
+      }, 0) / 2);
+      // Convert to square kilometers (rough approximation)
+      area = parseFloat((areaRaw * 111 * 111 / 1000000).toFixed(2));
+    }
+
+    // Show preview modal
+    setPreviewData({
+      name: boundaryName,
+      villageNo: selectedVillageNo,
+      area: area,
+      points: points,
+      boundary: drawnBoundary
+    });
+    setShowPreview(true);
+  };
+
+  const handleConfirmSave = async () => {
+    if (!drawnBoundary || !previewData) {
+      toast.error('ข้อมูลไม่ครบถ้วน');
+      return;
+    }
+
+    // Close preview
+    setShowPreview(false);
 
     // Calculate proper center point from polygon
     const calculateCenterPoint = (coordinates: number[][][]): [number, number] => {
@@ -1742,6 +1787,103 @@ export default function VillageBoundariesPage() {
                     )}
                   </button>
                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Preview Modal */}
+        {showPreview && previewData && (
+          <div className="modal-overlay" onClick={() => setShowPreview(false)}>
+            <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-header">
+                <h3>📋 Preview ก่อนบันทึก</h3>
+                <button className="close-button" onClick={() => setShowPreview(false)}>✕</button>
+              </div>
+
+              <div className="preview-content">
+                <div className="preview-info">
+                  <div className="info-row">
+                    <span className="info-label">ชื่อขอบเขต:</span>
+                    <span className="info-value">{previewData.name}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">หมู่บ้าน:</span>
+                    <span className="info-value">
+                      {previewData.villageNo === 'tambon' ? 'ตำบลเวียง' : `หมู่ ${previewData.villageNo}`}
+                    </span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">พื้นที่:</span>
+                    <span className="info-value highlight">{previewData.area} ตร.กม.</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">จำนวนจุด:</span>
+                    <span className="info-value">{previewData.points} จุด</span>
+                  </div>
+                </div>
+
+                <div className="preview-map-container">
+                  <div className="preview-map-label">🗺️ ตัวอย่างขอบเขต</div>
+                  <div className="preview-map-placeholder">
+                    <svg viewBox="0 0 200 200" className="boundary-preview-svg">
+                      <defs>
+                        <linearGradient id="boundaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" style={{ stopColor: '#3b82f6', stopOpacity: 0.3 }} />
+                          <stop offset="100%" style={{ stopColor: '#8b5cf6', stopOpacity: 0.3 }} />
+                        </linearGradient>
+                      </defs>
+                      {previewData.boundary?.geometry?.coordinates?.[0] && (() => {
+                        const coords = previewData.boundary.geometry.coordinates[0];
+                        const lats = coords.map((c: number[]) => c[1]);
+                        const lngs = coords.map((c: number[]) => c[0]);
+                        const minLat = Math.min(...lats);
+                        const maxLat = Math.max(...lats);
+                        const minLng = Math.min(...lngs);
+                        const maxLng = Math.max(...lngs);
+                        
+                        const points = coords.map((c: number[]) => {
+                          const x = ((c[0] - minLng) / (maxLng - minLng)) * 180 + 10;
+                          const y = ((maxLat - c[1]) / (maxLat - minLat)) * 180 + 10;
+                          return `${x},${y}`;
+                        }).join(' ');
+                        
+                        return (
+                          <>
+                            <polygon 
+                              points={points} 
+                              fill="url(#boundaryGradient)"
+                              stroke="#3b82f6" 
+                              strokeWidth="2"
+                            />
+                            {coords.map((c: number[], i: number) => {
+                              const x = ((c[0] - minLng) / (maxLng - minLng)) * 180 + 10;
+                              const y = ((maxLat - c[1]) / (maxLat - minLat)) * 180 + 10;
+                              return (
+                                <circle 
+                                  key={i}
+                                  cx={x} 
+                                  cy={y} 
+                                  r="2" 
+                                  fill="#ef4444"
+                                />
+                              );
+                            })}
+                          </>
+                        );
+                      })()}
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className="preview-actions">
+                <button className="btn-edit-more" onClick={() => setShowPreview(false)}>
+                  ✏️ แก้ไขเพิ่มเติม
+                </button>
+                <button className="btn-confirm-save" onClick={handleConfirmSave}>
+                  ✅ ยืนยันบันทึก
+                </button>
               </div>
             </div>
           </div>
