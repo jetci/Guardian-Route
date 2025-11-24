@@ -473,22 +473,31 @@ export default function VillageBoundaryMap({
         const villageColor = boundary.villageNo ? getVillageColor(boundary.villageNo) : '#3388ff';
         
         // Check if this is the boundary being edited
-        const isEditing = editingBoundaryId && editingBoundaryId === boundary.id;
+        const isCurrentlyEditing = editingBoundaryId === boundary.id;
+        
+        // ✅ Improved opacity logic:
+        // - Normal state: All boundaries visible (opacity 1.0)
+        // - Editing state: Selected boundary highlighted, others dimmed
+        const boundaryStyle = {
+          color: isCurrentlyEditing ? '#ef4444' : villageColor, // Red for editing, village color for normal
+          weight: isCurrentlyEditing ? 3.5 : 2.5,
+          opacity: editingBoundaryId 
+            ? (isCurrentlyEditing ? 1 : 0.15)  // ✅ Dim others only when editing
+            : 1,                                // ✅ Normal state: full opacity
+          fillColor: isCurrentlyEditing ? '#ef4444' : villageColor,
+          fillOpacity: editingBoundaryId
+            ? (isCurrentlyEditing ? 0.4 : 0.05) // ✅ Dim fill only when editing
+            : 0.2,                               // ✅ Normal state: visible fill
+          className: isCurrentlyEditing ? 'village-boundary-editing' : 'village-boundary-layer',
+        };
         
         // Create layer with improved styling
         const layer = L.geoJSON(geojson, {
-          style: {
-            color: isEditing ? '#ff0000' : villageColor,
-            weight: isEditing ? 3.5 : 2.5,
-            opacity: isEditing ? 1 : 0.3,
-            fillColor: isEditing ? '#ff0000' : villageColor,
-            fillOpacity: isEditing ? 0.4 : 0.1,
-            className: isEditing ? 'village-boundary-editing' : 'village-boundary-layer',
-          },
+          style: boundaryStyle,
         });
 
         // Add layer to appropriate group
-        if (isEditing && drawnItemsRef.current) {
+        if (isCurrentlyEditing && drawnItemsRef.current) {
           // Add to editable group (drawnItems) - will show edit handles
           layer.eachLayer((l) => {
             drawnItemsRef.current!.addLayer(l);
