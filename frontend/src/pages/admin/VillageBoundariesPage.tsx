@@ -79,6 +79,9 @@ export default function VillageBoundariesPage() {
 
   // Track if user has made changes (for edit mode)
   const [hasUserChanges, setHasUserChanges] = useState(false);
+  
+  // Track if user is currently drawing
+  const [isDrawing, setIsDrawing] = useState(false);
 
   // Preview modal state
   const [showPreview, setShowPreview] = useState(false);
@@ -1209,6 +1212,7 @@ export default function VillageBoundariesPage() {
                   selectedVillageToView={selectedVillageToView}
                   onViewComplete={() => setSelectedVillageToView(null)}
                   editingBoundaryId={editingBoundaryId}
+                  onDrawingStateChange={setIsDrawing}
                 />
               </div>
 
@@ -1232,7 +1236,7 @@ export default function VillageBoundariesPage() {
                 </div>
               )}
 
-              {drawnBoundary && (!editingBoundaryId || hasUserChanges) && (
+              {drawnBoundary && (!editingBoundaryId || hasUserChanges) && !isDrawing && (
                 <div className="save-form">
                   <div className="save-form-header">
                     <h3>💾 บันทึกขอบเขตที่วาด</h3>

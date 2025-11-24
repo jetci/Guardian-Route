@@ -50,6 +50,7 @@ interface VillageBoundaryMapProps {
   selectedVillageToView?: any | null;
   onViewComplete?: () => void;
   editingBoundaryId?: string | null;
+  onDrawingStateChange?: (isDrawing: boolean) => void;
 }
 
 export default function VillageBoundaryMap({
@@ -68,6 +69,7 @@ export default function VillageBoundaryMap({
   showLegendOnMap = true,
   selectedVillageToView = null,
   onViewComplete,
+  onDrawingStateChange,
 }: VillageBoundaryMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
@@ -78,6 +80,7 @@ export default function VillageBoundaryMap({
   const [isReady, setIsReady] = useState(false);
   const [currentZoom, setCurrentZoom] = useState(zoom);
   const [tambonBoundaryData, setTambonBoundaryData] = useState<any>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
 
   useEffect(() => {
     // Initialize map
@@ -215,19 +218,64 @@ export default function VillageBoundaryMap({
         layerGroup: drawnItems,
       });
 
-      // Handle shape created
+      // Handle drawing start
+      map.on('pm:drawstart', ({ shape, workingLayer }: any) => {
+        console.log('🎨 Start drawing:', shape);
+        setIsDrawing(true);
+        if (onDrawingStateChange) {
+          onDrawingStateChange(true);
+        }
+      });
+
+      // Handle drawing end (when user finishes drawing)
+      map.on('pm:drawend', ({ shape }: any) => {
+        console.log('🏁 Finish drawing:', shape);
+        setIsDrawing(false);
+        if (onDrawingStateChange) {
+          onDrawingStateChange(false);
+        }
+        
+        // Wait for layer to be added to drawnItems
+        setTimeout(() => {
+          const layers = drawnItems.getLayers();
+          
+          if (layers.length > 0) {
+            const layer = layers[layers.length - 1] as any;
+            const latlngs = layer.getLatLngs();
+            const points = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
+            
+            // ✅ Validate: must have at least 3 points
+            if (points && points.length >= 3) {
+              console.log('✅ Valid boundary with', points.length, 'points');
+              
+              const geojson = layer.toGeoJSON();
+              toast.success(`✅ วาดขอบเขตสำเร็จ (${points.length} จุด)`);
+              console.log('🎨 Shape created:', geojson);
+              
+              if (onBoundaryDrawn) {
+                onBoundaryDrawn(geojson);
+              }
+            } else {
+              console.warn('⚠️ Invalid boundary - removing (less than 3 points)');
+              layer.remove();
+              toast.error('❌ ต้องวาดอย่างน้อย 3 จุด');
+            }
+          }
+        }, 100);
+      });
+
+      // Handle shape created (fallback for other shapes like markers)
       map.on('pm:create', (e: any) => {
         const layer = e.layer;
-        drawnItems.addLayer(layer);
-
-        // Convert to GeoJSON
-        const geojson = layer.toGeoJSON();
-        
-        toast.success('✅ วาดขอบเขตเรียบร้อย');
-        console.log('🎨 Shape created:', geojson);
-        
-        if (onBoundaryDrawn) {
-          onBoundaryDrawn(geojson);
+        // Only handle if not already handled by drawend
+        if (!isDrawing) {
+          drawnItems.addLayer(layer);
+          const geojson = layer.toGeoJSON();
+          console.log('🎨 Shape created (fallback):', geojson);
+          
+          if (onBoundaryDrawn) {
+            onBoundaryDrawn(geojson);
+          }
         }
       });
 
