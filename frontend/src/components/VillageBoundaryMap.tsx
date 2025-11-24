@@ -477,16 +477,16 @@ export default function VillageBoundaryMap({
         
         // ✅ Improved opacity logic:
         // - Normal state: All boundaries visible (opacity 1.0)
-        // - Editing state: Selected boundary highlighted, others dimmed
+        // - Editing state: Selected boundary highlighted, others visible but dimmed
         const boundaryStyle = {
           color: isCurrentlyEditing ? '#ef4444' : villageColor, // Red for editing, village color for normal
           weight: isCurrentlyEditing ? 3.5 : 2.5,
           opacity: editingBoundaryId 
-            ? (isCurrentlyEditing ? 1 : 0.15)  // ✅ Dim others only when editing
-            : 1,                                // ✅ Normal state: full opacity
+            ? (isCurrentlyEditing ? 1 : 0.5)  // ✅ Increased from 0.15 to 0.5 for better visibility
+            : 1,                               // ✅ Normal state: full opacity
           fillColor: isCurrentlyEditing ? '#ef4444' : villageColor,
           fillOpacity: editingBoundaryId
-            ? (isCurrentlyEditing ? 0.4 : 0.05) // ✅ Dim fill only when editing
+            ? (isCurrentlyEditing ? 0.4 : 0.15) // ✅ Increased from 0.05 to 0.15 for better visibility
             : 0.2,                               // ✅ Normal state: visible fill
           className: isCurrentlyEditing ? 'village-boundary-editing' : 'village-boundary-layer',
         };
