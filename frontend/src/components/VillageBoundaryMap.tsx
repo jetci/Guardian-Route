@@ -295,8 +295,9 @@ export default function VillageBoundaryMap({
           onDrawingStateChange(false);
         }
         
-        // ✅ Marker: Handle immediately (pm:create fires BEFORE pm:drawend)
+        // ✅ Process MARKER here (drawend = marker placed)
         if (shape === 'Marker') {
+          console.log('📍 Processing Marker in pm:drawend');
           setTimeout(() => {
             const layers = drawnItemsRef.current?.getLayers() || [];
             
@@ -306,49 +307,66 @@ export default function VillageBoundaryMap({
             }
             
             const layer = layers[layers.length - 1] as L.Layer;
-            const geojson = (layer as any).toGeoJSON();
+            console.log('✅ Marker placed successfully');
             
-            console.log('✅ Valid marker');
+            // Convert to GeoJSON
+            const geojson = (layer as any).toGeoJSON();
             
             // Send to parent (show popup)
             if (onBoundaryDrawn) {
               onBoundaryDrawn(geojson);
             }
             
-            toast.success('✅ วาดเสร็จแล้ว');
-            console.log('🎨 Marker created:', geojson);
+            toast.success('✅ วางหมุดเสร็จแล้ว');
             
             // Disable draw mode
             setTimeout(() => {
-              map.pm.disableDraw();
-              console.log('✅ Draw mode disabled');
+              if (map.pm.globalDrawModeEnabled()) {
+                map.pm.disableDraw();
+                console.log('✅ Draw mode disabled after marker');
+              }
             }, 100);
           }, 200);
         }
-        // ✅ Polygon/Rectangle: Will be handled by pm:create (fires AFTER pm:drawend)
+        // ✅ For Polygon/Rectangle, pm:create will handle it
       });
 
-      // ✅ Handle Polygon/Rectangle creation (pm:create fires AFTER pm:drawend)
+      // ✅ Event: pm:create - FOR POLYGON/RECTANGLE ONLY
       map.on('pm:create', (e: any) => {
         const layer = e.layer;
         const shape = e.shape;
         
-        console.log('✅ pm:create:', shape);
+        console.log('✅ pm:create fired:', shape);
         
-        // Only handle Polygon/Rectangle (Marker is handled by pm:drawend)
+        // ✅ CRITICAL: Skip Marker (already handled in pm:drawend)
+        if (shape === 'Marker') {
+          console.log('ℹ️ Marker detected in pm:create - SKIPPING (handled in pm:drawend)');
+          return;
+        }
+        
+        // ✅ Process Polygon/Rectangle here
         if (shape === 'Polygon' || shape === 'Rectangle') {
+          console.log(`🔷 Processing ${shape} in pm:create`);
+          
+          // Validate polygon points
           const latlngs = (layer as any).getLatLngs();
           const points = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
           
-          // Validate: must have at least 3 points
           if (!points || points.length < 3) {
-            console.warn('⚠️ Invalid polygon:', points?.length, 'points');
+            console.warn('⚠️ Not enough points:', points?.length);
             drawnItemsRef.current?.removeLayer(layer);
             toast.error('❌ ต้องวาดอย่างน้อย 3 จุด');
+            
+            // Disable draw mode
+            setTimeout(() => {
+              if (map.pm.globalDrawModeEnabled()) {
+                map.pm.disableDraw();
+              }
+            }, 100);
             return;
           }
           
-          console.log('✅ Valid polygon:', points.length, 'points');
+          console.log(`✅ Valid ${shape}:`, points.length, 'points');
           
           // Convert to GeoJSON
           const geojson = (layer as any).toGeoJSON();
@@ -358,13 +376,14 @@ export default function VillageBoundaryMap({
             onBoundaryDrawn(geojson);
           }
           
-          toast.success('✅ วาดเสร็จแล้ว');
-          console.log('🎨 Polygon created:', geojson);
+          toast.success(`✅ วาด${shape === 'Polygon' ? 'รูปหลายเหลี่ยม' : 'สี่เหลี่ยม'}สำเร็จ (${points.length} จุด)`);
           
           // Disable draw mode
           setTimeout(() => {
-            map.pm.disableDraw();
-            console.log('✅ Draw mode disabled');
+            if (map.pm.globalDrawModeEnabled()) {
+              map.pm.disableDraw();
+              console.log(`✅ Draw mode disabled after ${shape}`);
+            }
           }, 100);
         }
       });
