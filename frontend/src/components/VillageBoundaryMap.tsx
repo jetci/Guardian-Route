@@ -187,6 +187,64 @@ export default function VillageBoundaryMap({
 
       map.addControl(new fullscreenControl());
 
+      // ✅ Add Cancel Draw Mode Button
+      const CancelDrawControl = L.Control.extend({
+        onAdd: function() {
+          const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control cancel-draw-control');
+          
+          const button = L.DomUtil.create('button', 'cancel-draw-btn', container);
+          button.innerHTML = `
+            <span style="font-size: 20px;">❌</span>
+            <span style="font-size: 14px; font-weight: 500;">ยกเลิก</span>
+          `;
+          button.title = 'ยกเลิกการวาด (กด ESC)';
+          button.style.cssText = `
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            font-family: 'Sarabun', sans-serif;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+          `;
+          
+          L.DomEvent.on(button, 'click', function (e) {
+            L.DomEvent.preventDefault(e);
+            L.DomEvent.stopPropagation(e);
+            
+            console.log('🔴 Cancel button clicked');
+            map.pm.disableDraw();
+            button.style.display = 'none';
+            toast('ยกเลิกการวาด', { icon: 'ℹ️' });
+          });
+          
+          // Show/hide button based on draw mode
+          map.on('pm:drawstart', () => {
+            button.style.display = 'flex';
+          });
+          
+          map.on('pm:drawend', () => {
+            button.style.display = 'none';
+          });
+          
+          // Also hide when draw mode is disabled
+          map.on('pm:globaldrawmodetoggled', (e: any) => {
+            if (!e.enabled) {
+              button.style.display = 'none';
+            }
+          });
+          
+          return container;
+        }
+      });
+      
+      map.addControl(new CancelDrawControl({ position: 'topright' }));
+
       // Initialize FeatureGroup for drawn items (editable)
       const drawnItems = new L.FeatureGroup();
       map.addLayer(drawnItems);
@@ -216,6 +274,8 @@ export default function VillageBoundaryMap({
       // Set Geoman to work with our feature group
       map.pm.setGlobalOptions({
         layerGroup: drawnItems,
+        continueDrawing: false,  // ✅ Critical: Disable continue drawing mode
+        snapDistance: 20,
       });
 
       // Handle drawing start
@@ -229,7 +289,7 @@ export default function VillageBoundaryMap({
 
       // Handle drawing end (when user finishes drawing)
       map.on('pm:drawend', ({ shape }: any) => {
-        console.log('🏁 Finish drawing:', shape);
+        console.log('🏁 Draw end:', shape);
         setIsDrawing(false);
         if (onDrawingStateChange) {
           onDrawingStateChange(false);
@@ -237,47 +297,53 @@ export default function VillageBoundaryMap({
         
         // Wait for layer to be added to drawnItems
         setTimeout(() => {
-          const layers = drawnItems.getLayers();
+          const layers = drawnItemsRef.current?.getLayers() || [];
           
-          if (layers.length > 0) {
-            const layer = layers[layers.length - 1] as any;
-            const latlngs = layer.getLatLngs();
+          if (layers.length === 0) {
+            console.warn('⚠️ No layers found');
+            return;
+          }
+          
+          // Get last added layer
+          const layer = layers[layers.length - 1] as L.Layer;
+          
+          // Validate based on shape type
+          if (shape === 'Polygon' || shape === 'Rectangle') {
+            const latlngs = (layer as any).getLatLngs();
             const points = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
             
-            // ✅ Validate: must have at least 3 points
-            if (points && points.length >= 3) {
-              console.log('✅ Valid boundary with', points.length, 'points');
-              
-              const geojson = layer.toGeoJSON();
-              toast.success(`✅ วาดขอบเขตสำเร็จ (${points.length} จุด)`);
-              console.log('🎨 Shape created:', geojson);
-              
-              if (onBoundaryDrawn) {
-                onBoundaryDrawn(geojson);
-              }
-            } else {
-              console.warn('⚠️ Invalid boundary - removing (less than 3 points)');
-              layer.remove();
+            if (!points || points.length < 3) {
+              console.warn('⚠️ Invalid polygon:', points?.length, 'points');
+              drawnItemsRef.current?.removeLayer(layer);
               toast.error('❌ ต้องวาดอย่างน้อย 3 จุด');
+              return;
             }
+            
+            console.log('✅ Valid polygon:', points.length, 'points');
+          } else if (shape === 'Marker') {
+            console.log('✅ Valid marker');
           }
-        }, 100);
-      });
-
-      // Handle shape created (fallback for other shapes like markers)
-      map.on('pm:create', (e: any) => {
-        const layer = e.layer;
-        // Only handle if not already handled by drawend
-        if (!isDrawing) {
-          drawnItems.addLayer(layer);
-          const geojson = layer.toGeoJSON();
-          console.log('🎨 Shape created (fallback):', geojson);
           
+          // Convert to GeoJSON
+          const geojson = (layer as any).toGeoJSON();
+          
+          // Send to parent (show popup)
           if (onBoundaryDrawn) {
             onBoundaryDrawn(geojson);
           }
-        }
+          
+          toast.success('✅ วาดเสร็จแล้ว');
+          console.log('🎨 Shape created:', geojson);
+          
+          // Disable draw mode
+          setTimeout(() => {
+            map.pm.disableDraw();
+            console.log('✅ Draw mode disabled');
+          }, 100);
+        }, 200);
       });
+
+      // ✅ pm:create is handled by pm:drawend - no need for fallback
 
       // Handle shape edited
       map.on('pm:edit', (e: any) => {
@@ -336,6 +402,22 @@ export default function VillageBoundaryMap({
         mapRef.current = null;
       }
     };
+  }, []);
+
+  // ✅ ESC Key Handler - Cancel draw mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mapRef.current) {
+        const map = mapRef.current;
+        if (map.pm.globalDrawModeEnabled()) {
+          map.pm.disableDraw();
+          toast('ยกเลิกการวาด (กด ESC)', { icon: 'ℹ️' });
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   // Load tambon boundary from API
