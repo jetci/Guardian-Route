@@ -295,34 +295,60 @@ export default function VillageBoundaryMap({
           onDrawingStateChange(false);
         }
         
-        // Wait for layer to be added to drawnItems
-        setTimeout(() => {
-          const layers = drawnItemsRef.current?.getLayers() || [];
-          
-          if (layers.length === 0) {
-            console.warn('⚠️ No layers found');
-            return;
-          }
-          
-          // Get last added layer
-          const layer = layers[layers.length - 1] as L.Layer;
-          
-          // Validate based on shape type
-          if (shape === 'Polygon' || shape === 'Rectangle') {
-            const latlngs = (layer as any).getLatLngs();
-            const points = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
+        // ✅ Marker: Handle immediately (pm:create fires BEFORE pm:drawend)
+        if (shape === 'Marker') {
+          setTimeout(() => {
+            const layers = drawnItemsRef.current?.getLayers() || [];
             
-            if (!points || points.length < 3) {
-              console.warn('⚠️ Invalid polygon:', points?.length, 'points');
-              drawnItemsRef.current?.removeLayer(layer);
-              toast.error('❌ ต้องวาดอย่างน้อย 3 จุด');
+            if (layers.length === 0) {
+              console.warn('⚠️ No marker found');
               return;
             }
             
-            console.log('✅ Valid polygon:', points.length, 'points');
-          } else if (shape === 'Marker') {
+            const layer = layers[layers.length - 1] as L.Layer;
+            const geojson = (layer as any).toGeoJSON();
+            
             console.log('✅ Valid marker');
+            
+            // Send to parent (show popup)
+            if (onBoundaryDrawn) {
+              onBoundaryDrawn(geojson);
+            }
+            
+            toast.success('✅ วาดเสร็จแล้ว');
+            console.log('🎨 Marker created:', geojson);
+            
+            // Disable draw mode
+            setTimeout(() => {
+              map.pm.disableDraw();
+              console.log('✅ Draw mode disabled');
+            }, 100);
+          }, 200);
+        }
+        // ✅ Polygon/Rectangle: Will be handled by pm:create (fires AFTER pm:drawend)
+      });
+
+      // ✅ Handle Polygon/Rectangle creation (pm:create fires AFTER pm:drawend)
+      map.on('pm:create', (e: any) => {
+        const layer = e.layer;
+        const shape = e.shape;
+        
+        console.log('✅ pm:create:', shape);
+        
+        // Only handle Polygon/Rectangle (Marker is handled by pm:drawend)
+        if (shape === 'Polygon' || shape === 'Rectangle') {
+          const latlngs = (layer as any).getLatLngs();
+          const points = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
+          
+          // Validate: must have at least 3 points
+          if (!points || points.length < 3) {
+            console.warn('⚠️ Invalid polygon:', points?.length, 'points');
+            drawnItemsRef.current?.removeLayer(layer);
+            toast.error('❌ ต้องวาดอย่างน้อย 3 จุด');
+            return;
           }
+          
+          console.log('✅ Valid polygon:', points.length, 'points');
           
           // Convert to GeoJSON
           const geojson = (layer as any).toGeoJSON();
@@ -333,17 +359,15 @@ export default function VillageBoundaryMap({
           }
           
           toast.success('✅ วาดเสร็จแล้ว');
-          console.log('🎨 Shape created:', geojson);
+          console.log('🎨 Polygon created:', geojson);
           
           // Disable draw mode
           setTimeout(() => {
             map.pm.disableDraw();
             console.log('✅ Draw mode disabled');
           }, 100);
-        }, 200);
+        }
       });
-
-      // ✅ pm:create is handled by pm:drawend - no need for fallback
 
       // Handle shape edited
       map.on('pm:edit', (e: any) => {
