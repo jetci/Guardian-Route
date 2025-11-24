@@ -489,11 +489,15 @@ export default function VillageBoundariesPage() {
         setSelectedVillageNo(villageNo); // ✅ Keep as number - form will handle conversion
         setHasUserChanges(false); // Reset - user hasn't made changes yet
         
+        // ✅ Switch to hybrid map (satellite + labels) for better boundary editing
+        setMapLayerType('hybrid');
+        
         console.log('✅ Edit mode activated:', { 
           villageId, 
           villageName, 
           villageNo,
-          hasBoundary: !!existingBoundary 
+          hasBoundary: !!existingBoundary,
+          mapLayerType: 'hybrid'
         });
         
         // Load existing boundary if available
