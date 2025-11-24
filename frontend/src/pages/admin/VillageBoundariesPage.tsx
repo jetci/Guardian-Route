@@ -962,6 +962,25 @@ export default function VillageBoundariesPage() {
   return (
     <DashboardLayout>
       <div className="village-boundaries-page">
+        {/* Edit Mode Banner - Sticky indicator showing which village is being edited */}
+        {editingBoundaryId && (
+          <div className="edit-mode-banner">
+            <div className="banner-content">
+              <span className="banner-icon">✏️</span>
+              <div className="banner-text">
+                <strong>กำลังแก้ไข:</strong> {boundaryName || `หมู่ ${selectedVillageNo}`}
+              </div>
+            </div>
+            <button 
+              className="cancel-edit-btn"
+              onClick={handleCancelDrawing}
+              title="ยกเลิกการแก้ไข"
+            >
+              ❌ ยกเลิก
+            </button>
+          </div>
+        )}
+        
         <div className="page-header">
           <div>
             <h1>🌐 กำหนดขอบเขตหมู่บ้าน</h1>
