@@ -240,8 +240,8 @@ export default function VillageBoundariesPage() {
   };
 
   const handleSaveDrawnBoundary = async () => {
-    // Validation
-    if (!drawnBoundary) {
+    // ✅ Validation: ถ้าแก้ไขโดยไม่วาดใหม่ ให้ใช้ขอบเขตเดิม
+    if (!drawnBoundary && !editingBoundaryId) {
       toast.error('กรุณาวาดขอบเขตก่อน');
       return;
     }
@@ -251,14 +251,33 @@ export default function VillageBoundariesPage() {
       return;
     }
 
+    // ✅ ใช้ drawnBoundary ถ้ามี, ไม่งั้นใช้ขอบเขตเดิมจาก villageBoundaries
+    let boundaryToSave = drawnBoundary;
+    
+    if (!boundaryToSave && editingBoundaryId) {
+      // หาขอบเขตเดิมจาก villageBoundaries
+      const existingBoundary = villageBoundaries.find((b: VillageBoundary) => b.id === editingBoundaryId);
+      if (existingBoundary && existingBoundary.boundary) {
+        // แปลง boundary เป็น GeoJSON format
+        boundaryToSave = {
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [existingBoundary.boundary]
+          },
+          properties: {}
+        };
+      }
+    }
+
     // Validate geometry
-    if (!drawnBoundary.geometry || !drawnBoundary.geometry.coordinates) {
+    if (!boundaryToSave || !boundaryToSave.geometry || !boundaryToSave.geometry.coordinates) {
       toast.error('ข้อมูลขอบเขตไม่ถูกต้อง');
       return;
     }
 
     // Calculate area and points for preview
-    const coords = drawnBoundary.geometry.coordinates[0];
+    const coords = boundaryToSave.geometry.coordinates[0];
     const points = coords ? coords.length : 0;
     
     // Calculate area (approximate)
@@ -278,13 +297,13 @@ export default function VillageBoundariesPage() {
       villageNo: selectedVillageNo,
       area: area,
       points: points,
-      boundary: drawnBoundary
+      boundary: boundaryToSave
     });
     setShowPreview(true);
   };
 
   const handleConfirmSave = async () => {
-    if (!drawnBoundary || !previewData) {
+    if (!previewData || !previewData.boundary) {
       toast.error('ข้อมูลไม่ครบถ้วน');
       return;
     }
@@ -330,7 +349,7 @@ export default function VillageBoundariesPage() {
         // Save tambon boundary
         await boundariesService.saveTambonBoundary({
           name: boundaryName,
-          geojson: drawnBoundary,
+          geojson: previewData.boundary,
           properties: {
             district: 'อำเภอฝาง',
             province: 'จังหวัดเชียงใหม่',
@@ -342,12 +361,12 @@ export default function VillageBoundariesPage() {
         // ✅ Update existing village boundary
         console.log('🔄 Updating village boundary:', editingBoundaryId);
         
-        if (!drawnBoundary.geometry?.coordinates) {
+        if (!previewData.boundary.geometry?.coordinates) {
           toast.dismiss(loadingToast);
           toast.error('ข้อมูลขอบเขตไม่ถูกต้อง: ไม่มีพิกัด');
           return;
         }
-        const [lng, lat] = calculateCenterPoint(drawnBoundary.geometry.coordinates);
+        const [lng, lat] = calculateCenterPoint(previewData.boundary.geometry.coordinates);
         const centerPoint = {
           type: 'Point',
           coordinates: [lng, lat],
@@ -355,7 +374,7 @@ export default function VillageBoundariesPage() {
         
         await boundariesService.updateVillageBoundary(
           editingBoundaryId,
-          drawnBoundary.geometry,
+          previewData.boundary.geometry,
           centerPoint
         );
         toast.dismiss(loadingToast);
@@ -373,12 +392,12 @@ export default function VillageBoundariesPage() {
         }
 
         // Calculate center point from boundary
-        if (!drawnBoundary.geometry?.coordinates) {
+        if (!previewData.boundary.geometry?.coordinates) {
           toast.dismiss(loadingToast);
           toast.error('ข้อมูลขอบเขตไม่ถูกต้อง: ไม่มีพิกัด');
           return;
         }
-        const [lng, lat] = calculateCenterPoint(drawnBoundary.geometry.coordinates);
+        const [lng, lat] = calculateCenterPoint(previewData.boundary.geometry.coordinates);
         const centerPoint = {
           type: 'Point',
           coordinates: [lng, lat],
@@ -387,7 +406,7 @@ export default function VillageBoundariesPage() {
         // Save to specific village
         await boundariesService.updateVillageBoundary(
           village.id,
-          drawnBoundary.geometry,
+          previewData.boundary.geometry,
           centerPoint
         );
         toast.dismiss(loadingToast);
@@ -397,7 +416,7 @@ export default function VillageBoundariesPage() {
         const data: CreateBoundaryDto = {
           name: boundaryName,
           type: 'custom',
-          geojson: drawnBoundary,
+          geojson: previewData.boundary,
           villageId: undefined,
         };
 
