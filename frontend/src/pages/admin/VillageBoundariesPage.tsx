@@ -1272,10 +1272,11 @@ export default function VillageBoundariesPage() {
                 </div>
               )}
 
-              {drawnBoundary && (!editingBoundaryId || hasUserChanges) && !isDrawing && (
+              {/* ✅ แสดง form เมื่อ: มี drawnBoundary หรือ กำลังแก้ไข */}
+              {(drawnBoundary || editingBoundaryId) && !isDrawing && (
                 <div className="save-form">
                   <div className="save-form-header">
-                    <h3>💾 บันทึกขอบเขตที่วาด</h3>
+                    <h3>{editingBoundaryId ? '✏️ แก้ไขขอบเขต' : '💾 บันทึกขอบเขตที่วาด'}</h3>
                     {/* Undo/Redo Controls */}
                     <div className="history-controls">
                       <button 
