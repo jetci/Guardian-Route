@@ -10,10 +10,8 @@ import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import 'leaflet/dist/leaflet.css';
 import toast from 'react-hot-toast';
-import { VILLAGE_NAMES, TAMBON_INFO } from '../../data/villages';
-import { fetchVillages, type Village } from '../../services/villageService';
-
-const VILLAGES = VILLAGE_NAMES;
+import { TAMBON_INFO } from '../../data/villages';
+import { villagesApi, type LeafletVillage } from '../../api/villages';
 
 export default function SurveyAreaPage() {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -27,8 +25,8 @@ export default function SurveyAreaPage() {
   const [areaSize, setAreaSize] = useState<number | null>(null);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [villages, setVillages] = useState<Village[]>([]);
-  const [selectedVillage, setSelectedVillage] = useState<Village | null>(null);
+  const [villages, setVillages] = useState<LeafletVillage[]>([]);
+  const [selectedVillage, setSelectedVillage] = useState<LeafletVillage | null>(null);
   const [formData, setFormData] = useState({
     disasterType: '',
     severity: '',
@@ -126,7 +124,7 @@ export default function SurveyAreaPage() {
   useEffect(() => {
     const loadVillages = async () => {
       try {
-        const villagesData = await fetchVillages();
+        const villagesData = await villagesApi.getAllForMap();
         setVillages(villagesData);
         console.log('✅ Loaded villages from API:', villagesData.length);
         
@@ -135,11 +133,11 @@ export default function SurveyAreaPage() {
           displayVillageBoundaries(villagesData);
         }, 500);
       } catch (error) {
-        console.error('Error loading villages from API:', error);
+        console.error('❌ Error loading villages from API:', error);
         
         // Fallback to mock data
         console.log('⚠️ Using mock village data');
-        const mockVillages: Village[] = [
+        const mockVillages: LeafletVillage[] = [
           { id: 1, name: 'บ้านทุ่งยาว', moo: 1, lat: 19.9200, lng: 99.2150, households: 150, boundary: undefined },
           { id: 2, name: 'บ้านสันต้นดู่', moo: 2, lat: 19.9250, lng: 99.2200, households: 120, boundary: undefined },
           { id: 3, name: 'บ้านป่าไผ่', moo: 3, lat: 19.9150, lng: 99.2100, households: 100, boundary: undefined },
@@ -155,7 +153,7 @@ export default function SurveyAreaPage() {
   }, []);
 
   // Display village boundaries on map
-  const displayVillageBoundaries = (villagesData: Village[]) => {
+  const displayVillageBoundaries = (villagesData: LeafletVillage[]) => {
     if (!mapInstanceRef.current) return;
     
     const map = mapInstanceRef.current;
@@ -172,14 +170,16 @@ export default function SurveyAreaPage() {
           },
           geometry: {
             type: 'Polygon',
-            coordinates: [village.boundary.map(coord => [coord[1], coord[0]])] // [lat, lng] -> [lng, lat]
+            coordinates: [village.boundary.map((coord: [number, number]) => [coord[1], coord[0]])] // [lat, lng] -> [lng, lat]
           }
-        }, {
+        } as any, {
           style: {
-            color: '#3388ff',
-            weight: 2,
-            opacity: 0.6,
-            fillOpacity: 0.1
+            color: '#2563eb',
+            weight: 2.5,
+            opacity: 0.8,
+            fillColor: '#3b82f6',
+            fillOpacity: 0.15,
+            dashArray: '5, 5'
           }
         });
         
@@ -231,7 +231,7 @@ export default function SurveyAreaPage() {
   };
 
   // Handle village click from map
-  const handleVillageClick = (village: Village) => {
+  const handleVillageClick = (village: LeafletVillage) => {
     setSelectedVillage(village);
     setFormData({...formData, village: village.name});
     highlightVillage(village);
@@ -240,7 +240,7 @@ export default function SurveyAreaPage() {
   };
 
   // Highlight selected village
-  const highlightVillage = (village: Village) => {
+  const highlightVillage = (village: LeafletVillage) => {
     // Reset all styles
     resetHighlight();
     
@@ -261,16 +261,18 @@ export default function SurveyAreaPage() {
   const resetHighlight = () => {
     villageBoundariesRef.current.forEach(layer => {
       layer.setStyle({
-        color: '#3388ff',
-        weight: 2,
-        opacity: 0.6,
-        fillOpacity: 0.1
+        color: '#2563eb',
+        weight: 2.5,
+        opacity: 0.8,
+        fillColor: '#3b82f6',
+        fillOpacity: 0.15,
+        dashArray: '5, 5'
       });
     });
   };
 
   // Zoom to village
-  const zoomToVillage = (village: Village) => {
+  const zoomToVillage = (village: LeafletVillage) => {
     if (!mapInstanceRef.current) return;
     
     const layer = villageBoundariesRef.current.get(village.moo);

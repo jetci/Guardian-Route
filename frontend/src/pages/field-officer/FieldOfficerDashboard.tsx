@@ -8,33 +8,13 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import toast from 'react-hot-toast';
 import { formatThaiDateShort } from '../../utils/dateFormatter';
-import { VILLAGE_NAMES, TAMBON_INFO } from '../../data/villages';
+import { TAMBON_INFO } from '../../data/villages';
+import { tasksApi } from '../../api/tasks';
+import { useAuthStore } from '../../stores/authStore';
+import type { Task as ApiTask } from '../../types';
 import './FieldOfficerDashboard.css';
 
-const VILLAGES = VILLAGE_NAMES;
-
-const DISASTER_TYPES = ['น้ำท่วม', 'ดินถล่ม', 'ไฟไหม้ป่า', 'แผ่นดินไหว', 'ภัยแล้ง'];
-
-interface Task {
-  id: string;
-  title: string;
-  description: string;
-  location: string;
-  priority: 'HIGH' | 'MEDIUM' | 'LOW';
-  status: 'PENDING' | 'ACCEPTED' | 'IN_PROGRESS' | 'COMPLETED';
-  dueDate: string;
-  assignedDate: string;
-  disasterType: string;
-}
-
-interface Report {
-  id: string;
-  title: string;
-  type: string;
-  location: string;
-  status: 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
-  submittedDate: string;
-}
+// Using types from API
 
 export default function FieldOfficerDashboard() {
   const navigate = useNavigate();
@@ -45,8 +25,8 @@ export default function FieldOfficerDashboard() {
     completedTasks: 0,
     reportsSubmitted: 0
   });
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [reports, setReports] = useState<Report[]>([]);
+  const [tasks, setTasks] = useState<ApiTask[]>([]);
+  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     loadDashboardData();
@@ -56,42 +36,28 @@ export default function FieldOfficerDashboard() {
     try {
       setLoading(true);
       
-      // Generate mock tasks
-      const mockTasks: Task[] = Array.from({ length: 10 }, (_, i) => ({
-        id: `TASK-${String(i + 1).padStart(3, '0')}`,
-        title: `${DISASTER_TYPES[i % DISASTER_TYPES.length]} - ${VILLAGES[i % VILLAGES.length]}`,
-        description: `ตรวจสอบและรายงานสถานการณ์${DISASTER_TYPES[i % DISASTER_TYPES.length]}`,
-        location: VILLAGES[i % VILLAGES.length],
-        priority: ['HIGH', 'MEDIUM', 'LOW'][i % 3] as 'HIGH' | 'MEDIUM' | 'LOW',
-        status: ['PENDING', 'ACCEPTED', 'IN_PROGRESS', 'COMPLETED'][i % 4] as Task['status'],
-        dueDate: new Date(Date.now() + (i + 1) * 86400000).toISOString().split('T')[0],
-        assignedDate: new Date(Date.now() - i * 86400000).toISOString().split('T')[0],
-        disasterType: DISASTER_TYPES[i % DISASTER_TYPES.length]
-      }));
+      // Fetch my tasks from API
+      const myTasks = await tasksApi.getMyTasks();
+      console.log('✅ Loaded tasks from API:', myTasks.length);
+      
+      // Sort by due date and take latest 10
+      const sortedTasks = myTasks
+        .sort((a, b) => new Date(a.dueDate || 0).getTime() - new Date(b.dueDate || 0).getTime())
+        .slice(0, 10);
+      
+      setTasks(sortedTasks);
 
-      // Generate mock reports
-      const mockReports: Report[] = Array.from({ length: 5 }, (_, i) => ({
-        id: `RPT-2025-${String(i + 1).padStart(3, '0')}`,
-        title: `รายงาน${DISASTER_TYPES[i % DISASTER_TYPES.length]} - ${VILLAGES[i % VILLAGES.length]}`,
-        type: DISASTER_TYPES[i % DISASTER_TYPES.length],
-        location: VILLAGES[i % VILLAGES.length],
-        status: ['SUBMITTED', 'APPROVED', 'DRAFT'][i % 3] as Report['status'],
-        submittedDate: new Date(Date.now() - i * 86400000).toISOString().split('T')[0]
-      }));
-
-      setTasks(mockTasks);
-      setReports(mockReports);
-
-      // Calculate stats
+      // Calculate stats from real data
       setStats({
-        myTasks: mockTasks.filter(t => t.status !== 'COMPLETED').length,
-        acceptedTasks: mockTasks.filter(t => t.status === 'ACCEPTED' || t.status === 'IN_PROGRESS').length,
-        completedTasks: mockTasks.filter(t => t.status === 'COMPLETED').length,
-        reportsSubmitted: mockReports.filter(r => r.status === 'SUBMITTED' || r.status === 'APPROVED').length
+        myTasks: myTasks.length,
+        acceptedTasks: myTasks.filter(t => t.status === 'IN_PROGRESS').length,
+        completedTasks: myTasks.filter(t => t.status === 'COMPLETED').length,
+        reportsSubmitted: myTasks.filter(t => t.completedAt).length
       });
 
+      toast.success('โหลดข้อมูลสำเร็จ');
     } catch (error) {
-      console.error('Failed to load dashboard data:', error);
+      console.error('❌ Failed to load dashboard data:', error);
       toast.error('ไม่สามารถโหลดข้อมูลได้');
     } finally {
       setLoading(false);
@@ -100,6 +66,7 @@ export default function FieldOfficerDashboard() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
+      case 'URGENT': return 'red';
       case 'HIGH': return 'red';
       case 'MEDIUM': return 'orange';
       case 'LOW': return 'green';
@@ -257,22 +224,24 @@ export default function FieldOfficerDashboard() {
                 tasks.map(task => (
                   <div key={task.id} className="task-item">
                     <div className="task-header">
-                      <span className="task-id">{task.id}</span>
+                      <span className="task-id">{task.id.substring(0, 8)}</span>
                       <span className={`priority-badge ${getPriorityColor(task.priority)}`}>
                         {task.priority}
                       </span>
                     </div>
                     
                     <h3 className="task-title">{task.title}</h3>
-                    <p className="task-description">{task.description}</p>
+                    <p className="task-description">{task.description || 'ไม่มีรายละเอียด'}</p>
                     
                     <div className="task-meta">
                       <span className="meta-item">
-                        📍 {task.location}
+                        📍 {task.village?.name || 'ไม่ระบุ'}
                       </span>
-                      <span className="meta-item">
-                        📅 ครบกำหนด: {formatThaiDateShort(task.dueDate)}
-                      </span>
+                      {task.dueDate && (
+                        <span className="meta-item">
+                          📅 ครบกำหนด: {formatThaiDateShort(task.dueDate)}
+                        </span>
+                      )}
                     </div>
 
                     <div className="task-footer">
@@ -292,52 +261,51 @@ export default function FieldOfficerDashboard() {
             </div>
           </div>
 
-          {/* Recent Reports */}
+          {/* Completed Tasks */}
           <div className="content-card reports-card">
             <div className="card-header">
-              <h2>📄 รายงานล่าสุด (Recent Reports)</h2>
+              <h2>✅ งานที่เสร็จแล้ว (Completed Tasks)</h2>
               <button 
                 className="btn-view-all"
-                onClick={() => navigate('/field-officer/report-history')}
+                onClick={() => navigate('/tasks/my-tasks')}
               >
                 ดูทั้งหมด →
               </button>
             </div>
 
             <div className="reports-list">
-              {reports.length === 0 ? (
+              {tasks.filter(t => t.status === 'COMPLETED').length === 0 ? (
                 <div className="empty-state">
-                  <p>📝 ยังไม่มีรายงาน</p>
+                  <p>📝 ยังไม่มีงานที่เสร็จ</p>
                 </div>
               ) : (
-                reports.map(report => (
-                  <div key={report.id} className="report-item">
+                tasks.filter(t => t.status === 'COMPLETED').slice(0, 5).map(task => (
+                  <div key={task.id} className="report-item">
                     <div className="report-header">
-                      <span className="report-id">{report.id}</span>
-                      <span className={`status-badge ${getStatusColor(report.status)}`}>
-                        {getStatusLabel(report.status)}
+                      <span className="report-id">{task.id.substring(0, 8)}</span>
+                      <span className={`status-badge green`}>
+                        เสร็จสิ้น
                       </span>
                     </div>
                     
-                    <h3 className="report-title">{report.title}</h3>
+                    <h3 className="report-title">{task.title}</h3>
                     
                     <div className="report-meta">
                       <span className="meta-item">
-                        🏷️ {report.type}
+                        📍 {task.village?.name || 'ไม่ระบุ'}
                       </span>
-                      <span className="meta-item">
-                        📍 {report.location}
-                      </span>
-                      <span className="meta-item">
-                        📅 {formatThaiDateShort(report.submittedDate)}
-                      </span>
+                      {task.completedAt && (
+                        <span className="meta-item">
+                          📅 {formatThaiDateShort(task.completedAt)}
+                        </span>
+                      )}
                     </div>
 
                     <button 
                       className="btn-view-report"
-                      onClick={() => navigate(`/reports/${report.id}`)}
+                      onClick={() => navigate(`/tasks/${task.id}`)}
                     >
-                      ดูรายงาน →
+                      ดูรายละเอียด →
                     </button>
                   </div>
                 ))

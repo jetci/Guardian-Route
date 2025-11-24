@@ -17,42 +17,33 @@ export interface ReportPayload {
 export const reportService = {
   /**
    * Get my reports (for field officers)
-   * TODO: Backend endpoint /reports/my not ready yet - using mock data
+   * ✅ Connected to real API - using tasks as reports
    */
   getMyReports: async () => {
-    // Mock data until backend endpoint is ready
-    return [
-      {
-        id: '1',
-        title: 'รายงานสถานการณ์น้ำท่วม หมู่ 3',
-        content: 'พื้นที่น้ำท่วมสูง 50 ซม. ประชาชนได้รับความเดือดร้อน',
-        status: 'PENDING',
-        priority: 'HIGH',
-        incidentId: 'INC-001',
-        createdAt: new Date().toISOString(),
-        author: {
-          firstName: 'Field',
-          lastName: 'Officer'
-        }
-      },
-      {
-        id: '2',
-        title: 'รายงานการตรวจสอบพื้นที่เสี่ยง',
-        content: 'ตรวจสอบพื้นที่เสี่ยงดินถล่มเรียบร้อยแล้ว',
-        status: 'APPROVED',
-        priority: 'MEDIUM',
-        incidentId: 'INC-002',
-        createdAt: new Date(Date.now() - 86400000).toISOString(),
-        author: {
-          firstName: 'Field',
-          lastName: 'Officer'
-        }
-      }
-    ];
-    
-    // Real API call (commented out until backend ready)
-    // const response = await api.get('/reports/my');
-    // return response.data;
+    try {
+      // Get all my tasks (completed tasks are reports)
+      const response = await api.get('/tasks');
+      console.log('✅ Loaded my reports from API:', response.data.length);
+      
+      // Transform tasks to report format
+      return response.data.map((task: any) => ({
+        id: task.id,
+        title: task.title,
+        content: task.description || '',
+        status: task.status,
+        priority: task.priority,
+        incidentId: task.incidentId,
+        location: task.village?.name || 'ไม่ระบุ',
+        submittedDate: task.completedAt || task.createdAt,
+        dueDate: task.dueDate,
+        supervisorComment: task.description,
+        createdAt: task.createdAt,
+        author: task.createdBy
+      }));
+    } catch (error) {
+      console.error('❌ Failed to load my reports:', error);
+      throw error;
+    }
   },
 
   /**

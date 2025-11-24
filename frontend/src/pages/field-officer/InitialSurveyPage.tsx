@@ -7,7 +7,7 @@ import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { mockTasks } from '../../mocks/dashboardData';
 import { VILLAGE_NAMES, TAMBON_INFO } from '../../data/villages';
-import { fetchVillages, type Village } from '../../services/villageService';
+import { villagesApi, type LeafletVillage } from '../../api/villages';
 import ThaiDatePicker from '../../components/ThaiDatePicker';
 import './InitialSurveyPage.css';
 
@@ -58,7 +58,7 @@ export function InitialSurveyPage() {
   const villageBoundaryRef = useRef<L.Circle | L.Polygon | null>(null);
   
   // Villages data from API
-  const [villages, setVillages] = useState<Village[]>([]);
+  const [villages, setVillages] = useState<LeafletVillage[]>([]);
 
   // Initialize map
   useEffect(() => {
@@ -181,7 +181,7 @@ export function InitialSurveyPage() {
     const loadVillages = async () => {
       try {
         console.log('🔄 Loading villages from API...');
-        const data = await fetchVillages();
+        const data = await villagesApi.getAllForMap();
         console.log('✅ Loaded villages from API:', data.length, data);
         setVillages(data);
       } catch (error: any) {

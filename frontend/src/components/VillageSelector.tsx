@@ -21,9 +21,10 @@ export function VillageSelector({ value, onChange, className = '' }: VillageSele
     try {
       const data = await villagesApi.getAll();
       setVillages(data);
+      console.log('✅ VillageSelector loaded villages:', data.length);
     } catch (err: any) {
       setError('ไม่สามารถโหลดข้อมูลหมู่บ้านได้');
-      console.error(err);
+      console.error('❌ VillageSelector error:', err);
     } finally {
       setLoading(false);
     }
