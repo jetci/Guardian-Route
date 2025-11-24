@@ -339,7 +339,9 @@ export default function VillageBoundariesPage() {
         toast.dismiss(loadingToast);
         toast.success('บันทึกขอบเขตตำบลสำเร็จ');
       } else if (editingBoundaryId && editingBoundaryId !== 'tambon-wiang') {
-        // Update village boundary
+        // ✅ Update existing village boundary
+        console.log('🔄 Updating village boundary:', editingBoundaryId);
+        
         if (!drawnBoundary.geometry?.coordinates) {
           toast.dismiss(loadingToast);
           toast.error('ข้อมูลขอบเขตไม่ถูกต้อง: ไม่มีพิกัด');
@@ -357,9 +359,11 @@ export default function VillageBoundariesPage() {
           centerPoint
         );
         toast.dismiss(loadingToast);
-        toast.success('แก้ไขขอบเขตหมู่บ้านสำเร็จ');
-      } else if (selectedVillageNo && typeof selectedVillageNo === 'number') {
-        // Create new village boundary
+        toast.success(`✅ แก้ไขขอบเขต ${boundaryName} สำเร็จ`);
+        console.log('✅ Updated boundary successfully');
+      } else if (typeof selectedVillageNo === 'number') {
+        // ✅ Create new village boundary
+        console.log('➕ Creating new village boundary for หมู่', selectedVillageNo);
         const village = villageBoundaries.find(v => v.villageNo === selectedVillageNo);
         
         if (!village) {
@@ -402,11 +406,13 @@ export default function VillageBoundariesPage() {
         toast.success('บันทึกขอบเขตสำเร็จ');
       }
       
-      // Reset form
+      // ✅ Reset form and state
+      console.log('🔄 Resetting form after save');
       setDrawnBoundary(null);
       setBoundaryName('');
       setSelectedVillageNo('');
       setEditingBoundaryId(null);
+      setHasUserChanges(false);
       
       // Clear history
       clearHistory();
@@ -477,11 +483,18 @@ export default function VillageBoundariesPage() {
       });
 
       if (result.isConfirmed) {
-        // Set editing mode
+        // ✅ Set editing mode with proper data
         setEditingBoundaryId(villageId);
         setBoundaryName(villageName);
-        setSelectedVillageNo(villageNo);
+        setSelectedVillageNo(villageNo); // ✅ Keep as number - form will handle conversion
         setHasUserChanges(false); // Reset - user hasn't made changes yet
+        
+        console.log('✅ Edit mode activated:', { 
+          villageId, 
+          villageName, 
+          villageNo,
+          hasBoundary: !!existingBoundary 
+        });
         
         // Load existing boundary if available
         if (existingBoundary) {
