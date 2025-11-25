@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Box,
   IconButton,
@@ -14,91 +14,60 @@ import {
   Badge,
   Button,
   Divider,
-  useToast,
+  Spinner,
+  HStack,
+  Icon,
 } from '@chakra-ui/react';
 import { BellIcon } from '@chakra-ui/icons';
-import { notificationsApi, type Notification } from '../../api/notifications';
+import { FiWifi, FiWifiOff } from 'react-icons/fi';
+import { useNotifications } from '../../contexts/NotificationContext';
+import type { NotificationType, NotificationPriority } from '../../types/notification';
 
 export const NotificationBell = () => {
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(false);
-  const toast = useToast();
-
-  useEffect(() => {
-    fetchUnreadCount();
-    // Poll every 30 seconds
-    const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchUnreadCount = async () => {
-    try {
-      const count = await notificationsApi.getUnreadCount();
-      setUnreadCount(count);
-    } catch (error) {
-      // Silent fail
-    }
-  };
-
-  const fetchNotifications = async () => {
-    try {
-      setLoading(true);
-      const data = await notificationsApi.getMyNotifications(10);
-      setNotifications(data);
-    } catch (error) {
-      toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถโหลดการแจ้งเตือนได้',
-        status: 'error',
-        duration: 3000,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    notifications,
+    unreadCount,
+    isConnected,
+    loading,
+    fetchNotifications,
+    markAsRead,
+    markAllAsRead,
+  } = useNotifications();
 
   const handleMarkAsRead = async (notificationId: string) => {
-    try {
-      await notificationsApi.markAsRead(notificationId);
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notificationId ? { ...n, isRead: true } : n))
-      );
-      setUnreadCount((prev) => Math.max(0, prev - 1));
-    } catch (error) {
-      // Silent fail
-    }
+    await markAsRead([notificationId]);
   };
 
-  const handleMarkAllAsRead = async () => {
-    try {
-      await notificationsApi.markAllAsRead();
-      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
-      setUnreadCount(0);
-      toast({
-        title: 'อ่านทั้งหมดแล้ว',
-        status: 'success',
-        duration: 2000,
-      });
-    } catch (error) {
-      toast({
-        title: 'เกิดข้อผิดพลาด',
-        status: 'error',
-        duration: 3000,
-      });
-    }
-  };
-
-  const getTypeColor = (type: string) => {
+  const getTypeColor = (type: NotificationType) => {
     switch (type) {
-      case 'EMERGENCY':
+      case 'INCIDENT_ASSIGNED':
+      case 'INCIDENT_CREATED':
         return 'red';
-      case 'ALERT':
+      case 'TASK_ASSIGNED':
         return 'orange';
-      case 'INFO':
+      case 'REPORT_SUBMITTED':
         return 'blue';
-      case 'UPDATE':
+      case 'INCIDENT_RESOLVED':
+      case 'TASK_COMPLETED':
         return 'green';
+      case 'SYSTEM_ALERT':
+      case 'SYSTEM_MAINTENANCE':
+        return 'purple';
+      default:
+        return 'gray';
+    }
+  };
+
+  const getPriorityColor = (priority: NotificationPriority) => {
+    switch (priority) {
+      case 'URGENT':
+        return 'red';
+      case 'HIGH':
+        return 'orange';
+      case 'NORMAL':
+        return 'blue';
+      case 'LOW':
+        return 'gray';
       default:
         return 'gray';
     }
@@ -131,59 +100,92 @@ export const NotificationBell = () => {
       <PopoverContent width="400px">
         <PopoverArrow />
         <PopoverCloseButton />
-        <PopoverHeader fontWeight="bold">
-          การแจ้งเตือน
-          {unreadCount > 0 && (
-            <Button size="xs" ml={2} onClick={handleMarkAllAsRead}>
-              อ่านทั้งหมด
-            </Button>
-          )}
+        <PopoverHeader>
+          <HStack justify="space-between">
+            <HStack>
+              <Text fontWeight="bold">การแจ้งเตือน</Text>
+              <Icon
+                as={isConnected ? FiWifi : FiWifiOff}
+                color={isConnected ? 'green.500' : 'red.500'}
+                boxSize={4}
+              />
+            </HStack>
+            {unreadCount > 0 && (
+              <Button size="xs" onClick={markAllAsRead}>
+                อ่านทั้งหมด
+              </Button>
+            )}
+          </HStack>
         </PopoverHeader>
         <PopoverBody maxH="400px" overflowY="auto">
           {loading ? (
-            <Text textAlign="center" py={4}>
-              กำลังโหลด...
-            </Text>
+            <VStack py={8}>
+              <Spinner />
+              <Text fontSize="sm" color="gray.500">
+                กำลังโหลด...
+              </Text>
+            </VStack>
           ) : notifications.length === 0 ? (
-            <Text textAlign="center" py={4} color="gray.500">
+            <Text textAlign="center" py={8} color="gray.500">
               ไม่มีการแจ้งเตือน
             </Text>
           ) : (
             <VStack spacing={2} align="stretch">
-              {notifications.map((notification) => (
+              {notifications.map((userNotif) => (
                 <Box
-                  key={notification.id}
+                  key={userNotif.id}
                   p={3}
                   borderRadius="md"
-                  bg={notification.isRead ? 'white' : 'blue.50'}
+                  bg={userNotif.isRead ? 'white' : 'blue.50'}
                   cursor="pointer"
-                  onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
+                  onClick={() => !userNotif.isRead && handleMarkAsRead(userNotif.notificationId)}
                   _hover={{ bg: 'gray.50' }}
+                  borderLeft="4px solid"
+                  borderLeftColor={`${getPriorityColor(userNotif.notification.priority)}.400`}
                 >
                   <Box display="flex" justifyContent="space-between" alignItems="start">
                     <Box flex="1">
-                      <Text fontWeight="bold" fontSize="sm">
-                        {notification.title}
-                      </Text>
+                      <HStack mb={1}>
+                        <Text fontWeight="bold" fontSize="sm">
+                          {userNotif.notification.title}
+                        </Text>
+                        {!userNotif.isRead && (
+                          <Badge colorScheme="blue" fontSize="xs">
+                            ใหม่
+                          </Badge>
+                        )}
+                      </HStack>
                       <Text fontSize="xs" color="gray.600" mt={1}>
-                        {notification.message}
+                        {userNotif.notification.message}
                       </Text>
-                      <Text fontSize="xs" color="gray.400" mt={1}>
-                        {new Date(notification.createdAt).toLocaleString('th-TH')}
-                      </Text>
+                      <HStack mt={2} spacing={2}>
+                        <Badge
+                          colorScheme={getTypeColor(userNotif.notification.type)}
+                          fontSize="xs"
+                        >
+                          {userNotif.notification.type.replace(/_/g, ' ')}
+                        </Badge>
+                        <Text fontSize="xs" color="gray.400">
+                          {new Date(userNotif.createdAt).toLocaleString('th-TH', {
+                            dateStyle: 'short',
+                            timeStyle: 'short',
+                          })}
+                        </Text>
+                      </HStack>
                     </Box>
-                    <Badge colorScheme={getTypeColor(notification.type)} ml={2}>
-                      {notification.type}
-                    </Badge>
                   </Box>
                 </Box>
               ))}
             </VStack>
           )}
-          <Divider my={2} />
-          <Button size="sm" width="100%" variant="ghost">
-            ดูทั้งหมด
-          </Button>
+          {notifications.length > 0 && (
+            <>
+              <Divider my={2} />
+              <Button size="sm" width="100%" variant="ghost" onClick={fetchNotifications}>
+                รีเฟรช
+              </Button>
+            </>
+          )}
         </PopoverBody>
       </PopoverContent>
     </Popover>

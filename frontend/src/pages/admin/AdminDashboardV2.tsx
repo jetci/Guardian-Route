@@ -380,9 +380,9 @@ export default function AdminDashboard() {
         {/* User Management */}
         <div className="user-management">
           <div className="section-header">
-            <h3>👥 User Management</h3>
+            <h3>👥 จัดการผู้ใช้งาน</h3>
             <button className="btn-primary" onClick={openCreateModal}>
-              ➕ Create User
+              ➕ เพิ่มผู้ใช้ใหม่
             </button>
           </div>
 
@@ -390,7 +390,7 @@ export default function AdminDashboard() {
           <div className="filters">
             <input
               type="text"
-              placeholder="🔍 Search users..."
+              placeholder="🔍 ค้นหาผู้ใช้งาน..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -401,11 +401,11 @@ export default function AdminDashboard() {
               onChange={(e) => setRoleFilter(e.target.value)}
               className="filter-select"
             >
-              <option value="ALL">All Roles</option>
-              <option value="ADMIN">Admin</option>
-              <option value="EXECUTIVE">Executive</option>
-              <option value="SUPERVISOR">Supervisor</option>
-              <option value="FIELD_OFFICER">Field Officer</option>
+              <option value="ALL">ทุกบทบาท</option>
+              <option value="ADMIN">ผู้ดูแลระบบ</option>
+              <option value="EXECUTIVE">ผู้บริหาร</option>
+              <option value="SUPERVISOR">หัวหน้างาน</option>
+              <option value="FIELD_OFFICER">เจ้าหน้าที่ภาคสนาม</option>
             </select>
 
             <select
@@ -413,9 +413,9 @@ export default function AdminDashboard() {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="filter-select"
             >
-              <option value="ALL">All Status</option>
-              <option value="ACTIVE">Active</option>
-              <option value="INACTIVE">Inactive</option>
+              <option value="ALL">ทุกสถานะ</option>
+              <option value="ACTIVE">ใช้งาน</option>
+              <option value="INACTIVE">ระงับ</option>
             </select>
           </div>
 
@@ -424,32 +424,32 @@ export default function AdminDashboard() {
             {loading ? (
               <div className="loading-state">
                 <div className="spinner"></div>
-                <p>Loading users...</p>
+                <p>กำลังโหลดข้อมูลผู้ใช้...</p>
               </div>
             ) : error ? (
               <div className="error-state">
                 <p>❌ {error}</p>
-                <button onClick={fetchUsers} className="btn-secondary">Retry</button>
+                <button onClick={fetchUsers} className="btn-secondary">ลองใหม่</button>
               </div>
             ) : (
               <table className="users-table">
                 <thead>
                   <tr>
-                    <th>Username</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Phone</th>
-                    <th>Created</th>
-                    <th>Actions</th>
+                    <th>ชื่อผู้ใช้</th>
+                    <th>ชื่อ-นามสกุล</th>
+                    <th>อีเมล</th>
+                    <th>บทบาท</th>
+                    <th>สถานะ</th>
+                    <th>เบอร์โทร</th>
+                    <th>วันที่สร้าง</th>
+                    <th>การกระทำ</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredUsers.length === 0 ? (
                     <tr>
                       <td colSpan={8} className="empty-state">
-                        No users found
+                        ไม่พบข้อมูลผู้ใช้
                       </td>
                     </tr>
                   ) : (

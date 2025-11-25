@@ -20,6 +20,7 @@ import { UsersPage } from './pages/UsersPage';
 import SettingsPage from './pages/admin/SettingsPage';
 import { TeamsPage } from './pages/TeamsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
+import { AnalyticsDashboard } from './pages/analytics/AnalyticsDashboard';
 import { SubmitReportPage } from './pages/SubmitReportPage';
 import { InitialSurveyPage } from './pages/field-officer/InitialSurveyPage';
 import { DetailedAssessmentPage } from './pages/field-officer/DetailedAssessmentPage';
@@ -65,6 +66,8 @@ import DevAdminDataPage from './pages/developer/admin/DevAdminDataPage';
 import DevAdminSettingsPage from './pages/developer/admin/DevAdminSettingsPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { RoleBasedRedirect } from './components/RoleBasedRedirect';
+import { NotificationProvider } from './contexts/NotificationContext';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // New Placeholder Pages
 import ManageIncidentsPage from './pages/supervisor/ManageIncidentsPage';
@@ -81,8 +84,10 @@ import SurveyAnalysisPage from './pages/analysis/SurveyAnalysisPage';
 function App() {
   return (
     <ChakraProvider>
-      <BrowserRouter>
-        <Routes>
+      <ErrorBoundary>
+        <NotificationProvider>
+          <BrowserRouter>
+          <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
@@ -277,12 +282,22 @@ function App() {
               </ProtectedRoute>
             }
           />
-          {/* Executive Routes */}
+          {/* Analytics - Old */}
           <Route
-            path="/analytics"
+            path="/analytics-old"
             element={
               <ProtectedRoute allowedRoles={['EXECUTIVE']}>
                 <AnalyticsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Analytics Dashboard - New */}
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute allowedRoles={['ADMIN', 'EXECUTIVE', 'SUPERVISOR', 'FIELD_OFFICER']}>
+                <AnalyticsDashboard />
               </ProtectedRoute>
             }
           />
@@ -583,8 +598,10 @@ function App() {
           {/* Role-based redirect */}
           <Route path="/" element={<RoleBasedRedirect />} />
         </Routes>
-      </BrowserRouter>
-      <Toaster position="top-right" />
+        </BrowserRouter>
+        <Toaster position="top-right" />
+        </NotificationProvider>
+      </ErrorBoundary>
     </ChakraProvider>
   );
 }

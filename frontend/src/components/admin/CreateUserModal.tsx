@@ -23,7 +23,8 @@ interface CreateUserFormData {
   username: string;
   email: string;
   password: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   role: string;
   phone?: string;
   department?: string;
@@ -102,10 +103,18 @@ const CreateUserModal: React.FC<CreateUserModalProps> = ({ isOpen, onClose }) =>
               </FormControl>
 
               <FormControl isRequired>
-                <FormLabel>ชื่อ-นามสกุล</FormLabel>
+                <FormLabel>ชื่อ</FormLabel>
                 <Input
-                  {...register('fullName', { required: true })}
-                  placeholder="จอห์น โด"
+                  {...register('firstName', { required: true })}
+                  placeholder="จอห์น"
+                />
+              </FormControl>
+
+              <FormControl isRequired>
+                <FormLabel>นามสกุล</FormLabel>
+                <Input
+                  {...register('lastName', { required: true })}
+                  placeholder="โด"
                 />
               </FormControl>
 

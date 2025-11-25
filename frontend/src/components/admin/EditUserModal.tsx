@@ -23,7 +23,8 @@ interface User {
   id: string;
   username: string;
   email: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   role: string;
   phone?: string;
   department?: string;
@@ -33,7 +34,8 @@ interface EditUserFormData {
   username?: string;
   email?: string;
   password?: string;
-  fullName?: string;
+  firstName?: string;
+  lastName?: string;
   role?: string;
   phone?: string;
   department?: string;
@@ -55,7 +57,8 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user }) 
       reset({
         username: user.username,
         email: user.email,
-        fullName: user.fullName,
+        firstName: user.firstName,
+        lastName: user.lastName,
         role: user.role,
         phone: user.phone || '',
         department: user.department || '',
@@ -123,8 +126,13 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, onClose, user }) 
               </FormControl>
 
               <FormControl>
-                <FormLabel>ชื่อ-นามสกุล</FormLabel>
-                <Input {...register('fullName')} placeholder="จอห์น โด" />
+                <FormLabel>ชื่อ</FormLabel>
+                <Input {...register('firstName')} placeholder="จอห์น" />
+              </FormControl>
+
+              <FormControl>
+                <FormLabel>นามสกุล</FormLabel>
+                <Input {...register('lastName')} placeholder="โด" />
               </FormControl>
 
               <FormControl>

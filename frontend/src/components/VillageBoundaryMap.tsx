@@ -390,7 +390,13 @@ export default function VillageBoundaryMap({
 
       // Handle shape edited
       map.on('pm:edit', (e: any) => {
-        toast.success('✏️ แก้ไขขอบเขตเรียบร้อย');
+        console.log('✏️ Edit event triggered');
+        
+        // ✅ Set isDrawing = false เพื่อให้ปุ่มบันทึกแสดง
+        setIsDrawing(false);
+        if (onDrawingStateChange) {
+          onDrawingStateChange(false);
+        }
         
         const layer = e.layer;
         const geojson = layer.toGeoJSON();
@@ -399,6 +405,8 @@ export default function VillageBoundaryMap({
         if (onBoundaryDrawn) {
           onBoundaryDrawn(geojson);
         }
+        
+        toast.success('✏️ แก้ไขขอบเขตเรียบร้อย - กรุณาคลิก "บันทึก"');
       });
 
       // Handle shape removed
@@ -549,28 +557,29 @@ export default function VillageBoundaryMap({
   }, [isReady, tambonBoundaryData]);
 
   // Function to get distinct color for each village (20 colors)
+  // ✅ ใช้สีที่แตกต่างกันชัดเจน ไม่ซ้ำกัน (Maximum Contrast Colors)
   const getVillageColor = (villageNo: number): string => {
     const colors = [
-      '#e74c3c', // 1 - Red
-      '#3498db', // 2 - Blue
-      '#2ecc71', // 3 - Green
-      '#f39c12', // 4 - Orange
-      '#9b59b6', // 5 - Purple
-      '#1abc9c', // 6 - Turquoise
-      '#e67e22', // 7 - Carrot
-      '#34495e', // 8 - Dark Gray
-      '#16a085', // 9 - Green Sea
-      '#c0392b', // 10 - Dark Red
-      '#27ae60', // 11 - Nephritis
-      '#2980b9', // 12 - Belize Hole
-      '#8e44ad', // 13 - Wisteria
-      '#f1c40f', // 14 - Yellow
-      '#d35400', // 15 - Pumpkin
-      '#7f8c8d', // 16 - Asbestos
-      '#e91e63', // 17 - Pink
-      '#00bcd4', // 18 - Cyan
-      '#4caf50', // 19 - Light Green
-      '#ff5722', // 20 - Deep Orange
+      '#FF1744', // 1 - Bright Red (แดงสด)
+      '#2196F3', // 2 - Blue (น้ำเงิน)
+      '#4CAF50', // 3 - Green (เขียว)
+      '#FF9800', // 4 - Orange (ส้ม)
+      '#9C27B0', // 5 - Purple (ม่วง)
+      '#00BCD4', // 6 - Cyan (ฟ้าอมเขียว)
+      '#FFEB3B', // 7 - Yellow (เหลือง)
+      '#E91E63', // 8 - Pink (ชมพู)
+      '#009688', // 9 - Teal (เขียวอมฟ้า)
+      '#FF5722', // 10 - Deep Orange (ส้มเข้ม)
+      '#673AB7', // 11 - Deep Purple (ม่วงเข้ม)
+      '#03A9F4', // 12 - Light Blue (ฟ้าอ่อน)
+      '#8BC34A', // 13 - Light Green (เขียวอ่อน)
+      '#FFC107', // 14 - Amber (เหลืองอำพัน)
+      '#F44336', // 15 - Red (แดง)
+      '#3F51B5', // 16 - Indigo (คราม)
+      '#CDDC39', // 17 - Lime (เหลืองมะนาว)
+      '#00E676', // 18 - Green Accent (เขียวสะท้อน)
+      '#FF4081', // 19 - Pink Accent (ชมพูสะท้อน)
+      '#536DFE', // 20 - Indigo Accent (ครามสะท้อน)
     ];
     return colors[(villageNo - 1) % colors.length];
   };
@@ -629,7 +638,12 @@ export default function VillageBoundaryMap({
           });
         } else if (existingBoundariesLayerRef.current) {
           // Add to non-editable group - no edit handles
-          layer.eachLayer((l) => {
+          layer.eachLayer((l: any) => {
+            // ✅ ปิดการแก้ไขโดยตรงสำหรับขอบเขตที่ไม่ได้แก้ไข
+            if (l.pm) {
+              l.pm.disable();
+              l.options.pmIgnore = true;
+            }
             existingBoundariesLayerRef.current!.addLayer(l);
           });
         }

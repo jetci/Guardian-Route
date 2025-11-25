@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { ActivityLogService } from '../common/services/activity-log.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { CreateIncidentDto } from './dto/create-incident.dto';
 import { UpdateIncidentDto } from './dto/update-incident.dto';
 import { IncidentStatus, Priority, DisasterType, Role } from '@prisma/client';
@@ -10,6 +12,10 @@ export class IncidentsService {
   constructor(
     private prisma: PrismaService,
     private activityLogService: ActivityLogService,
+    @Inject(forwardRef(() => NotificationsService))
+    private notificationsService: NotificationsService,
+    @Inject(forwardRef(() => NotificationsGateway))
+    private notificationsGateway: NotificationsGateway,
   ) {}
 
   async create(createIncidentDto: CreateIncidentDto, userId: string) {
@@ -305,6 +311,26 @@ export class IncidentsService {
         notes,
       },
     });
+
+    // Send notification to field officer
+    try {
+      const notification = await this.notificationsService.notifyIncidentAssigned(
+        incident.id,
+        incident.title,
+        fieldOfficerId,
+      );
+      
+      // Send real-time notification via WebSocket
+      if (notification) {
+        this.notificationsGateway.sendToUser(fieldOfficerId, {
+          ...notification.notification,
+          userNotification: notification.userNotifications[0],
+        });
+      }
+    } catch (error) {
+      console.error('Failed to send notification:', error);
+      // Don't fail the assignment if notification fails
+    }
 
     return incident;
   }

@@ -51,6 +51,15 @@ export class TasksController {
     return this.tasksService.getStatistics();
   }
 
+  @Get('my-tasks')
+  @ApiOperation({ summary: 'Get tasks assigned to current user' })
+  getMyTasks(@CurrentUser() user: any, @Query('status') status?: TaskStatus) {
+    return this.tasksService.findAll({
+      assignedToId: user.sub,
+      status,
+    });
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a task by ID' })
   findOne(@Param('id') id: string) {
@@ -71,5 +80,37 @@ export class TasksController {
   @ApiOperation({ summary: 'Delete a task (Admin only)' })
   remove(@Param('id') id: string, @CurrentUser() user: any) {
     return this.tasksService.remove(id, user.role);
+  }
+
+  @Post(':id/accept')
+  @ApiOperation({ summary: 'Accept a task (Field Officer)' })
+  acceptTask(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.tasksService.update(
+      id,
+      { status: 'IN_PROGRESS' as TaskStatus },
+      user.sub,
+      user.role,
+    );
+  }
+
+  @Post(':id/survey')
+  @ApiOperation({ summary: 'Submit survey data for a task' })
+  submitSurvey(
+    @Param('id') id: string,
+    @Body() surveyData: any,
+    @CurrentUser() user: any,
+  ) {
+    return this.tasksService.update(
+      id,
+      {
+        surveyLocation: surveyData.surveyLocation,
+        surveyArea: surveyData.surveyArea,
+        surveyNotes: surveyData.surveyNotes,
+        surveyPhotos: surveyData.surveyPhotos,
+        status: 'COMPLETED' as TaskStatus,
+      },
+      user.sub,
+      user.role,
+    );
   }
 }

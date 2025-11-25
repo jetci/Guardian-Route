@@ -420,29 +420,60 @@ model Settings {
 }
 
 model Notification {
-  id          String   @id @default(uuid())
-  title       String
-  message     String
-  type        String   // 'info', 'warning', 'error', 'success'
-  createdAt   DateTime @default(now()) @map("created_at")
-  
+  id                String               @id @default(uuid())
+  title             String
+  message           String
+  type              NotificationType
+  priority          NotificationPriority @default(NORMAL)
+  data              Json?
+  relatedEntityType String?              @map("related_entity_type")
+  relatedEntityId   String?              @map("related_entity_id")
+  createdAt         DateTime             @default(now()) @map("created_at")
+
   userNotifications UserNotification[]
-  
+
+  @@index([type])
+  @@index([priority])
+  @@index([createdAt])
   @@map("notifications")
 }
 
 model UserNotification {
-  id             String   @id @default(uuid())
-  userId         String   @map("user_id")
-  notificationId String   @map("notification_id")
-  isRead         Boolean  @default(false) @map("is_read")
-  readAt         DateTime? @map("read_at")
-  createdAt      DateTime @default(now()) @map("created_at")
-  
-  user         User         @relation(fields: [userId], references: [id])
-  notification Notification @relation(fields: [notificationId], references: [id])
-  
+  id             String        @id @default(uuid())
+  userId         String        @map("user_id")
+  notificationId String        @map("notification_id")
+  isRead         Boolean       @default(false) @map("is_read")
+  readAt         DateTime?     @map("read_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, notificationId])
   @@index([userId])
   @@index([notificationId])
+  @@index([isRead])
   @@map("user_notifications")
+}
+
+enum NotificationType {
+  INCIDENT_CREATED
+  INCIDENT_ASSIGNED
+  INCIDENT_UPDATED
+  INCIDENT_RESOLVED
+  TASK_ASSIGNED
+  TASK_UPDATED
+  TASK_COMPLETED
+  REPORT_SUBMITTED
+  REPORT_APPROVED
+  REPORT_REJECTED
+  SYSTEM_ALERT
+  SYSTEM_MAINTENANCE
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
 }

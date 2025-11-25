@@ -29,8 +29,10 @@
     "@nestjs/jwt": "^11.0.1",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.8",
+    "@nestjs/platform-socket.io": "^11.1.9",
     "@nestjs/swagger": "^11.2.1",
     "@nestjs/throttler": "^6.4.0",
+    "@nestjs/websockets": "^11.1.9",
     "@prisma/client": "^6.19.0",
     "@types/uuid": "^10.0.0",
     "bcrypt": "^6.0.0",
@@ -43,6 +45,7 @@
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "sharp": "^0.34.4",
+    "socket.io": "^4.8.1",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

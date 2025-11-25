@@ -28,6 +28,7 @@ export default function VillageBoundariesPage() {
   const [boundaryName, setBoundaryName] = useState('');
   const [selectedVillageNo, setSelectedVillageNo] = useState<number | '' | 'tambon'>('');
   const [editingBoundaryId, setEditingBoundaryId] = useState<string | null>(null);
+  const [deletingBoundaryId, setDeletingBoundaryId] = useState<string | null>(null); // ป้องกันการลบซ้ำ
   
   // Map layer control state
   const [mapLayerType, setMapLayerType] = useState<'street' | 'satellite' | 'hybrid'>('street');
@@ -157,10 +158,29 @@ export default function VillageBoundariesPage() {
   };
 
   const handleBoundaryDrawn = (geojson: any) => {
+    // ✅ ตรวจสอบว่าเป็น Polygon หรือ MultiPolygon เท่านั้น (ไม่รับ Marker/Point)
+    const geometryType = geojson?.geometry?.type;
+    if (geometryType !== 'Polygon' && geometryType !== 'MultiPolygon') {
+      console.log('⚠️ Ignoring non-polygon geometry:', geometryType);
+      return; // ไม่ทำอะไร ถ้าไม่ใช่ Polygon
+    }
+    
+    console.log('✅ Boundary drawn/edited:', {
+      isEditing: !!editingBoundaryId,
+      geometryType,
+      coordinates: geojson.geometry.coordinates.length
+    });
+    
     setDrawnBoundary(geojson);
     addToHistory(geojson);
     setHasUserChanges(true); // Mark that user has made changes
-    toast.success('วาดขอบเขตเรียบร้อย กรุณากรอกข้อมูลและบันทึก');
+    
+    // แสดง message ที่เหมาะสม
+    if (editingBoundaryId) {
+      toast.success('✏️ แก้ไขขอบเขตเรียบร้อย - กรุณาคลิก "บันทึกการแก้ไข"');
+    } else {
+      toast.success('✅ วาดขอบเขตเรียบร้อย - กรุณากรอกข้อมูลและบันทึก');
+    }
   };
 
   // Undo/Redo functions
@@ -479,26 +499,30 @@ export default function VillageBoundariesPage() {
       
       // Confirm before editing
       const result = await Swal.fire({
-        title: hasBoundary ? '✏️ แก้ไขขอบเขต' : '➕ เพิ่มขอบเขตใหม่',
+        title: hasBoundary ? '✏️ เข้าสู่โหมดแก้ไข' : '➕ เพิ่มขอบเขตใหม่',
         html: `
-          <p>คุณต้องการ${hasBoundary ? 'แก้ไข' : 'เพิ่ม'}ขอบเขตของ:</p>
+          <p style="font-size: 16px; margin-bottom: 10px;">เลือกหมู่บ้าน:</p>
           <div style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid ${hasBoundary ? '#3b82f6' : '#10b981'};">
             <strong style="font-size: 18px; color: ${hasBoundary ? '#3b82f6' : '#10b981'};">หมู่ ${villageNo} - ${villageName}</strong>
           </div>
-          <div style="margin-top: 15px; padding: 12px; background: ${hasBoundary ? '#e3f2fd' : '#d1fae5'}; border-radius: 8px;">
-            <small style="color: ${hasBoundary ? '#1976d2' : '#065f46'};">
+          <div style="margin-top: 15px; padding: 12px; background: ${hasBoundary ? '#fff3cd' : '#d1fae5'}; border-radius: 8px; border-left: 3px solid ${hasBoundary ? '#ffc107' : '#10b981'};">
+            <div style="color: ${hasBoundary ? '#856404' : '#065f46'}; text-align: left;">
               ${hasBoundary 
-                ? 'ℹ️ ขอบเขตเดิมจะถูกโหลดมาให้ คุณสามารถแก้ไขได้เลย' 
-                : 'ℹ️ กรุณาวาดขอบเขตใหม่บนแผนที่'}
-            </small>
+                ? '<strong>📋 ขั้นตอน:</strong><br/>1️⃣ ขอบเขตเดิมจะแสดงบนแผนที่<br/>2️⃣ คลิกแก้ไขจุดต่างๆ ตามต้องการ<br/>3️⃣ เสร็จแล้วคลิก "บันทึกการแก้ไข"' 
+                : '<strong>📋 ขั้นตอน:</strong><br/>1️⃣ วาดขอบเขตใหม่บนแผนที่<br/>2️⃣ เสร็จแล้วคลิก "บันทึก"'}
+            </div>
+          </div>
+          <div style="margin-top: 10px; padding: 8px; background: #e3f2fd; border-radius: 6px;">
+            <small style="color: #1976d2;">💡 <strong>หมายเหตุ:</strong> ระบบจะไม่บันทึกอัตโนมัติ คุณต้องคลิกปุ่ม "บันทึก" เมื่อเสร็จสิ้น</small>
           </div>
         `,
-        icon: hasBoundary ? 'question' : 'info',
+        icon: 'info',
         showCancelButton: true,
         confirmButtonColor: hasBoundary ? '#3b82f6' : '#10b981',
         cancelButtonColor: '#6c757d',
         confirmButtonText: hasBoundary ? '✏️ เริ่มแก้ไข' : '➕ เริ่มวาด',
         cancelButtonText: '❌ ยกเลิก',
+        width: '600px'
       });
 
       if (result.isConfirmed) {
@@ -522,6 +546,7 @@ export default function VillageBoundariesPage() {
         // Load existing boundary if available
         if (existingBoundary) {
           setDrawnBoundary(existingBoundary);
+          setIsDrawing(false); // ✅ ให้แน่ใจว่าปุ่มบันทึกจะแสดง
           // Add to history for undo/redo
           addToHistory(existingBoundary);
           console.log('✅ Loaded existing boundary for editing:', existingBoundary);
@@ -1076,93 +1101,8 @@ export default function VillageBoundariesPage() {
         <div className="content">
           {activeTab === 'map' && (
             <div className={`map-section ${!drawnBoundary ? 'full-width' : ''}`}>
-              {/* Coordinate Marker Section - แสดงเฉพาะเมื่อกำลังวาดหรือแก้ไข */}
-              {(drawnBoundary || editingBoundaryId) && (
-                <div className="coordinate-marker-section">
-                  <h3>📍 ปักหมุดพิกัดอ้างอิง</h3>
-                  <p className="section-description">กรอกพิกัดเพื่อปักหมุดจุดอ้างอิงก่อนวาดขอบเขต</p>
-                  
-                  <div className="coordinate-inputs">
-                    <div className="input-group">
-                      <label>Latitude (ละติจูด):</label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={inputLat}
-                        onChange={(e) => setInputLat(e.target.value)}
-                        placeholder="19.93842280996853"
-                        className="coordinate-input"
-                      />
-                    </div>
-                    
-                    <div className="input-group">
-                      <label>Longitude (ลองจิจูด):</label>
-                      <input
-                        type="number"
-                        step="any"
-                        value={inputLng}
-                        onChange={(e) => setInputLng(e.target.value)}
-                        placeholder="99.23076089434804"
-                        className="coordinate-input"
-                      />
-                    </div>
-                    
-                    <div className="input-group full-width">
-                      <label>ชื่อจุด:</label>
-                      <input
-                        type="text"
-                        value={markerLabel}
-                        onChange={(e) => setMarkerLabel(e.target.value)}
-                        placeholder="จุดเริ่มต้นหมู่ 1"
-                        className="coordinate-input"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="marker-actions">
-                    <button onClick={handleAddMarker} className="btn-add-marker">
-                      🎯 ปักหมุด
-                    </button>
-                    <button onClick={handleClearInputs} className="btn-clear">
-                      🗑️ ล้าง
-                    </button>
-                  </div>
-
-                  {coordinateMarkers.length > 0 && (
-                    <div className="markers-list">
-                      <h4>พิกัดที่ปักไว้ ({coordinateMarkers.length})</h4>
-                      <div className="markers-grid">
-                        {coordinateMarkers.map((marker) => (
-                          <div key={marker.id} className="marker-item">
-                            <div className="marker-info">
-                              <strong>📍 {marker.label}</strong>
-                              <span className="marker-coords">
-                                {marker.lat.toFixed(6)}, {marker.lng.toFixed(6)}
-                              </span>
-                            </div>
-                            <div className="marker-item-actions">
-                              <button 
-                                onClick={() => handleGoToMarker(marker)}
-                                className="btn-goto"
-                                title="ไปยังตำแหน่ง"
-                              >
-                                🔍 ไป
-                              </button>
-                              <button 
-                                onClick={() => handleRemoveMarker(marker.id)}
-                                className="btn-remove"
-                                title="ลบหมุด"
-                              >
-                                🗑️ ลบ
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              {/* Coordinate Marker Section ถูกลบออก - เป็น optional feature ที่ไม่จำเป็น 
+                  ผู้ใช้สามารถวาดขอบเขตได้เลยโดยตรงบนแผนที่ */}
 
               {editingBoundaryId === 'tambon-wiang' && (
                 <div className="edit-mode-banner">
@@ -1229,10 +1169,10 @@ export default function VillageBoundariesPage() {
                           .map((boundary) => {
                             const getVillageColor = (villageNo: number): string => {
                               const colors = [
-                                '#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6',
-                                '#1abc9c', '#e67e22', '#34495e', '#16a085', '#c0392b',
-                                '#27ae60', '#2980b9', '#8e44ad', '#f1c40f', '#d35400',
-                                '#7f8c8d', '#e91e63', '#00bcd4', '#4caf50', '#ff5722',
+                                '#FF1744', '#2196F3', '#4CAF50', '#FF9800', '#9C27B0',
+                                '#00BCD4', '#FFEB3B', '#E91E63', '#009688', '#FF5722',
+                                '#673AB7', '#03A9F4', '#8BC34A', '#FFC107', '#F44336',
+                                '#3F51B5', '#CDDC39', '#00E676', '#FF4081', '#536DFE',
                               ];
                               return colors[(villageNo - 1) % colors.length];
                             };
@@ -1291,11 +1231,14 @@ export default function VillageBoundariesPage() {
                 </div>
               )}
 
-              {/* ✅ แสดง form เมื่อ: มี drawnBoundary หรือ กำลังแก้ไข */}
-              {(drawnBoundary || editingBoundaryId) && !isDrawing && (
-                <div className="save-form">
+              {/* ✅ แสดง form เมื่อ: มี drawnBoundary เท่านั้น (ไม่ว่าจะเป็นโหมดแก้ไขหรือวาดใหม่) */}
+              {drawnBoundary && !isDrawing && (
+                <div className={`save-form ${hasUserChanges ? 'has-changes' : ''}`}>
                   <div className="save-form-header">
-                    <h3>{editingBoundaryId ? '✏️ แก้ไขขอบเขต' : '💾 บันทึกขอบเขตที่วาด'}</h3>
+                    <h3>
+                      {editingBoundaryId ? '✏️ แก้ไขขอบเขต' : '💾 บันทึกขอบเขตที่วาด'}
+                      {hasUserChanges && <span className="changes-indicator"> • มีการเปลี่ยนแปลง</span>}
+                    </h3>
                     {/* Undo/Redo Controls */}
                     <div className="history-controls">
                       <button 
@@ -1543,10 +1486,10 @@ export default function VillageBoundariesPage() {
                     // Function to get village color (same as map)
                     const getVillageColor = (villageNo: number): string => {
                       const colors = [
-                        '#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6',
-                        '#1abc9c', '#e67e22', '#34495e', '#16a085', '#c0392b',
-                        '#27ae60', '#2980b9', '#8e44ad', '#f1c40f', '#d35400',
-                        '#7f8c8d', '#e91e63', '#00bcd4', '#4caf50', '#ff5722',
+                        '#FF1744', '#2196F3', '#4CAF50', '#FF9800', '#9C27B0',
+                        '#00BCD4', '#FFEB3B', '#E91E63', '#009688', '#FF5722',
+                        '#673AB7', '#03A9F4', '#8BC34A', '#FFC107', '#F44336',
+                        '#3F51B5', '#CDDC39', '#00E676', '#FF4081', '#536DFE',
                       ];
                       return colors[(villageNo - 1) % colors.length];
                     };
@@ -1618,7 +1561,14 @@ export default function VillageBoundariesPage() {
                         </button>
                         <button 
                           className="btn-action btn-delete"
+                          disabled={deletingBoundaryId === boundary.id}
                           onClick={async () => {
+                            // ✅ ป้องกันการลบซ้ำ
+                            if (deletingBoundaryId) {
+                              toast.error('กรุณารอให้การลบก่อนหน้าเสร็จสิ้นก่อน');
+                              return;
+                            }
+
                             const result = await Swal.fire({
                               title: '⚠️ ยืนยันการลบขอบเขต',
                               html: `
@@ -1629,7 +1579,8 @@ export default function VillageBoundariesPage() {
                                 <div style="margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
                                   <strong style="color: #856404;">⚠️ คำเตือน:</strong><br>
                                   <small style="color: #856404;">
-                                    ขอบเขตจะถูกลบอย่างถาวร และไม่สามารถกู้คืนได้!
+                                    ขอบเขตจะถูกลบอย่างถาวร และไม่สามารถกู้คืนได้!<br>
+                                    <strong>กรุณาตรวจสอบให้แน่ใจก่อนยืนยัน</strong>
                                   </small>
                                 </div>
                               `,
@@ -1643,23 +1594,42 @@ export default function VillageBoundariesPage() {
                             });
 
                             if (result.isConfirmed) {
+                              setDeletingBoundaryId(boundary.id); // ✅ Lock การลบ
                               const loadingToast = toast.loading('กำลังลบขอบเขต...');
+                              
                               try {
+                                console.log('🗑️ Deleting boundary:', {
+                                  id: boundary.id,
+                                  name: boundary.name,
+                                  villageNo: boundary.villageNo,
+                                  timestamp: new Date().toISOString()
+                                });
+                                
                                 await boundariesService.deleteVillageBoundary(boundary.id);
+                                
+                                console.log('✅ Boundary deleted successfully:', boundary.id);
                                 toast.dismiss(loadingToast);
                                 toast.success(`ลบขอบเขต ${boundary.name} สำเร็จ`);
+                                
                                 await loadBoundaries();
                               } catch (error: any) {
+                                console.error('❌ Error deleting boundary:', {
+                                  id: boundary.id,
+                                  error: error.message,
+                                  response: error.response?.data
+                                });
+                                
                                 toast.dismiss(loadingToast);
-                                console.error('Error deleting boundary:', error);
                                 const errorMessage = error.response?.data?.message || error.message || 'เกิดข้อผิดพลาด';
                                 toast.error(`ไม่สามารถลบขอบเขตได้: ${errorMessage}`);
+                              } finally {
+                                setDeletingBoundaryId(null); // ✅ Unlock
                               }
                             }
                           }}
                           title="ลบ"
                         >
-                          🗑️
+                          {deletingBoundaryId === boundary.id ? '⏳' : '🗑️'}
                         </button>
                       </td>
                     </tr>
@@ -1710,10 +1680,10 @@ export default function VillageBoundariesPage() {
                     .map((village) => {
                       const getVillageColor = (villageNo: number): string => {
                         const colors = [
-                          '#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6',
-                          '#1abc9c', '#e67e22', '#34495e', '#16a085', '#c0392b',
-                          '#27ae60', '#2980b9', '#8e44ad', '#f1c40f', '#d35400',
-                          '#7f8c8d', '#e91e63', '#00bcd4', '#4caf50', '#ff5722',
+                          '#FF1744', '#2196F3', '#4CAF50', '#FF9800', '#9C27B0',
+                          '#00BCD4', '#FFEB3B', '#E91E63', '#009688', '#FF5722',
+                          '#673AB7', '#03A9F4', '#8BC34A', '#FFC107', '#F44336',
+                          '#3F51B5', '#CDDC39', '#00E676', '#FF4081', '#536DFE',
                         ];
                         return colors[(villageNo - 1) % colors.length];
                       };

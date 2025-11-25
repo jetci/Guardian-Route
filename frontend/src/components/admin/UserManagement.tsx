@@ -41,7 +41,8 @@ interface User {
   id: string;
   username: string;
   email: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   role: string;
   phone?: string;
   department?: string;
@@ -193,10 +194,26 @@ const UserManagement: React.FC = () => {
         </Select>
         <Button
           leftIcon={<FiPlus />}
-          colorScheme="blue"
+          colorScheme="purple"
+          size="lg"
+          px="2.5rem"
+          py="1.25rem"
+          fontSize="1.0625rem"
+          fontWeight="700"
+          borderRadius="16px"
+          bgGradient="linear(135deg, #667eea 0%, #764ba2 100%)"
+          boxShadow="0 8px 24px rgba(102, 126, 234, 0.35)"
+          _hover={{
+            transform: 'translateY(-4px) scale(1.02)',
+            boxShadow: '0 12px 32px rgba(102, 126, 234, 0.45)',
+          }}
+          _active={{
+            transform: 'translateY(-2px) scale(0.98)',
+          }}
+          transition="all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
           onClick={createModal.onOpen}
         >
-          เพิ่มผู้ใช้
+          เพิ่มผู้ใช้ใหม่
         </Button>
       </Flex>
 
@@ -231,7 +248,7 @@ const UserManagement: React.FC = () => {
               data?.data?.map((user: User) => (
                 <Tr key={user.id}>
                   <Td fontWeight="medium">{user.username}</Td>
-                  <Td>{user.fullName}</Td>
+                  <Td>{user.firstName} {user.lastName}</Td>
                   <Td>{user.email}</Td>
                   <Td>
                     <Badge colorScheme={getRoleBadgeColor(user.role)}>

@@ -1,12 +1,20 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { CreateTaskDto, TaskStatus } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { UpdateSurveyDataDto } from './dto/update-survey-data.dto';
 
 @Injectable()
 export class TasksService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => NotificationsService))
+    private notificationsService: NotificationsService,
+    @Inject(forwardRef(() => NotificationsGateway))
+    private notificationsGateway: NotificationsGateway,
+  ) {}
 
   async create(createTaskDto: CreateTaskDto, createdById: string) {
     // Verify incident exists
@@ -37,6 +45,28 @@ export class TasksService {
         dueDate: createTaskDto.dueDate ? new Date(createTaskDto.dueDate) : null,
       },
     });
+
+    // Send notification if task is assigned
+    if (createTaskDto.assignedToId) {
+      try {
+        const notification = await this.notificationsService.notifyTaskAssigned(
+          task.id,
+          task.title,
+          createTaskDto.assignedToId,
+        );
+        
+        // Send real-time notification via WebSocket
+        if (notification) {
+          this.notificationsGateway.sendToUser(createTaskDto.assignedToId, {
+            ...notification.notification,
+            userNotification: notification.userNotifications[0],
+          });
+        }
+      } catch (error) {
+        console.error('Failed to send notification:', error);
+        // Don't fail the task creation if notification fails
+      }
+    }
 
     return this.findOne(task.id);
   }

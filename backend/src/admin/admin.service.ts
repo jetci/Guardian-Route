@@ -155,12 +155,24 @@ export class AdminService {
       throw new NotFoundException(`Village with ID ${villageId} not found`);
     }
 
-    return this.prisma.village.update({
+    // ✅ Log การลบ
+    this.logger.warn(`🗑️ Deleting village boundary: ${village.name} (หมู่ ${village.villageNo}) - ID: ${villageId}`);
+    
+    // ✅ เก็บข้อมูลเดิมก่อนลบ (สำหรับ audit)
+    if (village.boundary) {
+      this.logger.log(`📦 Boundary data before deletion: ${JSON.stringify(village.boundary).substring(0, 200)}...`);
+    }
+
+    const result = await this.prisma.village.update({
       where: { id: villageId },
       data: {
         boundary: Prisma.JsonNull,
         centerPoint: Prisma.JsonNull,
       },
     });
+
+    this.logger.log(`✅ Village boundary deleted successfully: ${village.name}`);
+    
+    return result;
   }
 }
