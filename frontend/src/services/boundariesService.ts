@@ -63,7 +63,7 @@ const boundariesService = {
 
   // Update boundary
   async updateBoundary(id: string, data: UpdateBoundaryDto): Promise<GeoBoundary> {
-    const response = await apiClient.put(`/admin/geojson/${id}`, data);
+    const response = await apiClient.patch(`/admin/geojson/${id}`, data);
     return response.data;
   },
 
@@ -84,7 +84,7 @@ const boundariesService = {
     boundary: any,
     centerPoint: any
   ): Promise<VillageBoundary> {
-    const response = await apiClient.put(`/admin/villages/${villageId}/boundary`, {
+    const response = await apiClient.patch(`/admin/villages/${villageId}/boundary`, {
       boundary,
       centerPoint,
     });

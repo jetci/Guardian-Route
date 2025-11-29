@@ -10,6 +10,7 @@ import GeoJSONUploader from '../../components/GeoJSONUploader';
 import boundariesService, { type VillageBoundary, type CreateBoundaryDto, type UpdateBoundaryDto } from '../../services/boundariesService';
 import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
+import * as turf from '@turf/turf'; // ✅ NEW: Import Turf.js for accurate area calculation
 import './VillageBoundariesPage.css';
 
 interface CoordinateMarker {
@@ -78,11 +79,17 @@ export default function VillageBoundariesPage() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const MAX_HISTORY = 20; // จำกัดประวัติไม่เกิน 20 ขั้นตอน
 
-  // Track if user has made changes (for edit mode)
+  // ✅ CRITICAL FIX: Track if user has made changes (for edit mode)
   const [hasUserChanges, setHasUserChanges] = useState(false);
   
   // Track if user is currently drawing
   const [isDrawing, setIsDrawing] = useState(false);
+  
+  // ✅ NEW: isDirty - ตรวจสอบว่าผู้ใช้เริ่มแก้ไข polygon แล้วหรือยัง
+  const [isDirty, setIsDirty] = useState(false);
+  
+  // ✅ NEW: isReadyToEdit - ผู้ใช้พร้อมที่จะเริ่มแก้ไขหรือยัง (แต่ยังไม่ได้แก้ไข)
+  const [isReadyToEdit, setIsReadyToEdit] = useState(false);
 
   // Preview modal state
   const [showPreview, setShowPreview] = useState(false);
@@ -93,6 +100,14 @@ export default function VillageBoundariesPage() {
     points: number;
     boundary: any;
   } | null>(null);
+
+  // ✅ NEW: Caching state - เก็บ boundaries ที่โหลดแล้วเพื่อลด reload
+  const [boundariesCache, setBoundariesCache] = useState<Map<string, VillageBoundary>>(new Map());
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
+  const CACHE_DURATION = 30000; // 30 วินาที
+
+  // ✅ NEW: Edit mode protection - ป้องกัน accidental edit
+  const [isEditModeEnabled, setIsEditModeEnabled] = useState(false);
 
   // Load village boundaries
   useEffect(() => {
@@ -118,8 +133,15 @@ export default function VillageBoundariesPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [historyIndex, drawHistory]);
 
-  const loadBoundaries = async () => {
+  const loadBoundaries = async (forceRefresh = false) => {
     try {
+      // ✅ ตรวจสอบ cache ก่อน (ถ้าไม่ force refresh)
+      const now = Date.now();
+      if (!forceRefresh && now - lastFetchTime < CACHE_DURATION && villageBoundaries.length > 0) {
+        console.log('📦 Using cached boundaries (age:', Math.round((now - lastFetchTime) / 1000), 'seconds)');
+        return;
+      }
+
       setLoading(true);
       const data = await boundariesService.getVillageBoundaries();
       
@@ -131,6 +153,12 @@ export default function VillageBoundariesPage() {
         village.villageNo
       );
       setVillageBoundaries(allVillages);
+      
+      // ✅ อัปเดต cache
+      const newCache = new Map<string, VillageBoundary>();
+      allVillages.forEach(v => newCache.set(v.id, v));
+      setBoundariesCache(newCache);
+      setLastFetchTime(now);
       
       // นับจำนวนหมู่บ้านที่มีขอบเขต
       const withBoundaries = allVillages.filter(v => 
@@ -145,6 +173,7 @@ export default function VillageBoundariesPage() {
       console.log(`📊 Total villages: ${allVillages.length}`);
       console.log(`✅ Villages with boundaries: ${withBoundaries.length}`);
       console.log(`❌ Villages without boundaries: ${allVillages.length - withBoundaries.length}`);
+      console.log(`📦 Cache updated at: ${new Date(now).toLocaleTimeString()}`);
       
       if (withBoundaries.length === 0) {
         console.log('💡 ยังไม่มีหมู่บ้านที่มีขอบเขต - เริ่มวาดขอบเขตได้เลย!');
@@ -174,6 +203,8 @@ export default function VillageBoundariesPage() {
     setDrawnBoundary(geojson);
     addToHistory(geojson);
     setHasUserChanges(true); // Mark that user has made changes
+    setIsDirty(true); // ✅ CRITICAL: Mark as dirty - ผู้ใช้เริ่มแก้ไข polygon แล้ว
+    setIsReadyToEdit(true); // ✅ ผู้ใช้พร้อมแก้ไขแล้ว
     
     // แสดง message ที่เหมาะสม
     if (editingBoundaryId) {
@@ -243,8 +274,21 @@ export default function VillageBoundariesPage() {
     setDrawnBoundary(null);
     clearHistory();
     setHasUserChanges(false);
+    setIsDirty(false); // ✅ Reset dirty state
     toast.success('🗑️ ล้างการวาดแล้ว - วาดใหม่ได้เลย');
     console.log('🗑️ Cleared drawing for redraw');
+  };
+
+  // ✅ NEW: เสร็จสิ้นการแก้ไข - ปิด edit mode และแสดงปุ่มบันทึก
+  const handleFinishEditing = () => {
+    // ปิด edit mode ใน Leaflet Geoman
+    setIsDrawing(false);
+    
+    // Force trigger update เพื่อให้ปุ่มบันทึกแสดง
+    if (drawnBoundary) {
+      console.log('✅ Finish editing manually - ready to save');
+      toast.success('✅ เสร็จสิ้นการแก้ไข - กรุณาคลิก "บันทึกการแก้ไข"');
+    }
   };
 
   // ยกเลิกการวาดทั้งหมด
@@ -255,6 +299,8 @@ export default function VillageBoundariesPage() {
     setEditingBoundaryId(null);
     clearHistory();
     setHasUserChanges(false);
+    setIsDirty(false); // ✅ Reset dirty state
+    setIsReadyToEdit(false); // ✅ Reset ready state
     toast('❌ ยกเลิกการวาดแล้ว', { icon: 'ℹ️' });
     console.log('❌ Cancelled drawing');
   };
@@ -296,19 +342,31 @@ export default function VillageBoundariesPage() {
       return;
     }
 
-    // Calculate area and points for preview
+    // ✅ FIX: Calculate area and points for preview using Turf.js
     const coords = boundaryToSave.geometry.coordinates[0];
     const points = coords ? coords.length : 0;
     
-    // Calculate area (approximate)
+    // ✅ Calculate area using Turf.js (accurate geodesic calculation)
     let area = 0;
-    if (coords && coords.length > 0) {
-      const areaRaw = Math.abs(coords.reduce((sum: number, coord: number[], i: number) => {
-        const j = (i + 1) % coords.length;
-        return sum + (coord[0] * coords[j][1] - coords[j][0] * coord[1]);
-      }, 0) / 2);
-      // Convert to square kilometers (rough approximation)
-      area = parseFloat((areaRaw * 111 * 111 / 1000000).toFixed(2));
+    try {
+      if (coords && coords.length > 0) {
+        // Turf.area returns area in square meters
+        const areaInSquareMeters = turf.area(boundaryToSave);
+        // Convert to square kilometers
+        const areaInSquareKm = areaInSquareMeters / 1_000_000;
+        // Format to 2 decimal places
+        area = Number(areaInSquareKm.toFixed(2));
+        
+        console.log('📏 Area calculation:', {
+          areaInSquareMeters,
+          areaInSquareKm,
+          formatted: area,
+          points
+        });
+      }
+    } catch (error) {
+      console.error('❌ Error calculating area:', error);
+      area = 0;
     }
 
     // Show preview modal
@@ -452,12 +510,15 @@ export default function VillageBoundariesPage() {
       setSelectedVillageNo('');
       setEditingBoundaryId(null);
       setHasUserChanges(false);
+      setIsEditModeEnabled(false); // ✅ ปิด edit mode
+      setIsDirty(false); // ✅ Reset dirty state
+      setIsReadyToEdit(false); // ✅ Reset ready state
       
       // Clear history
       clearHistory();
       
-      // Reload boundaries
-      await loadBoundaries();
+      // ✅ Reload boundaries (force refresh เพื่อให้ได้ข้อมูลล่าสุด)
+      await loadBoundaries(true);
     } catch (error: any) {
       console.error('Error saving boundary:', error);
       const errorMessage = error.response?.data?.message || error.message || 'เกิดข้อผิดพลาด';
@@ -484,7 +545,7 @@ export default function VillageBoundariesPage() {
       await boundariesService.uploadGeoJSON(data);
       toast.dismiss(loadingToast);
       toast.success('อัปโหลด GeoJSON สำเร็จ');
-      await loadBoundaries();
+      await loadBoundaries(true); // ✅ Force refresh
     } catch (error: any) {
       console.error('Error uploading GeoJSON:', error);
       const errorMessage = error.response?.data?.message || error.message || 'เกิดข้อผิดพลาด';
@@ -494,6 +555,30 @@ export default function VillageBoundariesPage() {
 
   const handleEditBoundary = async (villageId: string, villageName: string, villageNo: number, existingBoundary?: any) => {
     try {
+      // ✅ ตรวจสอบว่าอยู่ในโหมดแก้ไขอยู่แล้วหรือไม่
+      if (editingBoundaryId && editingBoundaryId !== villageId) {
+        const confirmSwitch = await Swal.fire({
+          title: '⚠️ กำลังแก้ไขขอบเขตอื่นอยู่',
+          html: `
+            <p>คุณกำลังแก้ไข <strong>${boundaryName}</strong> อยู่</p>
+            <p>ต้องการยกเลิกและเปลี่ยนไปแก้ไข <strong>${villageName}</strong> หรือไม่?</p>
+          `,
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3b82f6',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: '✅ เปลี่ยนไปแก้ไข',
+          cancelButtonText: '❌ ยกเลิก',
+        });
+        
+        if (!confirmSwitch.isConfirmed) {
+          return;
+        }
+        
+        // Reset current edit
+        handleCancelEdit();
+      }
+      
       // Check if boundary exists
       const hasBoundary = existingBoundary !== null && existingBoundary !== undefined;
       
@@ -531,6 +616,8 @@ export default function VillageBoundariesPage() {
         setBoundaryName(villageName);
         setSelectedVillageNo(villageNo); // ✅ Keep as number - form will handle conversion
         setHasUserChanges(false); // Reset - user hasn't made changes yet
+        setIsDirty(false); // ✅ CRITICAL: ยังไม่ dirty เพราะยังไม่ได้แก้ไข
+        setIsReadyToEdit(true); // ✅ พร้อมแก้ไขแล้ว แต่ยังไม่ได้เริ่มแก้ไข
         
         // ✅ Switch to hybrid map (satellite + labels) for better boundary editing
         setMapLayerType('hybrid');
@@ -540,16 +627,18 @@ export default function VillageBoundariesPage() {
           villageName, 
           villageNo,
           hasBoundary: !!existingBoundary,
-          mapLayerType: 'hybrid'
+          mapLayerType: 'hybrid',
+          isDirty: false,
+          isReadyToEdit: true
         });
         
-        // Load existing boundary if available
+        // ✅ CRITICAL FIX: ไม่ set drawnBoundary ทันที - ให้ผู้ใช้เริ่มแก้ไขก่อน
+        // Load existing boundary if available (แต่ไม่แสดง form ทันที)
         if (existingBoundary) {
-          setDrawnBoundary(existingBoundary);
-          setIsDrawing(false); // ✅ ให้แน่ใจว่าปุ่มบันทึกจะแสดง
-          // Add to history for undo/redo
+          // ✅ เก็บ boundary ไว้ใน history เพื่อให้สามารถ undo/redo ได้
+          // แต่ไม่ set drawnBoundary ทันที
           addToHistory(existingBoundary);
-          console.log('✅ Loaded existing boundary for editing:', existingBoundary);
+          console.log('✅ Loaded existing boundary to history (not showing form yet):', existingBoundary);
           
           // Zoom to the village being edited
           const villageToView: VillageBoundary = {
@@ -562,8 +651,8 @@ export default function VillageBoundariesPage() {
           console.log('🔍 Setting village to view:', villageToView);
           setSelectedVillageToView(villageToView);
           
-          toast('โหมดแก้ไข: ขอบเขตเดิมถูกโหลดแล้ว - แก้ไขแล้วกด "บันทึก"', { 
-            icon: '✏️',
+          toast('✏️ โหมดแก้ไข: คลิกที่ขอบเขตเพื่อเริ่มแก้ไข', { 
+            icon: '🗺️',
             duration: 5000 
           });
         } else {
@@ -656,6 +745,10 @@ export default function VillageBoundariesPage() {
     setBoundaryName('');
     setSelectedVillageNo('');
     setHasUserChanges(false);
+    setIsEditModeEnabled(false); // ✅ ปิด edit mode
+    setIsDirty(false); // ✅ Reset dirty state
+    setIsReadyToEdit(false); // ✅ Reset ready state
+    clearHistory(); // ✅ ล้างประวัติ
     toast('ยกเลิกการแก้ไข', { icon: 'ℹ️' });
   };
 
@@ -993,8 +1086,8 @@ export default function VillageBoundariesPage() {
       toast.error(`นำเข้าล้มเหลว ${errorCount}/${importFiles.length} ไฟล์`);
     }
 
-    // Reload boundaries
-    await loadBoundaries();
+    // ✅ Reload boundaries (force refresh)
+    await loadBoundaries(true);
   };
 
   const handleCloseImportModal = () => {
@@ -1211,14 +1304,65 @@ export default function VillageBoundariesPage() {
                 />
               </div>
 
-              {/* Edit Mode Banner - แสดงเมื่ออยู่ในโหมดแก้ไขแต่ยังไม่มีการเปลี่ยนแปลง */}
-              {drawnBoundary && editingBoundaryId && !hasUserChanges && (
-                <div className="edit-mode-info-banner">
+              {/* ✅ CRITICAL FIX: Edit Mode Ready Banner - แสดงเมื่อพร้อมแก้ไขแต่ยังไม่ได้เริ่มแก้ไข */}
+              {isReadyToEdit && editingBoundaryId && !isDirty && (
+                <div className="edit-mode-ready-banner">
+                  <div className="banner-content">
+                    <span className="banner-icon">🎯</span>
+                    <div className="banner-text">
+                      <strong>พร้อมแก้ไข: {boundaryName}</strong>
+                      <p>📍 คลิกที่ขอบเขตบนแผนที่เพื่อเริ่มแก้ไข หรือวาดขอบเขตใหม่</p>
+                    </div>
+                    <div className="banner-actions">
+                      <button 
+                        className="cancel-edit-button"
+                        onClick={handleCancelEdit}
+                        title="ยกเลิกการแก้ไข"
+                      >
+                        ❌ ยกเลิก
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Edit Mode Active Banner - แสดงเมื่อกำลังแก้ไขอยู่ */}
+              {isDirty && editingBoundaryId && isDrawing && (
+                <div className="edit-mode-info-banner editing">
                   <div className="banner-content">
                     <span className="banner-icon">✏️</span>
                     <div className="banner-text">
-                      <strong>โหมดแก้ไข: {boundaryName}</strong>
-                      <p>กำลังแก้ไขขอบเขต หมู่ {selectedVillageNo === 'tambon' ? 'ตำบล' : selectedVillageNo} - แก้ไขแล้วกด "บันทึก"</p>
+                      <strong>กำลังแก้ไข: {boundaryName}</strong>
+                      <p>🎯 แก้ไข polygon บนแผนที่ แล้วกด "เสร็จสิ้นการแก้ไข"</p>
+                    </div>
+                    <div className="banner-actions">
+                      <button 
+                        className="finish-edit-button"
+                        onClick={handleFinishEditing}
+                        title="เสร็จสิ้นการแก้ไข"
+                      >
+                        ✅ เสร็จสิ้นการแก้ไข
+                      </button>
+                      <button 
+                        className="cancel-edit-button"
+                        onClick={handleCancelDrawing}
+                        title="ยกเลิกการแก้ไข"
+                      >
+                        ❌ ยกเลิก
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Ready to Save Banner - แสดงเมื่อแก้ไขเสร็จแล้ว พร้อมบันทึก */}
+              {isDirty && editingBoundaryId && !isDrawing && (
+                <div className="edit-mode-info-banner ready">
+                  <div className="banner-content">
+                    <span className="banner-icon">✅</span>
+                    <div className="banner-text">
+                      <strong>แก้ไขเสร็จแล้ว: {boundaryName}</strong>
+                      <p>💾 กด "บันทึกการแก้ไข" ด้านล่างเพื่อบันทึกลงระบบ หรือ "ยกเลิก" เพื่อละทิ้งการเปลี่ยนแปลง</p>
                     </div>
                     <button 
                       className="cancel-edit-button"
@@ -1231,8 +1375,10 @@ export default function VillageBoundariesPage() {
                 </div>
               )}
 
-              {/* ✅ แสดง form เมื่อ: มี drawnBoundary เท่านั้น (ไม่ว่าจะเป็นโหมดแก้ไขหรือวาดใหม่) */}
-              {drawnBoundary && !isDrawing && (
+              {/* ✅ CRITICAL FIX: แสดง form เฉพาะเมื่อ isDirty === true (ผู้ใช้เริ่มแก้ไข polygon แล้ว) */}
+              {/* ไม่ผูกกับ isEditModeEnabled ตาม SA - แสดงทันทีหลัง Finish editing */}
+              {/* แสดงเมื่อ: มีการแก้ไข && มี polygon && (ไม่ได้กำลังวาดใหม่ หรือ กำลังแก้ไขของเดิม) */}
+              {isDirty && drawnBoundary && (!isDrawing || editingBoundaryId) && (
                 <div className={`save-form ${hasUserChanges ? 'has-changes' : ''}`}>
                   <div className="save-form-header">
                     <h3>
@@ -1611,7 +1757,7 @@ export default function VillageBoundariesPage() {
                                 toast.dismiss(loadingToast);
                                 toast.success(`ลบขอบเขต ${boundary.name} สำเร็จ`);
                                 
-                                await loadBoundaries();
+                                await loadBoundaries(true); // ✅ Force refresh
                               } catch (error: any) {
                                 console.error('❌ Error deleting boundary:', {
                                   id: boundary.id,
@@ -1887,7 +2033,9 @@ export default function VillageBoundariesPage() {
                   </div>
                   <div className="info-row">
                     <span className="info-label">พื้นที่:</span>
-                    <span className="info-value highlight">{previewData.area} ตร.กม.</span>
+                    <span className="info-value highlight">
+                      {previewData.area > 0 ? `${previewData.area} ตร.กม.` : '-'}
+                    </span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">จำนวนจุด:</span>

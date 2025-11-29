@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import toast from 'react-hot-toast';
+import * as turf from '@turf/turf'; // ✅ Import Turf.js for accurate area calculation
 import './VillageBoundaryMap.css';
 import { tambonWiangBoundary, tambonBoundaryStyle } from '../data/mapData';
 import boundariesService from '../services/boundariesService';
@@ -388,9 +389,9 @@ export default function VillageBoundaryMap({
         }
       });
 
-      // Handle shape edited
+      // ✅ CRITICAL FIX: Handle shape edited (when user clicks "Finish" in Geoman)
       map.on('pm:edit', (e: any) => {
-        console.log('✏️ Edit event triggered');
+        console.log('✏️ pm:edit event triggered');
         
         // ✅ Set isDrawing = false เพื่อให้ปุ่มบันทึกแสดง
         setIsDrawing(false);
@@ -407,6 +408,55 @@ export default function VillageBoundaryMap({
         }
         
         toast.success('✏️ แก้ไขขอบเขตเรียบร้อย - กรุณาคลิก "บันทึก"');
+      });
+
+      // ✅ NEW: Handle vertex changes (when user drags/adds/removes vertices)
+      map.on('pm:markerdragend', (e: any) => {
+        console.log('🔷 Vertex dragged');
+        
+        setIsDrawing(false);
+        if (onDrawingStateChange) {
+          onDrawingStateChange(false);
+        }
+        
+        const layer = e.layer;
+        const geojson = layer.toGeoJSON();
+        
+        if (onBoundaryDrawn) {
+          onBoundaryDrawn(geojson);
+        }
+      });
+
+      map.on('pm:vertexadded', (e: any) => {
+        console.log('➕ Vertex added');
+        
+        setIsDrawing(false);
+        if (onDrawingStateChange) {
+          onDrawingStateChange(false);
+        }
+        
+        const layer = e.layer;
+        const geojson = layer.toGeoJSON();
+        
+        if (onBoundaryDrawn) {
+          onBoundaryDrawn(geojson);
+        }
+      });
+
+      map.on('pm:vertexremoved', (e: any) => {
+        console.log('➖ Vertex removed');
+        
+        setIsDrawing(false);
+        if (onDrawingStateChange) {
+          onDrawingStateChange(false);
+        }
+        
+        const layer = e.layer;
+        const geojson = layer.toGeoJSON();
+        
+        if (onBoundaryDrawn) {
+          onBoundaryDrawn(geojson);
+        }
       });
 
       // Handle shape removed
@@ -440,6 +490,31 @@ export default function VillageBoundaryMap({
         const geojson = e.layer.toGeoJSON();
         if (onBoundaryDrawn) {
           onBoundaryDrawn(geojson);
+        }
+      });
+
+      // ✅ CRITICAL FIX: Handle when user clicks "Finish" in Geoman toolbar
+      map.on('pm:globaleditmodetoggled', (e: any) => {
+        console.log('🏁 Global edit mode toggled:', e.enabled);
+        
+        // When edit mode is disabled (user clicked "Finish")
+        if (!e.enabled && drawnItemsRef.current) {
+          setIsDrawing(false);
+          if (onDrawingStateChange) {
+            onDrawingStateChange(false);
+          }
+          
+          // Get the last edited layer and update drawnBoundary
+          const layers = drawnItemsRef.current.getLayers();
+          if (layers.length > 0) {
+            const lastLayer = layers[layers.length - 1];
+            const geojson = (lastLayer as any).toGeoJSON();
+            console.log('✅ Finish editing - updating boundary:', geojson);
+            
+            if (onBoundaryDrawn) {
+              onBoundaryDrawn(geojson);
+            }
+          }
         }
       });
 
@@ -633,8 +708,14 @@ export default function VillageBoundaryMap({
         // Add layer to appropriate group
         if (isCurrentlyEditing && drawnItemsRef.current) {
           // Add to editable group (drawnItems) - will show edit handles
-          layer.eachLayer((l) => {
+          layer.eachLayer((l: any) => {
             drawnItemsRef.current!.addLayer(l);
+            
+            // ✅ CRITICAL FIX: Enable edit mode for the layer
+            if (l.pm) {
+              l.pm.enable();
+              console.log('✅ Edit mode enabled for boundary:', boundary.id);
+            }
           });
         } else if (existingBoundariesLayerRef.current) {
           // Add to non-editable group - no edit handles
@@ -648,32 +729,50 @@ export default function VillageBoundaryMap({
           });
         }
 
-        // Calculate area if available
+        // ✅ Calculate area using Turf.js (accurate geodesic calculation)
         let areaText = '';
-        if (boundary.boundary?.coordinates && Array.isArray(boundary.boundary.coordinates) && boundary.boundary.coordinates.length > 0) {
-          try {
-            const coords = boundary.boundary.coordinates[0];
-            if (coords && coords.length > 0) {
-              // Simple area calculation (approximate)
-              const area = Math.abs(coords.reduce((sum: number, coord: number[], i: number) => {
-                const j = (i + 1) % coords.length;
-                return sum + (coord[0] * coords[j][1] - coords[j][0] * coord[1]);
-              }, 0) / 2);
-              // Convert to square kilometers (rough approximation)
-              const areaKm2 = (area * 111 * 111 / 1000000).toFixed(2);
-              areaText = `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
-                <span style="color: #718096; font-size: 13px;">📏 พื้นที่โดยประมาณ: ${areaKm2} ตร.กม.</span>
-              </div>`;
+        let areaKm2 = '0.00';
+        let pointCount = 0;
+        
+        try {
+          if (geojson) {
+            // Calculate area using Turf.js (returns square meters)
+            const areaInSquareMeters = turf.area(geojson);
+            // Convert to square kilometers
+            const areaInSquareKm = areaInSquareMeters / 1_000_000;
+            areaKm2 = areaInSquareKm.toFixed(2);
+            
+            // Count points
+            if (boundary.boundary?.coordinates && Array.isArray(boundary.boundary.coordinates) && boundary.boundary.coordinates.length > 0) {
+              const coords = boundary.boundary.coordinates[0];
+              pointCount = coords ? coords.length : 0;
             }
-          } catch (e) {
-            console.warn('Error calculating area:', e);
+            
+            areaText = `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+              <span style="color: #718096; font-size: 13px;">📏 พื้นที่: ${areaKm2} ตร.กม.</span><br>
+              <span style="color: #718096; font-size: 13px;">📍 จำนวนจุด: ${pointCount} จุด</span>
+            </div>`;
           }
+        } catch (e) {
+          console.warn('Error calculating area:', e);
         }
 
-        // Add enhanced popup with village info
+        // ✅ Add permanent tooltip (always visible) with village name
         if (boundary.name) {
+          const tooltipContent = boundary.villageNo 
+            ? `<strong>หมู่ ${boundary.villageNo}</strong>: ${boundary.name}`
+            : `<strong>${boundary.name}</strong>`;
+          
+          layer.bindTooltip(tooltipContent, {
+            permanent: true,
+            direction: 'center',
+            className: 'village-label-tooltip',
+            opacity: 0.9
+          });
+          
+          // ✅ Add enhanced popup with detailed village info (on click)
           layer.bindPopup(`
-            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; min-width: 200px;">
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; min-width: 220px;">
               <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
                 <div style="width: 20px; height: 20px; background: ${villageColor}; border-radius: 4px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); flex-shrink: 0;"></div>
                 <div>

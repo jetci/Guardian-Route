@@ -26,6 +26,30 @@
   margin: -2rem -2rem 1rem -2rem;
 }
 
+/* ✅ NEW: Edit Mode Ready Banner - พร้อมแก้ไขแต่ยังไม่ได้เริ่ม */
+.edit-mode-ready-banner {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-bottom: 3px solid #047857;
+  animation: slideDown 0.3s ease-out;
+  margin: 1rem 0;
+  border-radius: 8px;
+}
+
+.edit-mode-ready-banner .banner-text p {
+  margin: 4px 0 0 0;
+  font-size: 14px;
+  opacity: 0.95;
+}
+
 @keyframes slideDown {
   from {
     transform: translateY(-100%);
@@ -1930,18 +1954,51 @@
   flex: 1;
 }
 
+/* Banner Actions Container */
+.banner-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Finish Edit Button */
+.finish-edit-button {
+  padding: 0.625rem 1.25rem;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  align-self: center;
+}
+
+.finish-edit-button:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  transform: translateY(-2px);
+}
+
+.finish-edit-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+/* Cancel Edit Button */
 .cancel-edit-button {
   padding: 0.625rem 1.25rem;
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.9375rem;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
-  flex-shrink: 0;
   align-self: center;
 }
 
@@ -2013,6 +2070,13 @@
     font-size: 0.875rem;
   }
 
+  .banner-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .finish-edit-button,
   .cancel-edit-button {
     width: 100%;
     padding: 0.75rem;
@@ -2252,4 +2316,141 @@
   .btn-confirm-save {
     width: 100%;
   }
+}
+
+/* ✅ NEW: Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .village-boundaries-page {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .header-actions button {
+    width: 100%;
+  }
+
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab {
+    min-width: 120px;
+  }
+
+  .map-section {
+    padding: 1rem;
+  }
+
+  .external-map-controls {
+    padding: 1rem;
+  }
+
+  .save-form {
+    padding: 1rem;
+  }
+
+  .boundaries-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .boundaries-table table {
+    min-width: 600px;
+  }
+
+  .btn-action {
+    padding: 6px 10px;
+    font-size: 16px;
+  }
+
+  /* Edit Mode Banner - Mobile */
+  .edit-mode-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .banner-content {
+    width: 100%;
+  }
+
+  .cancel-edit-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ✅ NEW: Edit Mode Toggle Button */
+.edit-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+  user-select: none;
+}
+
+.edit-mode-toggle:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.edit-mode-toggle.active {
+  border-color: #10b981;
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.edit-mode-toggle input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+.edit-mode-toggle-label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ✅ Cache Indicator */
+.cache-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-left: 12px;
+}
+
+.cache-indicator.fresh {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.cache-indicator.stale {
+  background: #fef3c7;
+  color: #92400e;
 }

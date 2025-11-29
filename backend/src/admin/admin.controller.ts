@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -43,8 +43,8 @@ export class AdminController {
     return this.adminService.createBoundary(data, req.user.id);
   }
 
-  @Put('geojson/:id')
-  @ApiOperation({ summary: 'Update GeoJSON boundary' })
+  @Patch('geojson/:id')
+  @ApiOperation({ summary: 'Update GeoJSON boundary (partial update)' })
   @ApiResponse({ status: 200, description: 'Boundary updated' })
   async updateBoundary(@Param('id') id: string, @Body() data: any, @Request() req) {
     return this.adminService.updateBoundary(id, data, req.user.id);
@@ -65,8 +65,8 @@ export class AdminController {
     return this.adminService.getVillageBoundaries();
   }
 
-  @Put('villages/:villageId/boundary')
-  @ApiOperation({ summary: 'Update village boundary' })
+  @Patch('villages/:villageId/boundary')
+  @ApiOperation({ summary: 'Update village boundary (partial update)' })
   @ApiResponse({ status: 200, description: 'Village boundary updated' })
   async updateVillageBoundary(
     @Param('villageId') villageId: string,

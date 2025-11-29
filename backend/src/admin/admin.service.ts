@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AdminService {
+  private readonly logger = new Logger(AdminService.name);
+  
   constructor(private prisma: PrismaService) {}
 
   // Get all GeoJSON boundaries
