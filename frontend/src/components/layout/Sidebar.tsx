@@ -60,10 +60,10 @@ export function Sidebar() {
       case 'FIELD_OFFICER':
         return [
           { icon: '📋', label: 'งานของฉัน (My Tasks)', path: '/dashboard/officer' },
-          { icon: '🌊', label: 'ขั้นตอนการทำงาน (Workflow)', path: '/workflow-guide' },
           { icon: '🗺️', label: 'แผนที่และรายงานเหตุการณ์', path: '/map-incidents' },
           { icon: '🔍', label: 'สำรวจพื้นที่ (Survey Area)', path: '/survey-area' },
           { icon: '📜', label: 'ประวัติการรายงาน (Report History)', path: '/report-history' },
+          { icon: '🌊', label: 'ขั้นตอนการทำงาน (Workflow)', path: '/workflow-guide' },
         ];
       default:
         return [];
