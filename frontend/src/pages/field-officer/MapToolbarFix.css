@@ -1,0 +1,350 @@
+/* Map Toolbar & Drawing Tools Fix */
+
+/* Custom Leaflet Control Buttons */
+.custom-map-controls {
+  background: white !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.custom-control-btn {
+  display: block !important;
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  background: white !important;
+  border-bottom: 1px solid #ccc !important;
+  color: #667eea !important;
+  font-size: 18px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+}
+
+.custom-control-btn:last-child {
+  border-bottom: none !important;
+  border-radius: 0 0 4px 4px !important;
+}
+
+.custom-control-btn:first-child {
+  border-radius: 4px 4px 0 0 !important;
+}
+
+.custom-control-btn:hover {
+  background: #667eea !important;
+  color: white !important;
+}
+
+.custom-control-btn.disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  background: #f0f0f0 !important;
+}
+
+.custom-control-btn.disabled:hover {
+  background: #f0f0f0 !important;
+  color: #999 !important;
+}
+
+.custom-control-btn span {
+  display: inline-block !important;
+  vertical-align: middle !important;
+}
+
+/* Ensure Leaflet Draw toolbar is visible and clickable */
+.leaflet-draw-toolbar {
+  z-index: 1000 !important;
+  pointer-events: auto !important;
+}
+
+.leaflet-draw-actions {
+  z-index: 1001 !important;
+  pointer-events: auto !important;
+}
+
+.leaflet-draw-toolbar a {
+  background-color: white !important;
+  border: 2px solid #667eea !important;
+  color: #667eea !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+  transition: all 0.2s;
+}
+
+.leaflet-draw-toolbar a:hover {
+  background-color: #667eea !important;
+  color: white !important;
+  transform: scale(1.05);
+}
+
+.leaflet-draw-toolbar a.leaflet-disabled {
+  background-color: #e2e8f0 !important;
+  border-color: #cbd5e0 !important;
+  color: #a0aec0 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+/* Leaflet Control Container */
+.leaflet-control-container {
+  z-index: 1000 !important;
+  pointer-events: none !important;
+}
+
+.leaflet-control-container > * {
+  pointer-events: auto !important;
+}
+
+/* Zoom Controls */
+.leaflet-control-zoom {
+  z-index: 1000 !important;
+  pointer-events: auto !important;
+}
+
+.leaflet-control-zoom a {
+  background-color: white !important;
+  border: 2px solid #667eea !important;
+  color: #667eea !important;
+  font-weight: bold !important;
+  transition: all 0.2s;
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: #667eea !important;
+  color: white !important;
+}
+
+/* Drawing Tooltip */
+.leaflet-draw-tooltip {
+  background: white !important;
+  border: 2px solid #667eea !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+  color: #2d3748 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  z-index: 1002 !important;
+}
+
+.leaflet-draw-tooltip-single {
+  margin-top: -12px !important;
+}
+
+.leaflet-draw-tooltip-subtext {
+  color: #718096 !important;
+  font-size: 12px !important;
+}
+
+/* Drawing Shapes */
+.leaflet-interactive {
+  cursor: crosshair !important;
+}
+
+.leaflet-draw-guide-dash {
+  stroke: #667eea !important;
+  stroke-width: 2 !important;
+  stroke-dasharray: 5, 5 !important;
+}
+
+/* Edit Toolbar */
+.leaflet-draw-edit-edit {
+  background-color: #edf2f7 !important;
+}
+
+.leaflet-draw-edit-remove {
+  background-color: #fff5f5 !important;
+  border-color: #fc8181 !important;
+}
+
+.leaflet-draw-edit-remove:hover {
+  background-color: #fc8181 !important;
+  color: white !important;
+}
+
+/* Map Container Fix */
+#survey-map {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  position: relative;
+}
+
+.map-section {
+  position: relative;
+  z-index: 1;
+}
+
+/* Ensure map controls are above map but below modals */
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 1000 !important;
+}
+
+.leaflet-left {
+  left: 10px !important;
+}
+
+.leaflet-right {
+  right: 10px !important;
+}
+
+.leaflet-top {
+  top: 10px !important;
+}
+
+.leaflet-bottom {
+  bottom: 10px !important;
+}
+
+/* Custom Map Buttons (Get Location, Clear Area) */
+.map-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+  pointer-events: auto;
+}
+
+.map-btn {
+  background: white;
+  border: 2px solid #667eea;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #667eea;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.map-btn:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.map-btn:active {
+  transform: translateY(0);
+}
+
+.map-btn:disabled {
+  background: #e2e8f0;
+  border-color: #cbd5e0;
+  color: #a0aec0;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Map Info Badge */
+.map-info {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .leaflet-draw-toolbar a {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  
+  .map-controls {
+    top: 60px;
+    right: 10px;
+  }
+  
+  .map-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .map-info {
+    bottom: 10px;
+    left: 10px;
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+}
+
+/* Fix for overlapping sidebar */
+.leaflet-control-container {
+  margin-left: 0 !important;
+}
+
+/* Ensure drawing works on touch devices */
+@media (pointer: coarse) {
+  .leaflet-draw-toolbar a {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+  
+  .leaflet-interactive {
+    cursor: pointer !important;
+  }
+}
+
+/* Error Boundary for Map */
+.map-error-boundary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: #fff5f5;
+  border: 2px dashed #fc8181;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.map-error-boundary h3 {
+  color: #c53030;
+  margin: 0 0 8px 0;
+}
+
+.map-error-boundary p {
+  color: #742a2a;
+  margin: 0;
+}
+
+/* Loading State */
+.map-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: #f7fafc;
+}
+
+.map-loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

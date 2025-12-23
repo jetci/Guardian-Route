@@ -13,10 +13,10 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  
+
   // Check if user is DEVELOPER
   const isDeveloper = user?.role === 'DEVELOPER';
-  
+
   // General Settings (Tab 1)
   const [systemName, setSystemName] = useState('Guardian Route');
   const [timezone, setTimezone] = useState('Asia/Bangkok');
@@ -31,7 +31,7 @@ export default function SettingsPage() {
 
   // Map Settings (Tab 3)
   const [defaultLat, setDefaultLat] = useState(19.9167);
-  const [defaultLng, setDefaultLng] = useState(99.8833);
+  const [defaultLng, setDefaultLng] = useState(99.2333);
   const [defaultZoom, setDefaultZoom] = useState(13);
   const [defaultBaseLayer, setDefaultBaseLayer] = useState<'satellite' | 'street'>('street');
   const [customTileServer, setCustomTileServer] = useState('');
@@ -53,29 +53,67 @@ export default function SettingsPage() {
   // Data Settings (Tab 6)
   const [dataRetentionDays, setDataRetentionDays] = useState(365);
   const [backupFrequency, setBackupFrequency] = useState<'daily' | 'weekly' | 'monthly' | 'disabled'>('daily');
+  const [backups, setBackups] = useState<Array<{ filename: string; size: number; createdAt: string }>>([]);
 
   // Load settings on mount
   useEffect(() => {
     loadSettings();
   }, []);
 
+  useEffect(() => {
+    if (activeTab === 'data') {
+      fetchBackups();
+    }
+  }, [activeTab]);
+
+  const fetchBackups = async () => {
+    try {
+      const data = await settingsService.getBackups();
+      setBackups(data);
+    } catch (error) {
+      console.error('Failed to fetch backups:', error);
+    }
+  };
+
+  const handleTriggerBackup = async () => {
+    try {
+      setSaving(true);
+      const result = await settingsService.triggerBackup();
+      toast.success('สร้างไฟล์ Backup สำเร็จ');
+      fetchBackups();
+    } catch (error) {
+      toast.error('ไม่สามารถสร้าง Backup ได้');
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDownloadBackup = async (filename: string) => {
+    try {
+      await settingsService.downloadBackup(filename);
+    } catch (error) {
+      toast.error('ดาวน์โหลดไฟล์ไม่สำเร็จ');
+    }
+  };
+
   const loadSettings = async () => {
     try {
       setLoading(true);
       const data = await settingsService.fetchSettings();
-      
+
       // General
       setSystemName(data.systemName);
       setTimezone(data.timezone);
       setMaintenanceMode(data.maintenanceMode);
       setMaintenanceMessage(data.maintenanceMessage || '');
-      
+
       // Security
       setEnforce2FA(data.enforce2FA);
       setMinPasswordLength(data.minPasswordLength);
       setSessionTimeout(data.sessionTimeout);
       setIpAllowlist(data.ipAllowlist || '');
-      
+
       // Map
       setDefaultLat(data.defaultLat);
       setDefaultLng(data.defaultLng);
@@ -83,24 +121,24 @@ export default function SettingsPage() {
       setDefaultBaseLayer(data.defaultBaseLayer as 'satellite' | 'street');
       setCustomTileServer(data.customTileServer || '');
       setEnableWeatherRadar(data.enableWeatherRadar);
-      
+
       // Notifications
       setEmailOnNewIncident(data.emailOnNewIncident);
       setSmsOnHighSeverity(data.smsOnHighSeverity);
       setDailyEmailSummary(data.dailyEmailSummary);
       setEnableLineNotify(data.enableLineNotify);
       setLineNotifyToken(data.lineNotifyToken || '');
-      
+
       // API
       setWeatherApiKey(data.weatherApiKey || '');
       setSmsGatewayApiKey(data.smsGatewayApiKey || '');
       setMaxRequestsPerMinute(data.maxRequestsPerMinute);
       setBlockDuration(data.blockDuration);
-      
+
       // Data
       setDataRetentionDays(data.dataRetentionDays);
       setBackupFrequency(data.backupFrequency as 'daily' | 'weekly' | 'monthly' | 'disabled');
-      
+
       toast.success('โหลดการตั้งค่าเรียบร้อย');
     } catch (error) {
       console.error('Failed to load settings:', error);
@@ -220,15 +258,14 @@ export default function SettingsPage() {
   };
 
   const handlePurgeOldData = async () => {
-    // Generate math CAPTCHA
     const num1 = Math.floor(Math.random() * 10) + 1;
     const num2 = Math.floor(Math.random() * 10) + 1;
     const operators = ['+', '-', '×'];
     const operator = operators[Math.floor(Math.random() * operators.length)];
-    
+
     let correctAnswer = 0;
     let question = '';
-    
+
     switch (operator) {
       case '+':
         correctAnswer = num1 + num2;
@@ -244,7 +281,6 @@ export default function SettingsPage() {
         break;
     }
 
-    // First confirmation
     const firstConfirm = await Swal.fire({
       title: '⚠️ คำเตือนครั้งที่ 1',
       html: `
@@ -270,7 +306,6 @@ export default function SettingsPage() {
 
     if (!firstConfirm.isConfirmed) return;
 
-    // Second confirmation with CAPTCHA
     const captchaResult = await Swal.fire({
       title: '🔐 ยืนยันการลบข้อมูล',
       html: `
@@ -309,14 +344,14 @@ export default function SettingsPage() {
 
     if (!captchaResult.isConfirmed) return;
 
-    // Execute purge
     try {
       setSaving(true);
       const result = await settingsService.purgeOldData();
-      
+      fetchBackups();
+
       await Swal.fire({
         title: '✅ สำเร็จ!',
-        html: `ลบข้อมูลเก่าเรียบร้อย<br><small>ก่อน ${new Date(result.retentionDate).toLocaleDateString('th-TH')}</small>`,
+        html: `ลบข้อมูลเก่าเรียบร้อย<br>ลบไฟล์ไปทั้งหมด ${result.deletedFiles} ไฟล์<br><small>ก่อน ${new Date(result.retentionDate).toLocaleDateString('th-TH')}</small>`,
         icon: 'success',
         confirmButtonColor: '#48bb78',
       });
@@ -351,604 +386,531 @@ export default function SettingsPage() {
     }
   };
 
-  const renderGeneralTab = () => (
-    <div className="settings-tab-content">
-      <h2>⚙️ การตั้งค่าทั่วไป</h2>
-      <p className="tab-description">กำหนดค่าพื้นฐานของแอปพลิเคชัน</p>
-
-      <div className="settings-section">
-        <div className="form-group">
-          <label htmlFor="systemName">ชื่อแอปพลิเคชัน</label>
-          <input
-            type="text"
-            id="systemName"
-            value={systemName}
-            onChange={(e) => setSystemName(e.target.value)}
-            placeholder="Guardian Route"
-          />
-          <span className="hint">ชื่อที่แสดงบน Header และหน้า Login</span>
+  const renderSidebar = () => (
+    <div className="settings-sidebar">
+      <button
+        className={`sidebar-item ${activeTab === 'general' ? 'active' : ''}`}
+        onClick={() => setActiveTab('general')}
+      >
+        <span className="icon">⚙️</span>
+        <div className="text">
+          <h3>ทั่วไป</h3>
+          <p>ตั้งค่าพื้นฐานระบบ</p>
         </div>
+      </button>
 
-        <div className="form-group">
-          <label htmlFor="timezone">เขตเวลา</label>
-          <select
-            id="timezone"
-            value={timezone}
-            onChange={(e) => setTimezone(e.target.value)}
-          >
-            <option value="Asia/Bangkok">Asia/Bangkok (GMT+7)</option>
-            <option value="Asia/Singapore">Asia/Singapore (GMT+8)</option>
-            <option value="UTC">UTC (GMT+0)</option>
-          </select>
-          <span className="hint">เขตเวลาหลักของระบบ</span>
+      <button
+        className={`sidebar-item ${activeTab === 'security' ? 'active' : ''}`}
+        onClick={() => setActiveTab('security')}
+      >
+        <span className="icon">🔒</span>
+        <div className="text">
+          <h3>ความปลอดภัย</h3>
+          <p>รหัสผ่านและการเข้าถึง</p>
         </div>
+      </button>
 
-        <div className="form-group">
-          <label className="toggle-label">
-            <input
-              type="checkbox"
-              checked={maintenanceMode}
-              onChange={(e) => setMaintenanceMode(e.target.checked)}
-            />
-            <span className="toggle-switch"></span>
-            <span className="toggle-text">เปิดใช้งานโหมดบำรุงรักษา</span>
-          </label>
-          <span className="hint">ผู้ใช้ทั่วไปจะไม่สามารถเข้าถึงระบบได้</span>
+      <button
+        className={`sidebar-item ${activeTab === 'map' ? 'active' : ''}`}
+        onClick={() => setActiveTab('map')}
+      >
+        <span className="icon">🗺️</span>
+        <div className="text">
+          <h3>แผนที่</h3>
+          <p>พิกัดและเลเยอร์</p>
         </div>
+      </button>
 
-        {maintenanceMode && (
-          <div className="form-group">
-            <label htmlFor="maintenanceMessage">ข้อความในโหมดบำรุงรักษา</label>
-            <textarea
-              id="maintenanceMessage"
-              value={maintenanceMessage}
-              onChange={(e) => setMaintenanceMessage(e.target.value)}
-              rows={3}
-              placeholder="ระบบอยู่ระหว่างการบำรุงรักษา..."
-            />
-          </div>
-        )}
-      </div>
+      <button
+        className={`sidebar-item ${activeTab === 'notifications' ? 'active' : ''}`}
+        onClick={() => setActiveTab('notifications')}
+      >
+        <span className="icon">🔔</span>
+        <div className="text">
+          <h3>การแจ้งเตือน</h3>
+          <p>Email, SMS, LINE</p>
+        </div>
+      </button>
 
-      <div className="settings-actions">
-        <button className="btn-primary" onClick={handleSaveGeneral} disabled={saving}>
-          💾 {saving ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}
-        </button>
-        <button className="btn-secondary" onClick={() => toast('ยกเลิกการเปลี่ยนแปลง')} disabled={saving}>
-          ❌ ยกเลิก
-        </button>
-      </div>
+      <button
+        className={`sidebar-item ${activeTab === 'api' ? 'active' : ''}`}
+        onClick={() => setActiveTab('api')}
+      >
+        <span className="icon">🔌</span>
+        <div className="text">
+          <h3>API & เชื่อมต่อ</h3>
+          <p>Keys และ Rate Limit</p>
+        </div>
+      </button>
+
+      <button
+        className={`sidebar-item ${activeTab === 'data' ? 'active' : ''}`}
+        onClick={() => setActiveTab('data')}
+      >
+        <span className="icon">💾</span>
+        <div className="text">
+          <h3>ข้อมูล & Backup</h3>
+          <p>จัดการพื้นที่จัดเก็บ</p>
+        </div>
+      </button>
     </div>
   );
 
-  const renderSecurityTab = () => (
-    <div className="settings-tab-content">
-      <h2>🔒 ผู้ใช้และความปลอดภัย</h2>
-      <p className="tab-description">กำหนดนโยบายความปลอดภัยในการเข้าถึง</p>
-
-      <div className="settings-section">
-        <div className="form-group">
-          <label className="toggle-label">
-            <input
-              type="checkbox"
-              checked={enforce2FA}
-              onChange={(e) => setEnforce2FA(e.target.checked)}
-            />
-            <span className="toggle-switch"></span>
-            <span className="toggle-text">บังคับใช้ Two-Factor Authentication (2FA)</span>
-          </label>
-          <span className="hint">ผู้ใช้ทุกคนต้องตั้งค่า 2FA</span>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="minPasswordLength">ความยาวรหัสผ่านขั้นต่ำ (ตัวอักษร)</label>
-          <input
-            type="number"
-            id="minPasswordLength"
-            value={minPasswordLength}
-            onChange={(e) => setMinPasswordLength(Number(e.target.value))}
-            min="8"
-            max="32"
-          />
-          <span className="hint">แนะนำ: 8-16 ตัวอักษร</span>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="sessionTimeout">ระยะเวลาเซสชัน (นาที)</label>
-          <input
-            type="number"
-            id="sessionTimeout"
-            value={sessionTimeout}
-            onChange={(e) => setSessionTimeout(Number(e.target.value))}
-            min="5"
-            max="120"
-          />
-          <span className="hint">ออกจากระบบอัตโนมัติเมื่อไม่มีการใช้งาน</span>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="ipAllowlist">IP Address Allowlist</label>
-          <textarea
-            id="ipAllowlist"
-            value={ipAllowlist}
-            onChange={(e) => setIpAllowlist(e.target.value)}
-            rows={3}
-            placeholder="192.168.1.1, 10.0.0.1, 172.16.0.1"
-          />
-          <span className="hint">รายการ IP ที่อนุญาตให้เข้าถึง (คั่นด้วยจุลภาค)</span>
-        </div>
-      </div>
-
-      <div className="settings-actions">
-        <button className="btn-primary" onClick={handleSaveSecurity}>
-          💾 บันทึกการตั้งค่า
-        </button>
-        <button className="btn-secondary" onClick={() => toast('ยกเลิกการเปลี่ยนแปลง')}>
-          ❌ ยกเลิก
-        </button>
-      </div>
-    </div>
-  );
-
-  const renderMapTab = () => (
-    <div className="settings-tab-content">
-      <h2>🗺️ แผนที่และภูมิสารสนเทศ</h2>
-      <p className="tab-description">ปรับแต่งการแสดงผลแผนที่</p>
-
-      <div className="settings-section">
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="defaultLat">Default Latitude</label>
-            <input
-              type="number"
-              id="defaultLat"
-              value={defaultLat}
-              onChange={(e) => setDefaultLat(Number(e.target.value))}
-              step="0.0001"
-            />
-            <span className="hint">ตำแหน่ง Latitude เริ่มต้น</span>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="defaultLng">Default Longitude</label>
-            <input
-              type="number"
-              id="defaultLng"
-              value={defaultLng}
-              onChange={(e) => setDefaultLng(Number(e.target.value))}
-              step="0.0001"
-            />
-            <span className="hint">ตำแหน่ง Longitude เริ่มต้น</span>
-          </div>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="defaultZoom">Default Zoom Level</label>
-          <input
-            type="number"
-            id="defaultZoom"
-            value={defaultZoom}
-            onChange={(e) => setDefaultZoom(Number(e.target.value))}
-            min="1"
-            max="18"
-          />
-          <span className="hint">ระดับ Zoom เริ่มต้น (1-18)</span>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="defaultBaseLayer">Default Base Layer</label>
-          <select
-            id="defaultBaseLayer"
-            value={defaultBaseLayer}
-            onChange={(e) => setDefaultBaseLayer(e.target.value as 'satellite' | 'street')}
-          >
-            <option value="street">แผนที่ถนน (Street Map)</option>
-            <option value="satellite">ภาพถ่ายดาวเทียม (Satellite)</option>
-          </select>
-          <span className="hint">ชั้นข้อมูลแผนที่เริ่มต้น</span>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="customTileServer">Custom Map Tile Server URL</label>
-          <input
-            type="text"
-            id="customTileServer"
-            value={customTileServer}
-            onChange={(e) => setCustomTileServer(e.target.value)}
-            placeholder="https://tile.example.com/{z}/{x}/{y}.png"
-          />
-          <span className="hint">URL ของ Tile Server (เช่น GISTDA)</span>
-        </div>
-
-        <div className="form-group">
-          <label className="toggle-label">
-            <input
-              type="checkbox"
-              checked={enableWeatherRadar}
-              onChange={(e) => setEnableWeatherRadar(e.target.checked)}
-            />
-            <span className="toggle-switch"></span>
-            <span className="toggle-text">เปิดใช้งานเรดาร์สภาพอากาศ</span>
-          </label>
-          <span className="hint">แสดงชั้นข้อมูลเรดาร์อัตโนมัติ</span>
-        </div>
-      </div>
-
-      <div className="settings-actions">
-        <button className="btn-primary" onClick={handleSaveMap}>
-          💾 บันทึกการตั้งค่า
-        </button>
-        <button className="btn-secondary" onClick={() => toast('ยกเลิกการเปลี่ยนแปลง')}>
-          ❌ ยกเลิก
-        </button>
-      </div>
-    </div>
-  );
-
-  const renderNotificationsTab = () => (
-    <div className="settings-tab-content">
-      <h2>🔔 การแจ้งเตือน</h2>
-      <p className="tab-description">ควบคุมการส่งการแจ้งเตือนอัตโนมัติ</p>
-
-      <div className="settings-section">
-        <div className="form-group">
-          <label className="toggle-label">
-            <input
-              type="checkbox"
-              checked={emailOnNewIncident}
-              onChange={(e) => setEmailOnNewIncident(e.target.checked)}
-            />
-            <span className="toggle-switch"></span>
-            <span className="toggle-text">ส่งอีเมลเมื่อมีเหตุการณ์ใหม่</span>
-          </label>
-          <span className="hint">แจ้งเตือนผ่านอีเมลทันทีเมื่อมีเหตุการณ์ใหม่</span>
-        </div>
-
-        <div className="form-group">
-          <label className="toggle-label">
-            <input
-              type="checkbox"
-              checked={smsOnHighSeverity}
-              onChange={(e) => setSmsOnHighSeverity(e.target.checked)}
-            />
-            <span className="toggle-switch"></span>
-            <span className="toggle-text">ส่ง SMS เมื่อเหตุการณ์ความรุนแรงสูง</span>
-          </label>
-          <span className="hint">แจ้งเตือนผ่าน SMS สำหรับเหตุการณ์ฉุกเฉิน</span>
-        </div>
-
-        <div className="form-group">
-          <label className="toggle-label">
-            <input
-              type="checkbox"
-              checked={dailyEmailSummary}
-              onChange={(e) => setDailyEmailSummary(e.target.checked)}
-            />
-            <span className="toggle-switch"></span>
-            <span className="toggle-text">ส่งสรุปรายงานประจำวัน</span>
-          </label>
-          <span className="hint">ส่งอีเมลสรุปเหตุการณ์ทุกวันเวลา 18:00 น.</span>
-        </div>
-
-        <div className="form-group">
-          <label className="toggle-label">
-            <input
-              type="checkbox"
-              checked={enableLineNotify}
-              onChange={(e) => setEnableLineNotify(e.target.checked)}
-            />
-            <span className="toggle-switch"></span>
-            <span className="toggle-text">เปิดใช้งาน LINE Notify</span>
-          </label>
-          <span className="hint">แจ้งเตือนผ่าน LINE Notify</span>
-        </div>
-
-        {enableLineNotify && (
-          <div className="form-group">
-            <label htmlFor="lineNotifyToken">LINE Notify Access Token</label>
-            <input
-              type="password"
-              id="lineNotifyToken"
-              value={lineNotifyToken}
-              onChange={(e) => setLineNotifyToken(e.target.value)}
-              placeholder="••••••••••••••••••••"
-            />
-            <span className="hint">Access Token จาก LINE Notify (ข้อมูลนี้จะถูกเข้ารหัส)</span>
-          </div>
-        )}
-      </div>
-
-      <div className="settings-actions">
-        <button className="btn-primary" onClick={handleSaveNotifications}>
-          💾 บันทึกการตั้งค่า
-        </button>
-        <button className="btn-secondary" onClick={() => toast('ยกเลิกการเปลี่ยนแปลง')}>
-          ❌ ยกเลิก
-        </button>
-      </div>
-    </div>
-  );
-
-  const renderAPITab = () => (
-    <div className="settings-tab-content">
-      <h2>🔌 การเชื่อมต่อและ API</h2>
-      <p className="tab-description">จัดการ API Keys และ Rate Limiting</p>
-
-      <div className="settings-section">
-        <div className="form-group">
-          <label htmlFor="weatherApiKey">Weather API Key</label>
-          <input
-            type="password"
-            id="weatherApiKey"
-            value={weatherApiKey}
-            onChange={(e) => setWeatherApiKey(e.target.value)}
-            placeholder="••••••••••••••••••••"
-          />
-          <span className="hint">API Key สำหรับข้อมูลสภาพอากาศ</span>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="smsGatewayApiKey">SMS Gateway API Key</label>
-          <input
-            type="password"
-            id="smsGatewayApiKey"
-            value={smsGatewayApiKey}
-            onChange={(e) => setSmsGatewayApiKey(e.target.value)}
-            placeholder="••••••••••••••••••••"
-          />
-          <span className="hint">API Key สำหรับส่ง SMS</span>
-        </div>
-
-        <h3 className="section-title">⚡ Rate Limiting</h3>
-
-        <div className="form-group">
-          <label htmlFor="maxRequestsPerMinute">จำนวนคำขอสูงสุดต่อนาที</label>
-          <input
-            type="number"
-            id="maxRequestsPerMinute"
-            value={maxRequestsPerMinute}
-            onChange={(e) => setMaxRequestsPerMinute(Number(e.target.value))}
-            min="10"
-            max="1000"
-          />
-          <span className="hint">จำกัดจำนวนคำขอ API เพื่อป้องกันการโจมตี</span>
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="blockDuration">ระยะเวลาที่บล็อก (วินาที)</label>
-          <input
-            type="number"
-            id="blockDuration"
-            value={blockDuration}
-            onChange={(e) => setBlockDuration(Number(e.target.value))}
-            min="60"
-            max="3600"
-          />
-          <span className="hint">บล็อก IP ที่เรียก API เกินกำหนด</span>
-        </div>
-      </div>
-
-      <div className="settings-actions">
-        <button className="btn-primary" onClick={handleSaveAPI}>
-          💾 บันทึกการตั้งค่า
-        </button>
-        <button className="btn-secondary" onClick={() => toast('ยกเลิกการเปลี่ยนแปลง')}>
-          ❌ ยกเลิก
-        </button>
-      </div>
-    </div>
-  );
-
-  const renderDataTab = () => (
-    <div className="settings-tab-content">
-      <h2>💾 ข้อมูลและพื้นที่จัดเก็บ</h2>
-      <p className="tab-description">กำหนดนโยบายการจัดเก็บและสำรองข้อมูล</p>
-
-      {/* Storage Settings */}
-      <div className="settings-section">
-        <h3 className="section-title">📊 การจัดเก็บข้อมูล</h3>
-        
-        <div className="settings-grid">
-          <div className="setting-card">
-            <div className="setting-card-header">
-              <span className="setting-icon">📅</span>
-              <h4>ระยะเวลาจัดเก็บข้อมูล</h4>
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'general':
+        return (
+          <div className="settings-panel">
+            <div className="panel-header">
+              <h2>⚙️ การตั้งค่าทั่วไป</h2>
+              <p>กำหนดค่าพื้นฐานของแอปพลิเคชัน</p>
             </div>
-            <div className="setting-card-body">
-              <div className="input-with-unit">
+            <div className="panel-body">
+              <div className="form-group">
+                <label htmlFor="systemName">ชื่อแอปพลิเคชัน</label>
+                <input
+                  type="text"
+                  id="systemName"
+                  value={systemName}
+                  onChange={(e) => setSystemName(e.target.value)}
+                  placeholder="Guardian Route"
+                />
+                <span className="hint">ชื่อที่แสดงบน Header และหน้า Login</span>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="timezone">เขตเวลา</label>
+                <select
+                  id="timezone"
+                  value={timezone}
+                  onChange={(e) => setTimezone(e.target.value)}
+                >
+                  <option value="Asia/Bangkok">Asia/Bangkok (GMT+7)</option>
+                  <option value="Asia/Singapore">Asia/Singapore (GMT+8)</option>
+                  <option value="UTC">UTC (GMT+0)</option>
+                </select>
+                <span className="hint">เขตเวลาหลักของระบบ</span>
+              </div>
+
+              <div className="form-group">
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={maintenanceMode}
+                    onChange={(e) => setMaintenanceMode(e.target.checked)}
+                  />
+                  <span className="toggle-switch"></span>
+                  <span className="toggle-text">เปิดใช้งานโหมดบำรุงรักษา</span>
+                </label>
+                <span className="hint">ผู้ใช้ทั่วไปจะไม่สามารถเข้าถึงระบบได้</span>
+              </div>
+
+              {maintenanceMode && (
+                <div className="form-group">
+                  <label htmlFor="maintenanceMessage">ข้อความในโหมดบำรุงรักษา</label>
+                  <textarea
+                    id="maintenanceMessage"
+                    value={maintenanceMessage}
+                    onChange={(e) => setMaintenanceMessage(e.target.value)}
+                    rows={3}
+                    placeholder="ระบบอยู่ระหว่างการบำรุงรักษา..."
+                  />
+                </div>
+              )}
+
+              <div className="settings-actions">
+                <button className="btn-primary" onClick={handleSaveGeneral} disabled={saving}>
+                  💾 {saving ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      case 'security':
+        return (
+          <div className="settings-panel">
+            <div className="panel-header">
+              <h2>🔒 ผู้ใช้และความปลอดภัย</h2>
+              <p>กำหนดนโยบายความปลอดภัยในการเข้าถึง</p>
+            </div>
+            <div className="panel-body">
+              <div className="form-group">
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={enforce2FA}
+                    onChange={(e) => setEnforce2FA(e.target.checked)}
+                  />
+                  <span className="toggle-switch"></span>
+                  <span className="toggle-text">บังคับใช้ Two-Factor Authentication (2FA)</span>
+                </label>
+                <span className="hint">ผู้ใช้ทุกคนต้องตั้งค่า 2FA</span>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="minPasswordLength">ความยาวรหัสผ่านขั้นต่ำ (ตัวอักษร)</label>
                 <input
                   type="number"
-                  id="dataRetentionDays"
-                  value={dataRetentionDays}
-                  onChange={(e) => setDataRetentionDays(Number(e.target.value))}
-                  min="30"
-                  max="3650"
-                  className="input-large"
+                  id="minPasswordLength"
+                  value={minPasswordLength}
+                  onChange={(e) => setMinPasswordLength(Number(e.target.value))}
+                  min="8"
+                  max="32"
                 />
-                <span className="input-unit">วัน</span>
+                <span className="hint">แนะนำ: 8-16 ตัวอักษร</span>
               </div>
-              <p className="setting-description">
-                ข้อมูลที่เก่ากว่า <strong>{dataRetentionDays} วัน</strong> จะถูกลบอัตโนมัติ
-              </p>
-              <div className="setting-info">
-                <span className="info-badge info">ℹ️ แนะนำ: 365-730 วัน (1-2 ปี)</span>
+
+              <div className="form-group">
+                <label htmlFor="sessionTimeout">ระยะเวลาเซสชัน (นาที)</label>
+                <input
+                  type="number"
+                  id="sessionTimeout"
+                  value={sessionTimeout}
+                  onChange={(e) => setSessionTimeout(Number(e.target.value))}
+                  min="5"
+                  max="120"
+                />
+                <span className="hint">ออกจากระบบอัตโนมัติเมื่อไม่มีการใช้งาน</span>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="ipAllowlist">IP Address Allowlist</label>
+                <textarea
+                  id="ipAllowlist"
+                  value={ipAllowlist}
+                  onChange={(e) => setIpAllowlist(e.target.value)}
+                  rows={3}
+                  placeholder="192.168.1.1, 10.0.0.1, 172.16.0.1"
+                />
+                <span className="hint">รายการ IP ที่อนุญาตให้เข้าถึง (คั่นด้วยจุลภาค)</span>
+              </div>
+
+              <div className="settings-actions">
+                <button className="btn-primary" onClick={handleSaveSecurity}>
+                  💾 บันทึกการตั้งค่า
+                </button>
               </div>
             </div>
           </div>
-
-          <div className="setting-card">
-            <div className="setting-card-header">
-              <span className="setting-icon">💾</span>
-              <h4>ความถี่การสำรองข้อมูล</h4>
+        );
+      case 'map':
+        return (
+          <div className="settings-panel">
+            <div className="panel-header">
+              <h2>🗺️ แผนที่และภูมิสารสนเทศ</h2>
+              <p>ปรับแต่งการแสดงผลแผนที่</p>
             </div>
-            <div className="setting-card-body">
-              <select
-                id="backupFrequency"
-                value={backupFrequency}
-                onChange={(e) => setBackupFrequency(e.target.value as 'daily' | 'weekly' | 'monthly' | 'disabled')}
-                className="select-large"
-              >
-                <option value="daily">🌅 รายวัน (Daily)</option>
-                <option value="weekly">📅 รายสัปดาห์ (Weekly)</option>
-                <option value="monthly">📆 รายเดือน (Monthly)</option>
-                <option value="disabled">🚫 ปิดใช้งาน (Disabled)</option>
-              </select>
-              <p className="setting-description">
-                สำรองข้อมูลอัตโนมัติ: <strong>{backupFrequency === 'daily' ? 'ทุกวัน' : backupFrequency === 'weekly' ? 'ทุกสัปดาห์' : backupFrequency === 'monthly' ? 'ทุกเดือน' : 'ปิดใช้งาน'}</strong>
-              </p>
-              <div className="setting-info">
-                <span className="info-badge success">✓ แนะนำ: รายวัน สำหรับข้อมูลสำคัญ</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="settings-actions">
-        <button className="btn-primary" onClick={handleSaveData} disabled={saving}>
-          💾 {saving ? 'กำลังบันทึก...' : 'บันทึกการตั้งค่า'}
-        </button>
-        <button className="btn-secondary" onClick={() => toast('ยกเลิกการเปลี่ยนแปลง')} disabled={saving}>
-          ❌ ยกเลิก
-        </button>
-      </div>
-
-      {/* Danger Zone */}
-      <div className="danger-zone">
-        <div className="danger-zone-header">
-          <h3 className="danger-title">⚠️ Danger Zone</h3>
-          <p className="danger-description">การกระทำเหล่านี้มีความเสี่ยงสูง กรุณาใช้ความระมัดระวัง</p>
-        </div>
-
-        <div className="danger-actions">
-          <div className="danger-action-card">
-            <div className="danger-icon">🗑️</div>
-            <div className="danger-content">
-              <h4 className="danger-action-title">ลบข้อมูลเก่า (Purge Old Data)</h4>
-              <p className="danger-action-description">
-                ลบข้อมูลที่เก่ากว่า <strong>{dataRetentionDays} วัน</strong> ทันที
-              </p>
-              <ul className="danger-list">
-                <li>ลบ incidents, logs, และ reports เก่า</li>
-                <li>ไม่สามารถกู้คืนได้</li>
-                <li>ใช้เวลา 5-10 นาที</li>
-              </ul>
-            </div>
-            <button className="btn-danger" onClick={handlePurgeOldData} disabled={saving}>
-              🗑️ ลบข้อมูลเก่า
-            </button>
-          </div>
-
-          {/* Factory Reset - DEVELOPER ONLY */}
-          {isDeveloper && (
-            <div className="danger-action-card danger-critical">
-              <div className="danger-icon">🚨</div>
-              <div className="danger-content">
-                <h4 className="danger-action-title">รีเซ็ตระบบ (Factory Reset)</h4>
-                <p className="danger-action-description">
-                  รีเซ็ตการตั้งค่าทั้งหมดกลับเป็นค่าเริ่มต้น
-                </p>
-                <ul className="danger-list">
-                  <li>ลบการตั้งค่าทั้งหมด</li>
-                  <li>ไม่ลบข้อมูล users และ incidents</li>
-                  <li>ต้องตั้งค่าใหม่ทั้งหมด</li>
-                  <li>ต้องยืนยัน 2 ครั้ง</li>
-                </ul>
-                <div className="developer-only-badge">
-                  👨‍💻 DEVELOPER ONLY
+            <div className="panel-body">
+              <div className="form-row">
+                <div className="form-group">
+                  <label htmlFor="defaultLat">Default Latitude</label>
+                  <input
+                    type="number"
+                    id="defaultLat"
+                    value={defaultLat}
+                    onChange={(e) => setDefaultLat(Number(e.target.value))}
+                    step="0.0001"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="defaultLng">Default Longitude</label>
+                  <input
+                    type="number"
+                    id="defaultLng"
+                    value={defaultLng}
+                    onChange={(e) => setDefaultLng(Number(e.target.value))}
+                    step="0.0001"
+                  />
                 </div>
               </div>
-              <button className="btn-danger btn-danger-critical" onClick={handleFactoryReset} disabled={saving}>
-                🚨 Factory Reset
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
 
-  if (loading) {
-    return (
-      <DashboardLayout>
-        <div className="settings-page">
-          <div className="page-header">
-            <h1>⚙️ ตั้งค่าระบบ</h1>
-            <p className="subtitle">กำลังโหลดการตั้งค่า...</p>
+              <div className="form-group">
+                <label htmlFor="defaultZoom">Default Zoom Level</label>
+                <input
+                  type="number"
+                  id="defaultZoom"
+                  value={defaultZoom}
+                  onChange={(e) => setDefaultZoom(Number(e.target.value))}
+                  min="1"
+                  max="18"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="defaultBaseLayer">Default Base Layer</label>
+                <select
+                  id="defaultBaseLayer"
+                  value={defaultBaseLayer}
+                  onChange={(e) => setDefaultBaseLayer(e.target.value as 'satellite' | 'street')}
+                >
+                  <option value="street">แผนที่ถนน (Street Map)</option>
+                  <option value="satellite">ภาพถ่ายดาวเทียม (Satellite)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="customTileServer">Custom Map Tile Server URL</label>
+                <input
+                  type="text"
+                  id="customTileServer"
+                  value={customTileServer}
+                  onChange={(e) => setCustomTileServer(e.target.value)}
+                  placeholder="https://tile.example.com/{z}/{x}/{y}.png"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={enableWeatherRadar}
+                    onChange={(e) => setEnableWeatherRadar(e.target.checked)}
+                  />
+                  <span className="toggle-switch"></span>
+                  <span className="toggle-text">เปิดใช้งานเรดาร์สภาพอากาศ</span>
+                </label>
+              </div>
+
+              <div className="settings-actions">
+                <button className="btn-primary" onClick={handleSaveMap}>
+                  💾 บันทึกการตั้งค่า
+                </button>
+              </div>
+            </div>
           </div>
-          <div style={{ textAlign: 'center', padding: '50px' }}>
-            <div className="spinner"></div>
-            <p>กำลังโหลดข้อมูล...</p>
+        );
+      case 'notifications':
+        return (
+          <div className="settings-panel">
+            <div className="panel-header">
+              <h2>🔔 การแจ้งเตือน</h2>
+              <p>ควบคุมการส่งการแจ้งเตือนอัตโนมัติ</p>
+            </div>
+            <div className="panel-body">
+              <div className="form-group">
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={emailOnNewIncident}
+                    onChange={(e) => setEmailOnNewIncident(e.target.checked)}
+                  />
+                  <span className="toggle-switch"></span>
+                  <span className="toggle-text">ส่งอีเมลเมื่อมีเหตุการณ์ใหม่</span>
+                </label>
+              </div>
+
+              <div className="form-group">
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={smsOnHighSeverity}
+                    onChange={(e) => setSmsOnHighSeverity(e.target.checked)}
+                  />
+                  <span className="toggle-switch"></span>
+                  <span className="toggle-text">ส่ง SMS เมื่อเหตุการณ์ความรุนแรงสูง</span>
+                </label>
+              </div>
+
+              <div className="form-group">
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={dailyEmailSummary}
+                    onChange={(e) => setDailyEmailSummary(e.target.checked)}
+                  />
+                  <span className="toggle-switch"></span>
+                  <span className="toggle-text">ส่งสรุปรายงานประจำวัน</span>
+                </label>
+              </div>
+
+              <div className="form-group">
+                <label className="toggle-label">
+                  <input
+                    type="checkbox"
+                    checked={enableLineNotify}
+                    onChange={(e) => setEnableLineNotify(e.target.checked)}
+                  />
+                  <span className="toggle-switch"></span>
+                  <span className="toggle-text">เปิดใช้งาน LINE Notify</span>
+                </label>
+              </div>
+
+              {enableLineNotify && (
+                <div className="form-group">
+                  <label htmlFor="lineNotifyToken">LINE Notify Access Token</label>
+                  <input
+                    type="password"
+                    id="lineNotifyToken"
+                    value={lineNotifyToken}
+                    onChange={(e) => setLineNotifyToken(e.target.value)}
+                    placeholder="••••••••••••••••••••"
+                  />
+                </div>
+              )}
+
+              <div className="settings-actions">
+                <button className="btn-primary" onClick={handleSaveNotifications}>
+                  💾 บันทึกการตั้งค่า
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
+        );
+      case 'api':
+        return (
+          <div className="settings-panel">
+            <div className="panel-header">
+              <h2>🔌 การเชื่อมต่อและ API</h2>
+              <p>จัดการ API Keys และ Rate Limiting</p>
+            </div>
+            <div className="panel-body">
+              <div className="form-group">
+                <label htmlFor="weatherApiKey">Weather API Key</label>
+                <input
+                  type="password"
+                  id="weatherApiKey"
+                  value={weatherApiKey}
+                  onChange={(e) => setWeatherApiKey(e.target.value)}
+                  placeholder="••••••••••••••••••••"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="smsGatewayApiKey">SMS Gateway API Key</label>
+                <input
+                  type="password"
+                  id="smsGatewayApiKey"
+                  value={smsGatewayApiKey}
+                  onChange={(e) => setSmsGatewayApiKey(e.target.value)}
+                  placeholder="••••••••••••••••••••"
+                />
+              </div>
+
+              <h3 className="section-title">⚡ Rate Limiting</h3>
+
+              <div className="form-group">
+                <label htmlFor="maxRequestsPerMinute">จำนวนคำขอสูงสุดต่อนาที</label>
+                <input
+                  type="number"
+                  id="maxRequestsPerMinute"
+                  value={maxRequestsPerMinute}
+                  onChange={(e) => setMaxRequestsPerMinute(Number(e.target.value))}
+                  min="10"
+                  max="1000"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="blockDuration">ระยะเวลาที่บล็อก (วินาที)</label>
+                <input
+                  type="number"
+                  id="blockDuration"
+                  value={blockDuration}
+                  onChange={(e) => setBlockDuration(Number(e.target.value))}
+                  min="60"
+                  max="3600"
+                />
+              </div>
+
+              <div className="settings-actions">
+                <button className="btn-primary" onClick={handleSaveAPI}>
+                  💾 บันทึกการตั้งค่า
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      case 'data':
+        return (
+          <div className="settings-panel">
+            <div className="panel-header">
+              <h2>💾 ข้อมูลและพื้นที่จัดเก็บ</h2>
+              <p>กำหนดนโยบายการจัดเก็บและสำรองข้อมูล</p>
+            </div>
+            <div className="panel-body">
+              <div className="settings-section">
+                <h3 className="section-title">📊 การจัดเก็บข้อมูล</h3>
+                <div className="form-group">
+                  <label htmlFor="dataRetentionDays">ระยะเวลาจัดเก็บข้อมูล (วัน)</label>
+                  <input
+                    type="number"
+                    id="dataRetentionDays"
+                    value={dataRetentionDays}
+                    onChange={(e) => setDataRetentionDays(Number(e.target.value))}
+                    min="30"
+                    max="3650"
+                  />
+                  <span className="hint">ข้อมูลที่เก่ากว่านี้จะถูกลบอัตโนมัติ</span>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="backupFrequency">ความถี่ในการสำรองข้อมูล</label>
+                  <select
+                    id="backupFrequency"
+                    value={backupFrequency}
+                    onChange={(e) => setBackupFrequency(e.target.value as any)}
+                  >
+                    <option value="daily">ทุกวัน</option>
+                    <option value="weekly">ทุกสัปดาห์</option>
+                    <option value="monthly">ทุกเดือน</option>
+                    <option value="disabled">ปิดการใช้งาน</option>
+                  </select>
+                </div>
+
+                <div className="settings-actions">
+                  <button className="btn-primary" onClick={handleSaveData}>
+                    💾 บันทึกการตั้งค่า
+                  </button>
+                </div>
+              </div>
+
+              <div className="settings-section danger-zone">
+                <h3 className="section-title danger">⚠️ พื้นที่อันตราย</h3>
+
+                <div className="danger-actions">
+                  <div className="danger-item">
+                    <div className="danger-info">
+                      <h4>ลบข้อมูลเก่า</h4>
+                      <p>ลบข้อมูลที่เก่ากว่าระยะเวลาที่กำหนด</p>
+                    </div>
+                    <button className="btn-danger" onClick={handlePurgeOldData}>
+                      🗑️ ลบข้อมูลเก่า
+                    </button>
+                  </div>
+
+                  <div className="danger-item">
+                    <div className="danger-info">
+                      <h4>Factory Reset</h4>
+                      <p>คืนค่าโรงงานและลบข้อมูลทั้งหมด</p>
+                    </div>
+                    <button className="btn-danger" onClick={handleFactoryReset}>
+                      🔥 รีเซ็ตระบบ
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <DashboardLayout>
-      <div className="settings-page">
+      <div className="settings-page-v2">
         <div className="page-header">
-          <h1>⚙️ ตั้งค่าระบบ</h1>
-          <p className="subtitle">จัดการการตั้งค่าและกำหนดค่าระบบ Guardian Route</p>
+          <div className="header-content">
+            <h1>⚙️ ตั้งค่าระบบ</h1>
+            <p className="subtitle">ปรับแต่งการทำงานของ Guardian Route</p>
+          </div>
         </div>
 
         <div className="settings-layout">
-          <div className="settings-sidebar">
-            <h3>หมวดหมู่</h3>
-            <nav className="settings-nav">
-              <button
-                className={`settings-nav-item ${activeTab === 'general' ? 'active' : ''}`}
-                onClick={() => setActiveTab('general')}
-              >
-                <span className="icon">⚙️</span>
-                ทั่วไป
-              </button>
-              <button
-                className={`settings-nav-item ${activeTab === 'security' ? 'active' : ''}`}
-                onClick={() => setActiveTab('security')}
-              >
-                <span className="icon">🔒</span>
-                ผู้ใช้และความปลอดภัย
-              </button>
-              <button
-                className={`settings-nav-item ${activeTab === 'map' ? 'active' : ''}`}
-                onClick={() => setActiveTab('map')}
-              >
-                <span className="icon">🗺️</span>
-                แผนที่และภูมิสารสนเทศ
-              </button>
-              <button
-                className={`settings-nav-item ${activeTab === 'notifications' ? 'active' : ''}`}
-                onClick={() => setActiveTab('notifications')}
-              >
-                <span className="icon">🔔</span>
-                การแจ้งเตือน
-              </button>
-              <button
-                className={`settings-nav-item ${activeTab === 'api' ? 'active' : ''}`}
-                onClick={() => setActiveTab('api')}
-              >
-                <span className="icon">🔌</span>
-                การเชื่อมต่อและ API
-              </button>
-              <button
-                className={`settings-nav-item ${activeTab === 'data' ? 'active' : ''}`}
-                onClick={() => setActiveTab('data')}
-              >
-                <span className="icon">💾</span>
-                ข้อมูลและพื้นที่จัดเก็บ
-              </button>
-            </nav>
-          </div>
-
-          <div className="settings-content">
-            {activeTab === 'general' && renderGeneralTab()}
-            {activeTab === 'security' && renderSecurityTab()}
-            {activeTab === 'map' && renderMapTab()}
-            {activeTab === 'notifications' && renderNotificationsTab()}
-            {activeTab === 'api' && renderAPITab()}
-            {activeTab === 'data' && renderDataTab()}
+          {renderSidebar()}
+          <div className="settings-main">
+            {renderContent()}
           </div>
         </div>
       </div>

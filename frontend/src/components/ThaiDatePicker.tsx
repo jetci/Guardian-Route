@@ -21,6 +21,7 @@ interface ThaiDatePickerProps {
   onChange: (date: Date | null) => void;
   placeholder?: string;
   disabled?: boolean;
+  maxDate?: Date;
 }
 
 const ThaiDatePicker: React.FC<ThaiDatePickerProps> = ({
@@ -28,22 +29,41 @@ const ThaiDatePicker: React.FC<ThaiDatePickerProps> = ({
   value,
   onChange,
   placeholder = 'เลือกวันที่',
-  disabled = false
+  disabled = false,
+  maxDate
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [displayDate, setDisplayDate] = useState(value || new Date());
+  const [popupPosition, setPopupPosition] = useState({ top: 0, left: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Handle click outside to close calendar
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        // Check if the click is inside the portal/fixed popup
+        const popup = document.getElementById(`datepicker-popup-${id}`);
+        if (popup && popup.contains(event.target as Node)) {
+          return;
+        }
         setIsOpen(false);
       }
     };
+
+    const handleScroll = () => {
+      if (isOpen) setIsOpen(false);
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    window.addEventListener('scroll', handleScroll, true); // Capture scroll events from any container
+    window.addEventListener('resize', handleScroll);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, [isOpen, id]);
 
   // Sync displayDate with value changes
   useEffect(() => {
@@ -54,14 +74,46 @@ const ThaiDatePicker: React.FC<ThaiDatePickerProps> = ({
     }
   }, [value]);
 
+  // Calculate position when opening
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      // Check if popup would go off screen bottom
+      const viewportHeight = window.innerHeight;
+      const popupHeight = 350; // Approximate height
+
+      let top = rect.bottom + 8;
+      if (top + popupHeight > viewportHeight) {
+        top = rect.top - popupHeight - 8; // Show above if no space below
+      }
+
+      setPopupPosition({
+        top,
+        left: rect.left
+      });
+    }
+  }, [isOpen]);
+
   const handleDateSelect = (day: number) => {
     const newDate = new Date(displayDate.getFullYear(), displayDate.getMonth(), day);
+    // Check if date is after maxDate
+    if (maxDate && newDate > maxDate) {
+      return; // Don't allow selection
+    }
     onChange(newDate);
     setIsOpen(false);
   };
 
   const changeMonth = (amount: number) => {
-    setDisplayDate(prev => new Date(prev.getFullYear(), prev.getMonth() + amount, 1));
+    const newDate = new Date(displayDate.getFullYear(), displayDate.getMonth() + amount, 1);
+    // Don't allow navigating past maxDate month
+    if (maxDate && amount > 0) {
+      if (newDate.getFullYear() > maxDate.getFullYear() ||
+        (newDate.getFullYear() === maxDate.getFullYear() && newDate.getMonth() > maxDate.getMonth())) {
+        return;
+      }
+    }
+    setDisplayDate(newDate);
   };
 
   const generateCalendarGrid = () => {
@@ -116,19 +168,23 @@ const ThaiDatePicker: React.FC<ThaiDatePickerProps> = ({
         </div>
       </div>
 
-      {/* Calendar Popup */}
+      {/* Calendar Popup - Fixed Position */}
       {isOpen && !disabled && (
-        <div style={{
-          position: 'absolute',
-          zIndex: 10,
-          marginTop: '8px',
-          width: '288px',
-          background: 'white',
-          border: '2px solid #e2e8f0',
-          borderRadius: '12px',
-          boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
-          padding: '16px'
-        }}>
+        <div
+          id={`datepicker-popup-${id}`}
+          style={{
+            position: 'fixed',
+            top: popupPosition.top,
+            left: popupPosition.left,
+            zIndex: 9999,
+            width: '288px',
+            background: 'white',
+            border: '2px solid #e2e8f0',
+            borderRadius: '12px',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+            padding: '16px'
+          }}
+        >
           {/* Header - Month/Year Navigation */}
           <div style={{
             display: 'flex',
@@ -212,54 +268,49 @@ const ThaiDatePicker: React.FC<ThaiDatePickerProps> = ({
                 }}
               >
                 {day ? (
-                  <button
-                    type="button"
-                    onClick={() => handleDateSelect(day)}
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '50%',
-                      fontSize: '13px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: 'none',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      background:
-                        value &&
-                        value.getDate() === day &&
-                        value.getMonth() === displayDate.getMonth() &&
-                        value.getFullYear() === displayDate.getFullYear()
-                          ? '#667eea'
-                          : 'transparent',
-                      color:
-                        value &&
-                        value.getDate() === day &&
-                        value.getMonth() === displayDate.getMonth() &&
-                        value.getFullYear() === displayDate.getFullYear()
-                          ? '#ffffff'
-                          : '#2d3748'
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!(value &&
-                        value.getDate() === day &&
-                        value.getMonth() === displayDate.getMonth() &&
-                        value.getFullYear() === displayDate.getFullYear())) {
-                        e.currentTarget.style.background = '#f7fafc';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!(value &&
-                        value.getDate() === day &&
-                        value.getMonth() === displayDate.getMonth() &&
-                        value.getFullYear() === displayDate.getFullYear())) {
-                        e.currentTarget.style.background = 'transparent';
-                      }
-                    }}
-                  >
-                    {day}
-                  </button>
+                  (() => {
+                    const dayDate = new Date(displayDate.getFullYear(), displayDate.getMonth(), day);
+                    const isDisabled = maxDate && dayDate > maxDate;
+                    const isSelected = value &&
+                      value.getDate() === day &&
+                      value.getMonth() === displayDate.getMonth() &&
+                      value.getFullYear() === displayDate.getFullYear();
+
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => handleDateSelect(day)}
+                        disabled={isDisabled}
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '50%',
+                          fontSize: '13px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          border: 'none',
+                          cursor: isDisabled ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.2s',
+                          background: isSelected ? '#667eea' : 'transparent',
+                          color: isDisabled ? '#cbd5e0' : (isSelected ? '#ffffff' : '#2d3748'),
+                          opacity: isDisabled ? 0.4 : 1
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected && !isDisabled) {
+                            e.currentTarget.style.background = '#f7fafc';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected && !isDisabled) {
+                            e.currentTarget.style.background = 'transparent';
+                          }
+                        }}
+                      >
+                        {day}
+                      </button>
+                    );
+                  })()
                 ) : (
                   <div style={{ width: '32px', height: '32px' }} />
                 )}

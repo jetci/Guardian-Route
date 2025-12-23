@@ -70,8 +70,24 @@ export const getReportStatistics = async (): Promise<ReportStatistics> => {
 
 // Get system health
 export const getSystemHealth = async (): Promise<SystemHealth> => {
-  const response = await api.get('/health');
-  return response.data;
+  try {
+    const response = await api.get('/health');
+    const data = response.data;
+    // Map backend status to percentage
+    return {
+      ...data,
+      healthPercentage: data.status === 'healthy' ? 100 : 50,
+      status: data.status === 'healthy' ? 'ok' : 'error'
+    };
+  } catch (error) {
+    return {
+      status: 'error',
+      uptime: 0,
+      database: 'disconnected',
+      apiResponseTime: 0,
+      healthPercentage: 0
+    };
+  }
 };
 
 // Get activity logs
@@ -128,7 +144,7 @@ export const getActivityLogs = async (params?: {
     data: mockLogs.slice(0, limit),
     total: mockLogs.length,
   };
-  
+
   // Real API call (commented out until backend ready)
   // const response = await api.get('/activity-logs', { params });
   // return response.data;

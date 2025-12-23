@@ -528,62 +528,74 @@
   }
 }
 
-/* Dark Mode */
+/* ... existing styles ... */
+
+/* Refined Filter Layout */
+.filter-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto auto;
+  gap: 0.75rem;
+  align-items: end; /* Align to bottom to match inputs */
+  margin-bottom: 1.5rem;
+}
+
+/* Responsive Filter Layout */
+@media (max-width: 1200px) {
+  .filter-row {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Table Styles Refinement */
+.logs-table th {
+  text-align: center !important;
+  vertical-align: middle !important;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 0.75rem 0.5rem;
+  height: 48px;
+  background: #f7fafc;
+  color: #2d3748;
+  border-bottom: 2px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.logs-table td {
+  height: 48px;
+  vertical-align: middle;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Empty State Refinement */
+.empty-state-cell {
+  text-align: center;
+  padding: 3rem !important;
+  color: #718096;
+  background: white;
+}
+
+/* Dark Mode Overrides */
 @media (prefers-color-scheme: dark) {
-  .audit-logs-page {
-    background: #1a202c;
-  }
-
-  .page-header,
-  .stat-card,
-  .filters-card,
-  .logs-card {
-    background: #2d3748;
-    color: #e2e8f0;
-  }
-
-  .page-header h1 {
-    -webkit-text-fill-color: unset;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .filter-group select,
-  .filter-group input {
-    background: #1a202c;
-    color: #e2e8f0;
-    border-color: #4a5568;
-  }
-
-  .logs-table thead,
-  .logs-header,
-  .pagination {
-    background: #1a202c;
-  }
-
   .logs-table th {
+    background: #1a202c;
     color: #e2e8f0;
     border-color: #4a5568;
   }
-
+  
   .logs-table td {
-    color: #cbd5e0;
     border-color: #4a5568;
-  }
-
-  .logs-table tbody tr:hover {
-    background: #374151;
-  }
-
-  .details-json {
-    background: #1a202c;
     color: #cbd5e0;
   }
-
-  .pagination-button {
-    background: #1a202c;
-    border-color: #4a5568;
-    color: #e2e8f0;
+  
+  .empty-state-cell {
+    background: #2d3748;
+    color: #a0aec0;
   }
 }

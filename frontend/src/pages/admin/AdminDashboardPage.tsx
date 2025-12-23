@@ -23,6 +23,8 @@ import UserManagement from '../../components/admin/UserManagement';
 import GeoJSONManagement from '../../components/admin/GeoJSONManagement';
 import AuditLogTable from '../../components/admin/AuditLogTable';
 import SystemSettings from '../../components/admin/SystemSettings';
+import { HealthCheckCard } from '../../components/admin/HealthCheckCard';
+import { SystemStatsCard } from '../../components/admin/SystemStatsCard';
 
 interface DashboardStats {
   users: {
@@ -104,6 +106,12 @@ const AdminDashboardPage: React.FC = () => {
       <Heading mb={6} size="lg">
         ระบบผู้ดูแลระบบ
       </Heading>
+
+      {/* Health Check & System Stats */}
+      <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6} mb={8}>
+        <HealthCheckCard />
+        <SystemStatsCard />
+      </SimpleGrid>
 
       {/* Stats Overview */}
       <SimpleGrid columns={{ base: 1, md: 2, lg: 4 }} spacing={6} mb={8}>

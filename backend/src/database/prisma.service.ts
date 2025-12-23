@@ -8,7 +8,11 @@ export class PrismaService
 {
   async onModuleInit() {
     await this.$connect();
-    console.log('✅ Database connected');
+    
+    // Set client encoding to UTF-8 for Thai language support
+    await this.$executeRawUnsafe(`SET CLIENT_ENCODING TO 'UTF8';`);
+    
+    console.log('✅ Database connected with UTF-8 encoding');
   }
 
   async onModuleDestroy() {

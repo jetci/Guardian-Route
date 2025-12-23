@@ -260,11 +260,11 @@ export default function DeveloperDashboard() {
                 <div className="menu-arrow">→</div>
               </Link>
 
-              <Link to="/developer/admin/settings" className="menu-card">
+              <Link to="/settings" className="menu-card">
                 <div className="menu-icon">⚙️</div>
                 <div className="menu-content">
                   <h3>ตั้งค่า</h3>
-                  <p>Config ระบบต่างๆ</p>
+                  <p>Config ระบบต่างๆ (6 tabs)</p>
                 </div>
                 <div className="menu-arrow">→</div>
               </Link>

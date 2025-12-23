@@ -40,7 +40,7 @@ export class IncidentsController {
   constructor(
     private readonly incidentsService: IncidentsService,
     private readonly photosService: PhotosService,
-  ) {}
+  ) { }
 
   @Get('statistics')
   @ApiOperation({ summary: 'Get incident statistics' })
@@ -91,7 +91,7 @@ export class IncidentsController {
   }
 
   @Get('unassigned')
-  @Roles('SUPERVISOR', 'EXECUTIVE', 'ADMIN')
+  @Roles('SUPERVISOR', 'EXECUTIVE', 'ADMIN', 'DEVELOPER')
   @ApiOperation({ summary: 'Get unassigned incidents (Supervisor only)' })
   @ApiResponse({ status: 200, description: 'Return unassigned incidents' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
@@ -100,7 +100,7 @@ export class IncidentsController {
   }
 
   @Patch(':id/assign')
-  @Roles('SUPERVISOR', 'EXECUTIVE', 'ADMIN')
+  @Roles('SUPERVISOR', 'EXECUTIVE', 'ADMIN', 'DEVELOPER')
   @ApiOperation({ summary: 'Assign incident to field officer (Supervisor only)' })
   @ApiResponse({ status: 200, description: 'Incident assigned successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
@@ -114,7 +114,7 @@ export class IncidentsController {
   }
 
   @Patch(':id/review')
-  @Roles('SUPERVISOR', 'EXECUTIVE', 'ADMIN')
+  @Roles('SUPERVISOR', 'EXECUTIVE', 'ADMIN', 'DEVELOPER')
   @ApiOperation({ summary: 'Review incident (Supervisor only)' })
   @ApiResponse({ status: 200, description: 'Incident reviewed successfully' })
   @ApiResponse({ status: 403, description: 'Forbidden' })

@@ -30,6 +30,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Invalid token or inactive user');
     }
 
-    return user;
+    // Add 'sub' field for compatibility with controllers using user.sub
+    return {
+      ...user,
+      sub: user.id,
+    };
   }
 }

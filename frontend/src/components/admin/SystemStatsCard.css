@@ -1,0 +1,235 @@
+/* System Stats Card Styles */
+
+.system-stats-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #3182ce;
+}
+
+.system-stats-card.loading,
+.system-stats-card.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a202c;
+}
+
+.refresh-indicator {
+  font-size: 0.75rem;
+  color: #718096;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stats-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f7fafc;
+  border-radius: 8px;
+}
+
+.stats-section:last-child {
+  margin-bottom: 0;
+}
+
+.stats-section h4 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.stats-grid.large {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.stat-item .label {
+  font-size: 0.875rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+.stat-item .value {
+  font-size: 0.875rem;
+  color: #1a202c;
+  font-weight: 600;
+}
+
+.stat-item .value.status-connected {
+  color: #38a169;
+}
+
+.stat-item .value.status-disconnected {
+  color: #e53e3e;
+}
+
+/* Memory Bar */
+.memory-bar-container {
+  width: 100%;
+  height: 30px;
+  background: #e2e8f0;
+  border-radius: 15px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.memory-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #48bb78 0%, #38a169 50%, #2f855a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: width 0.5s ease;
+}
+
+.memory-bar-container .memory-bar[style*="width: 7"],
+.memory-bar-container .memory-bar[style*="width: 8"],
+.memory-bar-container .memory-bar[style*="width: 9"] {
+  background: linear-gradient(90deg, #f56565 0%, #e53e3e 50%, #c53030 100%);
+}
+
+.memory-bar-container .memory-bar[style*="width: 6"] {
+  background: linear-gradient(90deg, #ed8936 0%, #dd6b20 50%, #c05621 100%);
+}
+
+/* Stat Cards */
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s;
+}
+
+.stat-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.stat-icon {
+  font-size: 2rem;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a202c;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+/* Loading & Error States */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top-color: #3182ce;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  color: #e53e3e;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .stats-grid.large {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .system-stats-card {
+    padding: 1rem;
+  }
+  
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-grid.large {
+    grid-template-columns: 1fr;
+  }
+  
+  .stat-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+}

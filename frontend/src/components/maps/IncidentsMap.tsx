@@ -15,7 +15,7 @@ const getMarkerIcon = (priority: Priority) => {
   };
 
   const color = colors[priority];
-  
+
   return L.divIcon({
     className: 'custom-marker',
     html: `
@@ -102,9 +102,10 @@ export const IncidentsMap = ({ className, onIncidentClick }: IncidentsMapProps) 
     <BaseMap className={className}>
       {incidents.map((incident) => {
         if (!incident.location?.coordinates) return null;
-        
+
         const [lng, lat] = incident.location.coordinates;
-        
+        console.log(`Incident ${incident.id}:`, { lat, lng, raw: incident.location.coordinates });
+
         return (
           <Marker
             key={incident.id}
@@ -117,13 +118,13 @@ export const IncidentsMap = ({ className, onIncidentClick }: IncidentsMapProps) 
             <Popup>
               <div className="p-2 min-w-[200px]">
                 <h3 className="font-bold text-lg mb-2">{incident.title}</h3>
-                
+
                 {incident.description && (
                   <p className="text-sm text-gray-600 mb-2">
                     {incident.description}
                   </p>
                 )}
-                
+
                 <div className="space-y-1 text-sm">
                   <div>
                     <span className="font-medium">ประเภท:</span>{' '}
@@ -131,12 +132,11 @@ export const IncidentsMap = ({ className, onIncidentClick }: IncidentsMapProps) 
                   </div>
                   <div>
                     <span className="font-medium">ความสำคัญ:</span>{' '}
-                    <span className={`font-medium ${
-                      incident.priority === 'CRITICAL' ? 'text-red-600' :
-                      incident.priority === 'HIGH' ? 'text-orange-600' :
-                      incident.priority === 'MEDIUM' ? 'text-blue-600' :
-                      'text-gray-600'
-                    }`}>
+                    <span className={`font-medium ${incident.priority === 'CRITICAL' ? 'text-red-600' :
+                        incident.priority === 'HIGH' ? 'text-orange-600' :
+                          incident.priority === 'MEDIUM' ? 'text-blue-600' :
+                            'text-gray-600'
+                      }`}>
                       {getPriorityLabel(incident.priority)}
                     </span>
                   </div>
@@ -157,7 +157,7 @@ export const IncidentsMap = ({ className, onIncidentClick }: IncidentsMapProps) 
                     </div>
                   )}
                 </div>
-                
+
                 <div className="mt-3 pt-2 border-t text-xs text-gray-500">
                   รายงานโดย: {incident.createdBy.firstName} {incident.createdBy.lastName}
                 </div>

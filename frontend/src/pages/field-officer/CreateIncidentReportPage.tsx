@@ -8,6 +8,7 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { incidentService } from '../../services/incidentService';
 import ThaiDatePicker from '../../components/ThaiDatePicker';
+import { validateIncidentForm, hasValidationErrors, getFirstError, type IncidentValidationErrors } from '../../validation/incident-validation';
 import './InitialSurveyPage.css';
 
 // Fix Leaflet default marker icon issue
@@ -46,6 +47,81 @@ export function CreateIncidentReportPage() {
 
   // Polygon state
   const [polygonData, setPolygonData] = useState<any>(null);
+
+  // Validation errors state
+  const [errors, setErrors] = useState<IncidentValidationErrors>({});
+
+  // Auto-save draft every 30 seconds
+  useEffect(() => {
+    const saveDraft = () => {
+      const draft = {
+        incidentDate: incidentDate?.toISOString(),
+        disasterType,
+        village,
+        severity,
+        estimatedHouseholds,
+        notes,
+        latitude,
+        longitude,
+        polygonData,
+        timestamp: Date.now()
+      };
+      
+      localStorage.setItem('incident-draft', JSON.stringify(draft));
+      toast.success('💾 บันทึกแบบร่างอัตโนมัติ', { 
+        duration: 2000,
+        icon: '💾'
+      });
+    };
+
+    // Save every 30 seconds
+    const interval = setInterval(saveDraft, 30000);
+    
+    return () => clearInterval(interval);
+  }, [incidentDate, disasterType, village, severity, estimatedHouseholds, notes, latitude, longitude, polygonData]);
+
+  // Load draft on mount
+  useEffect(() => {
+    const draftStr = localStorage.getItem('incident-draft');
+    if (draftStr) {
+      try {
+        const draft = JSON.parse(draftStr);
+        
+        // Check if draft is not too old (24 hours)
+        const age = Date.now() - draft.timestamp;
+        if (age > 24 * 60 * 60 * 1000) {
+          localStorage.removeItem('incident-draft');
+          return;
+        }
+        
+        // Ask user if they want to restore
+        const restore = window.confirm(
+          'พบแบบร่างที่บันทึกไว้\n' +
+          `บันทึกเมื่อ: ${new Date(draft.timestamp).toLocaleString('th-TH')}\n\n` +
+          'ต้องการกู้คืนหรือไม่?'
+        );
+        
+        if (restore) {
+          setIncidentDate(draft.incidentDate ? new Date(draft.incidentDate) : null);
+          setDisasterType(draft.disasterType || 'น้ำท่วม');
+          setVillage(draft.village || '');
+          setSeverity(draft.severity || '3');
+          setEstimatedHouseholds(draft.estimatedHouseholds || '');
+          setNotes(draft.notes || '');
+          setLatitude(draft.latitude);
+          setLongitude(draft.longitude);
+          setPolygonData(draft.polygonData);
+          
+          toast.success('✅ กู้คืนแบบร่างสำเร็จ');
+        } else {
+          localStorage.removeItem('incident-draft');
+        }
+      } catch (e) {
+        console.error('Failed to load draft:', e);
+        localStorage.removeItem('incident-draft');
+      }
+    }
+  }, []);
 
   // Initialize map
   useEffect(() => {
@@ -129,22 +205,67 @@ export function CreateIncidentReportPage() {
           setLongitude(lng);
           setAccuracy(acc);
 
+          // GPS Accuracy Warning
+          if (acc > 100) {
+            toast.error(
+              `⚠️ ความแม่นยำ GPS ต่ำมาก (±${Math.round(acc)}m)\n` +
+              'แนะนำให้ย้ายไปที่โล่งกว่าหรือรอสัญญาณดีขึ้น',
+              { duration: 6000, icon: '📡' }
+            );
+          } else if (acc > 50) {
+            toast(
+              `⚠️ ความแม่นยำ GPS ปานกลาง (±${Math.round(acc)}m)\n` +
+              'แนะนำให้ลองใหม่ที่โล่งกว่า หรือใช้ตำแหน่งนี้ได้',
+              { 
+                duration: 5000,
+                icon: '⚠️',
+                style: { background: '#fef3c7', color: '#92400e' }
+              }
+            );
+          } else {
+            toast.success(
+              `📍 ได้รับตำแหน่ง GPS แล้ว (ความแม่นยำ: ±${Math.round(acc)}m)`,
+              { icon: '✅' }
+            );
+          }
+
           if (mapRef.current) {
             if (currentMarkerRef.current) {
               mapRef.current.removeLayer(currentMarkerRef.current);
             }
 
-            const marker = L.marker([lat, lng])
+            // Add marker with accuracy circle
+            const marker = L.marker([lat, lng], { draggable: true })
               .addTo(mapRef.current)
-              .bindPopup('📍 ตำแหน่งปัจจุบัน')
+              .bindPopup(
+                `📍 ตำแหน่งปัจจุบัน<br>` +
+                `<small>ความแม่นยำ: ±${Math.round(acc)}m</small><br>` +
+                `<small>ลากย้ายเพื่อปรับตำแหน่ง</small>`
+              )
               .openPopup();
+
+            // Add accuracy circle
+            const accuracyCircle = L.circle([lat, lng], {
+              radius: acc,
+              color: acc > 100 ? '#ef4444' : acc > 50 ? '#f59e0b' : '#10b981',
+              fillColor: acc > 100 ? '#fee2e2' : acc > 50 ? '#fef3c7' : '#d1fae5',
+              fillOpacity: 0.2,
+              weight: 2
+            }).addTo(mapRef.current);
+
+            // Update position when marker is dragged
+            marker.on('dragend', function() {
+              const position = marker.getLatLng();
+              setLatitude(position.lat);
+              setLongitude(position.lng);
+            });
             
             currentMarkerRef.current = marker;
             mapRef.current.setView([lat, lng], 15);
           }
         },
         (error) => {
-          alert('ไม่สามารถระบุตำแหน่งได้: ' + error.message);
+          toast.error('ไม่สามารถระบุตำแหน่งได้: ' + error.message);
         },
         {
           enableHighAccuracy: true,
@@ -153,7 +274,7 @@ export function CreateIncidentReportPage() {
         }
       );
     } else {
-      alert('เบราว์เซอร์ไม่รองรับ GPS');
+      toast.error('เบราว์เซอร์ไม่รองรับ GPS');
     }
   };
 
@@ -191,13 +312,23 @@ export function CreateIncidentReportPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!polygonData) {
-      toast.error('⚠️ กรุณาวาดพื้นที่ที่ได้รับผลกระทบบนแผนที่');
-      return;
-    }
+    // Comprehensive validation
+    const validationErrors = validateIncidentForm({
+      village,
+      disasterType,
+      severity,
+      estimatedHouseholds,
+      notes,
+      latitude,
+      longitude,
+      polygonData,
+      incidentDate
+    });
 
-    if (!latitude || !longitude) {
-      toast.error('⚠️ กรุณาใช้ GPS เพื่อระบุตำแหน่งปัจจุบัน');
+    if (hasValidationErrors(validationErrors)) {
+      setErrors(validationErrors);
+      const firstError = getFirstError(validationErrors);
+      toast.error(`⚠️ ${firstError}`, { duration: 4000 });
       return;
     }
 
@@ -210,8 +341,8 @@ export function CreateIncidentReportPage() {
         type: disasterType,
         severity: severity === '5' ? 'CRITICAL' : severity === '4' ? 'HIGH' : severity === '3' ? 'MEDIUM' : 'LOW',
         location: {
-          lat: latitude,
-          lng: longitude,
+          lat: latitude!,  // Safe: validated above
+          lng: longitude!, // Safe: validated above
           address: village
         },
         affectedArea: polygonData,
@@ -219,6 +350,9 @@ export function CreateIncidentReportPage() {
       };
 
       await incidentService.create(payload);
+      
+      // Clear draft on success
+      localStorage.removeItem('incident-draft');
       
       toast.success('✅ รายงานเหตุการณ์ใหม่สำเร็จ!\nรายงานจะถูกส่งไปยังผู้บังคับบัญชา');
       navigate('/dashboard/officer');

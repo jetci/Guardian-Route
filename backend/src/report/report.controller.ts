@@ -40,7 +40,7 @@ import { Role, ReportType } from '@prisma/client';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('reports')
 export class ReportController {
-  constructor(private readonly reportService: ReportService) {}
+  constructor(private readonly reportService: ReportService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create a new report' })
@@ -205,7 +205,7 @@ export class ReportController {
 
   @Post(':id/review')
   @HttpCode(HttpStatus.OK)
-  @Roles(Role.SUPERVISOR, Role.EXECUTIVE, Role.ADMIN)
+  @Roles(Role.SUPERVISOR, Role.EXECUTIVE, Role.ADMIN, Role.DEVELOPER)
   @ApiOperation({ summary: 'Review a report (SUPERVISOR, EXECUTIVE, ADMIN only)' })
   @ApiParam({
     name: 'id',

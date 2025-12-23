@@ -66,4 +66,31 @@ export class UploadController {
       message: `${urls.length} images uploaded successfully`,
     };
   }
+
+  @Post('survey-images')
+  @ApiOperation({ summary: 'Upload survey images (max 10)' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        images: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    },
+  })
+  @UseInterceptors(FilesInterceptor('images', 10))
+  async uploadSurveyImages(@UploadedFiles() files: Express.Multer.File[]) {
+    const urls = await this.uploadService.uploadImages(files);
+    return {
+      urls,
+      count: urls.length,
+      message: `${urls.length} survey images uploaded successfully`,
+    };
+  }
 }

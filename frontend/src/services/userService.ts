@@ -1,6 +1,7 @@
 import { apiClient } from './client';
+import { Role } from '../types';
 
-export type Role = 'ADMIN' | 'EXECUTIVE' | 'SUPERVISOR' | 'FIELD_OFFICER' | 'DEVELOPER';
+export { Role };
 
 export interface CreateUserDto {
   email: string;

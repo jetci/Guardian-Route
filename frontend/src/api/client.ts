@@ -5,8 +5,10 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export const apiClient = axios.create({
   baseURL: API_URL,
+  timeout: 10000, // 10 seconds timeout
   headers: {
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json; charset=utf-8',
+    'Accept': 'application/json; charset=utf-8',
   },
 });
 

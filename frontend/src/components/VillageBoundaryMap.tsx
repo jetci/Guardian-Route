@@ -57,7 +57,7 @@ interface VillageBoundaryMapProps {
 export default function VillageBoundaryMap({
   onBoundaryDrawn,
   existingBoundaries = [],
-  center = [19.9169, 99.2145], // ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่ (Fang District)
+  center = [19.9167, 99.2333], // ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่ (พื้นที่พัฒนาตามคู่มือ)
   zoom = 13,
   georeferenceOverlay,
   editingBoundaryId = null,
@@ -149,7 +149,7 @@ export default function VillageBoundaryMap({
           L.DomEvent.on(button, 'click', function (e) {
             L.DomEvent.preventDefault(e);
             const mapContainer = map.getContainer();
-            
+
             if (!document.fullscreenElement) {
               // Enter fullscreen
               if (mapContainer.requestFullscreen) {
@@ -190,9 +190,9 @@ export default function VillageBoundaryMap({
 
       // ✅ Add Cancel Draw Mode Button
       const CancelDrawControl = L.Control.extend({
-        onAdd: function() {
+        onAdd: function () {
           const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control cancel-draw-control');
-          
+
           const button = L.DomUtil.create('button', 'cancel-draw-btn', container);
           button.innerHTML = `
             <span style="font-size: 20px;">❌</span>
@@ -213,37 +213,37 @@ export default function VillageBoundaryMap({
             gap: 6px;
             font-weight: 500;
           `;
-          
+
           L.DomEvent.on(button, 'click', function (e) {
             L.DomEvent.preventDefault(e);
             L.DomEvent.stopPropagation(e);
-            
+
             console.log('🔴 Cancel button clicked');
             map.pm.disableDraw();
             button.style.display = 'none';
             toast('ยกเลิกการวาด', { icon: 'ℹ️' });
           });
-          
+
           // Show/hide button based on draw mode
           map.on('pm:drawstart', () => {
             button.style.display = 'flex';
           });
-          
+
           map.on('pm:drawend', () => {
             button.style.display = 'none';
           });
-          
+
           // Also hide when draw mode is disabled
           map.on('pm:globaldrawmodetoggled', (e: any) => {
             if (!e.enabled) {
               button.style.display = 'none';
             }
           });
-          
+
           return container;
         }
       });
-      
+
       map.addControl(new CancelDrawControl({ position: 'topright' }));
 
       // Initialize FeatureGroup for drawn items (editable)
@@ -275,89 +275,34 @@ export default function VillageBoundaryMap({
       // Set Geoman to work with our feature group
       map.pm.setGlobalOptions({
         layerGroup: drawnItems,
-        continueDrawing: false,  // ✅ Critical: Disable continue drawing mode
-        snapDistance: 20,
-      });
-
-      // Handle drawing start
-      map.on('pm:drawstart', ({ shape, workingLayer }: any) => {
-        console.log('🎨 Start drawing:', shape);
-        setIsDrawing(true);
-        if (onDrawingStateChange) {
-          onDrawingStateChange(true);
-        }
-      });
-
-      // Handle drawing end (when user finishes drawing)
-      map.on('pm:drawend', ({ shape }: any) => {
-        console.log('🏁 Draw end:', shape);
-        setIsDrawing(false);
-        if (onDrawingStateChange) {
-          onDrawingStateChange(false);
-        }
-        
-        // ✅ Process MARKER here (drawend = marker placed)
-        if (shape === 'Marker') {
-          console.log('📍 Processing Marker in pm:drawend');
-          setTimeout(() => {
-            const layers = drawnItemsRef.current?.getLayers() || [];
-            
-            if (layers.length === 0) {
-              console.warn('⚠️ No marker found');
-              return;
-            }
-            
-            const layer = layers[layers.length - 1] as L.Layer;
-            console.log('✅ Marker placed successfully');
-            
-            // Convert to GeoJSON
-            const geojson = (layer as any).toGeoJSON();
-            
-            // Send to parent (show popup)
-            if (onBoundaryDrawn) {
-              onBoundaryDrawn(geojson);
-            }
-            
-            toast.success('✅ วางหมุดเสร็จแล้ว');
-            
-            // Disable draw mode
-            setTimeout(() => {
-              if (map.pm.globalDrawModeEnabled()) {
-                map.pm.disableDraw();
-                console.log('✅ Draw mode disabled after marker');
-              }
-            }, 100);
-          }, 200);
-        }
-        // ✅ For Polygon/Rectangle, pm:create will handle it
       });
 
       // ✅ Event: pm:create - FOR POLYGON/RECTANGLE ONLY
       map.on('pm:create', (e: any) => {
         const layer = e.layer;
         const shape = e.shape;
-        
+
         console.log('✅ pm:create fired:', shape);
-        
+
         // ✅ CRITICAL: Skip Marker (already handled in pm:drawend)
         if (shape === 'Marker') {
           console.log('ℹ️ Marker detected in pm:create - SKIPPING (handled in pm:drawend)');
           return;
         }
-        
+
         // ✅ Process Polygon/Rectangle here
         if (shape === 'Polygon' || shape === 'Rectangle') {
           console.log(`🔷 Processing ${shape} in pm:create`);
-          
+
           // Validate polygon points
           const latlngs = (layer as any).getLatLngs();
           const points = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
-          
+
           if (!points || points.length < 3) {
             console.warn('⚠️ Not enough points:', points?.length);
             drawnItemsRef.current?.removeLayer(layer);
             toast.error('❌ ต้องวาดอย่างน้อย 3 จุด');
-            
+
             // Disable draw mode
             setTimeout(() => {
               if (map.pm.globalDrawModeEnabled()) {
@@ -366,62 +311,58 @@ export default function VillageBoundaryMap({
             }, 100);
             return;
           }
-          
+
           console.log(`✅ Valid ${shape}:`, points.length, 'points');
-          
+
           // Convert to GeoJSON
           const geojson = (layer as any).toGeoJSON();
-          
+
           // Send to parent (show popup)
           if (onBoundaryDrawn) {
             onBoundaryDrawn(geojson);
           }
-          
-          toast.success(`✅ วาด${shape === 'Polygon' ? 'รูปหลายเหลี่ยม' : 'สี่เหลี่ยม'}สำเร็จ (${points.length} จุด)`);
-          
-          // Disable draw mode
-          setTimeout(() => {
-            if (map.pm.globalDrawModeEnabled()) {
-              map.pm.disableDraw();
-              console.log(`✅ Draw mode disabled after ${shape}`);
-            }
-          }, 100);
+
+          toast.success(`✅ วาด${shape === 'Polygon' ? 'รูปหลายเหลี่ยม' : 'สี่เหลี่ยม'}สำเร็จ (${points.length} จุด) - สามารถวาดต่อได้`);
+
+          // ✅ FIX: ไม่ปิด draw mode อัตโนมัติ เพื่อให้สามารถวาดหลายขอบเขตได้
+          // ผู้ใช้สามารถปิด draw mode ด้วยตัวเองโดยคลิกปุ่ม "ยกเลิก" หรือกด ESC
+          console.log(`✅ ${shape} drawn successfully - draw mode remains active for multiple boundaries`);
         }
       });
 
       // ✅ CRITICAL FIX: Handle shape edited (when user clicks "Finish" in Geoman)
       map.on('pm:edit', (e: any) => {
         console.log('✏️ pm:edit event triggered');
-        
+
         // ✅ Set isDrawing = false เพื่อให้ปุ่มบันทึกแสดง
         setIsDrawing(false);
         if (onDrawingStateChange) {
           onDrawingStateChange(false);
         }
-        
+
         const layer = e.layer;
         const geojson = layer.toGeoJSON();
         console.log('✏️ Shape edited:', geojson);
-        
+
         if (onBoundaryDrawn) {
           onBoundaryDrawn(geojson);
         }
-        
+
         toast.success('✏️ แก้ไขขอบเขตเรียบร้อย - กรุณาคลิก "บันทึก"');
       });
 
       // ✅ NEW: Handle vertex changes (when user drags/adds/removes vertices)
       map.on('pm:markerdragend', (e: any) => {
         console.log('🔷 Vertex dragged');
-        
+
         setIsDrawing(false);
         if (onDrawingStateChange) {
           onDrawingStateChange(false);
         }
-        
+
         const layer = e.layer;
         const geojson = layer.toGeoJSON();
-        
+
         if (onBoundaryDrawn) {
           onBoundaryDrawn(geojson);
         }
@@ -429,15 +370,15 @@ export default function VillageBoundaryMap({
 
       map.on('pm:vertexadded', (e: any) => {
         console.log('➕ Vertex added');
-        
+
         setIsDrawing(false);
         if (onDrawingStateChange) {
           onDrawingStateChange(false);
         }
-        
+
         const layer = e.layer;
         const geojson = layer.toGeoJSON();
-        
+
         if (onBoundaryDrawn) {
           onBoundaryDrawn(geojson);
         }
@@ -445,15 +386,15 @@ export default function VillageBoundaryMap({
 
       map.on('pm:vertexremoved', (e: any) => {
         console.log('➖ Vertex removed');
-        
+
         setIsDrawing(false);
         if (onDrawingStateChange) {
           onDrawingStateChange(false);
         }
-        
+
         const layer = e.layer;
         const geojson = layer.toGeoJSON();
-        
+
         if (onBoundaryDrawn) {
           onBoundaryDrawn(geojson);
         }
@@ -475,7 +416,7 @@ export default function VillageBoundaryMap({
       map.on('pm:rotate', (e: any) => {
         toast.success('↻ หมุนขอบเขตเรียบร้อย');
         console.log('↻ Shape rotated:', e.layer);
-        
+
         const geojson = e.layer.toGeoJSON();
         if (onBoundaryDrawn) {
           onBoundaryDrawn(geojson);
@@ -486,7 +427,7 @@ export default function VillageBoundaryMap({
       map.on('pm:dragend', (e: any) => {
         toast.success('⊕ ย้ายขอบเขตเรียบร้อย');
         console.log('⊕ Shape dragged:', e.layer);
-        
+
         const geojson = e.layer.toGeoJSON();
         if (onBoundaryDrawn) {
           onBoundaryDrawn(geojson);
@@ -496,21 +437,21 @@ export default function VillageBoundaryMap({
       // ✅ CRITICAL FIX: Handle when user clicks "Finish" in Geoman toolbar
       map.on('pm:globaleditmodetoggled', (e: any) => {
         console.log('🏁 Global edit mode toggled:', e.enabled);
-        
+
         // When edit mode is disabled (user clicked "Finish")
         if (!e.enabled && drawnItemsRef.current) {
           setIsDrawing(false);
           if (onDrawingStateChange) {
             onDrawingStateChange(false);
           }
-          
+
           // Get the last edited layer and update drawnBoundary
           const layers = drawnItemsRef.current.getLayers();
           if (layers.length > 0) {
             const lastLayer = layers[layers.length - 1];
             const geojson = (lastLayer as any).toGeoJSON();
             console.log('✅ Finish editing - updating boundary:', geojson);
-            
+
             if (onBoundaryDrawn) {
               onBoundaryDrawn(geojson);
             }
@@ -541,7 +482,7 @@ export default function VillageBoundaryMap({
         }
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
@@ -589,7 +530,7 @@ export default function VillageBoundaryMap({
     // DISABLED: ปิดการแสดงขอบเขตตำบล hardcoded
     // เหตุผล: ทำให้แก้ไขไม่ได้ เพราะเป็น read-only layer
     // วิธีใช้: ให้วาดขอบเขตใหม่ด้วยเครื่องมือ Polygon แล้วบันทึก
-    
+
     /* COMMENTED OUT - ให้วาดใหม่แทน
     if (!isReady || !mapRef.current || !tambonBoundaryData) return;
 
@@ -680,17 +621,17 @@ export default function VillageBoundaryMap({
 
         const geojson = boundary.boundary || boundary.geojson;
         const villageColor = boundary.villageNo ? getVillageColor(boundary.villageNo) : '#3388ff';
-        
+
         // Check if this is the boundary being edited
         const isCurrentlyEditing = editingBoundaryId === boundary.id;
-        
+
         // ✅ Improved opacity logic:
         // - Normal state: All boundaries visible (opacity 1.0)
         // - Editing state: Selected boundary highlighted, others visible but dimmed
         const boundaryStyle = {
           color: isCurrentlyEditing ? '#ef4444' : villageColor, // Red for editing, village color for normal
           weight: isCurrentlyEditing ? 3.5 : 2.5,
-          opacity: editingBoundaryId 
+          opacity: editingBoundaryId
             ? (isCurrentlyEditing ? 1 : 0.5)  // ✅ Increased from 0.15 to 0.5 for better visibility
             : 1,                               // ✅ Normal state: full opacity
           fillColor: isCurrentlyEditing ? '#ef4444' : villageColor,
@@ -699,18 +640,25 @@ export default function VillageBoundaryMap({
             : 0.2,                               // ✅ Normal state: visible fill
           className: isCurrentlyEditing ? 'village-boundary-editing' : 'village-boundary-layer',
         };
-        
+
+        // Create layer with improved styling
         // Create layer with improved styling
         const layer = L.geoJSON(geojson, {
           style: boundaryStyle,
         });
 
+        // ✅ Tag layer with boundary ID for lookup
+        (layer as any).boundaryId = boundary.id;
+
         // Add layer to appropriate group
         if (isCurrentlyEditing && drawnItemsRef.current) {
           // Add to editable group (drawnItems) - will show edit handles
           layer.eachLayer((l: any) => {
+            // ✅ Tag individual layer with boundary ID
+            (l as any).boundaryId = boundary.id;
+
             drawnItemsRef.current!.addLayer(l);
-            
+
             // ✅ CRITICAL FIX: Enable edit mode for the layer
             if (l.pm) {
               l.pm.enable();
@@ -720,6 +668,9 @@ export default function VillageBoundaryMap({
         } else if (existingBoundariesLayerRef.current) {
           // Add to non-editable group - no edit handles
           layer.eachLayer((l: any) => {
+            // ✅ Tag individual layer with boundary ID
+            (l as any).boundaryId = boundary.id;
+
             // ✅ ปิดการแก้ไขโดยตรงสำหรับขอบเขตที่ไม่ได้แก้ไข
             if (l.pm) {
               l.pm.disable();
@@ -733,7 +684,7 @@ export default function VillageBoundaryMap({
         let areaText = '';
         let areaKm2 = '0.00';
         let pointCount = 0;
-        
+
         try {
           if (geojson) {
             // Calculate area using Turf.js (returns square meters)
@@ -741,13 +692,13 @@ export default function VillageBoundaryMap({
             // Convert to square kilometers
             const areaInSquareKm = areaInSquareMeters / 1_000_000;
             areaKm2 = areaInSquareKm.toFixed(2);
-            
+
             // Count points
             if (boundary.boundary?.coordinates && Array.isArray(boundary.boundary.coordinates) && boundary.boundary.coordinates.length > 0) {
               const coords = boundary.boundary.coordinates[0];
               pointCount = coords ? coords.length : 0;
             }
-            
+
             areaText = `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
               <span style="color: #718096; font-size: 13px;">📏 พื้นที่: ${areaKm2} ตร.กม.</span><br>
               <span style="color: #718096; font-size: 13px;">📍 จำนวนจุด: ${pointCount} จุด</span>
@@ -759,17 +710,17 @@ export default function VillageBoundaryMap({
 
         // ✅ Add permanent tooltip (always visible) with village name
         if (boundary.name) {
-          const tooltipContent = boundary.villageNo 
+          const tooltipContent = boundary.villageNo
             ? `<strong>หมู่ ${boundary.villageNo}</strong>: ${boundary.name}`
             : `<strong>${boundary.name}</strong>`;
-          
+
           layer.bindTooltip(tooltipContent, {
             permanent: true,
             direction: 'center',
             className: 'village-label-tooltip',
             opacity: 0.9
           });
-          
+
           // ✅ Add enhanced popup with detailed village info (on click)
           layer.bindPopup(`
             <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; min-width: 220px;">
@@ -983,13 +934,137 @@ export default function VillageBoundaryMap({
 
     const map = mapRef.current;
     const village = selectedVillageToView;
-    
+
     console.log('🗺️ VillageBoundaryMap: Attempting to zoom to village:', village);
 
+    // ✅ NEW LOGIC: Try to find existing layer for this village first
+    let targetLayer: L.Layer | null = null;
+
+    // Search in existing boundaries
+    if (existingBoundariesLayerRef.current) {
+      existingBoundariesLayerRef.current.eachLayer((layer: any) => {
+        if (layer.boundaryId === village.id) {
+          targetLayer = layer;
+        }
+      });
+    }
+
+    // Search in drawn items (if editing)
+    if (!targetLayer && drawnItemsRef.current) {
+      drawnItemsRef.current.eachLayer((layer: any) => {
+        if (layer.boundaryId === village.id) {
+          targetLayer = layer;
+        }
+      });
+    }
+
+    // ✅ Case 1: Layer found - Zoom to bounds (Robust Implementation)
+    if (targetLayer) {
+      console.log('View on map — boundaryId:', village.id);
+
+      try {
+        const layer = targetLayer as L.FeatureGroup; // Cast to FeatureGroup/GeoJSON
+        const bounds = layer.getBounds();
+        const container = map.getContainer();
+
+        // Function to execute pan/zoom
+        const executePan = () => {
+          console.log('🚀 Executing Pan Logic...');
+          console.log('  map container size:', container.clientWidth, container.clientHeight);
+
+          // ✅ Deep Diagnostic Logs
+          console.log('📊 Map State BEFORE:', {
+            center: map.getCenter(),
+            zoom: map.getZoom(),
+            minZoom: map.getMinZoom(),
+            maxZoom: map.getMaxZoom(),
+            // @ts-ignore
+            maxBounds: map.options.maxBounds,
+            bounds: map.getBounds()
+          });
+
+          if (bounds.isValid()) {
+            map.invalidateSize();
+
+            setTimeout(() => {
+              if (!map.hasLayer(layer)) {
+                console.warn('⚠️ Layer no longer on map, re-adding...');
+                layer.addTo(map);
+              }
+
+              // Check layer visibility/state
+              console.log('🧐 Layer State:', {
+                hasLayer: map.hasLayer(layer),
+                // @ts-ignore
+                visible: layer._path ? layer._path.style.display !== 'none' : 'unknown',
+                bounds: bounds
+              });
+
+              console.log('  calling flyToBounds with:', bounds);
+
+              // ✅ TEST: Try direct setView if flyToBounds fails (Comment out one or the other to test)
+              // map.setView(bounds.getCenter(), 16); 
+
+              map.flyToBounds(bounds, {
+                padding: [60, 60],
+                maxZoom: 18,
+                animate: true,
+                duration: 1.5
+              });
+
+              setTimeout(() => {
+                console.log('📊 Map State AFTER:', {
+                  center: map.getCenter(),
+                  zoom: map.getZoom()
+                });
+                layer.openPopup();
+                onViewComplete?.();
+              }, 1600);
+            }, 200);
+          } else {
+            console.warn('❌ Bounds invalid during execution. Fallback to center.');
+          }
+        };
+
+        // ✅ Check if container is visible/sized
+        if (container.clientWidth > 0 && container.clientHeight > 0) {
+          executePan();
+        } else {
+          console.warn('⚠️ Map container has 0 size. Waiting for ResizeObserver...');
+
+          // ✅ Use ResizeObserver to wait for container to be visible
+          const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+              if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+                console.log('✅ Map container resized/visible:', entry.contentRect.width, entry.contentRect.height);
+                resizeObserver.disconnect(); // Stop observing once valid
+                executePan();
+              }
+            }
+          });
+
+          resizeObserver.observe(container);
+
+          // Safety timeout to stop observing if it never resizes (e.g. 5 seconds)
+          setTimeout(() => {
+            resizeObserver.disconnect();
+            console.warn('❌ ResizeObserver timed out. Map container never became visible.');
+          }, 5000);
+
+          return; // Exit and wait for observer
+        }
+
+      } catch (e) {
+        console.warn('⚠️ Error getting bounds from layer:', e);
+        // Fallback to standard coordinate logic
+      }
+    }
+
+    // ✅ Case 2: Layer not found or invalid - Fallback to center point logic
     // Get coordinates from centerPoint or boundary
     let lat, lng, zoomLevel = 15;
 
-    console.log('🔍 Checking village data:', {
+    console.log('🔍 Checking village data (Fallback):', {
       hasCenterPoint: !!village.centerPoint,
       centerPoint: village.centerPoint,
       hasBoundary: !!village.boundary,
@@ -1004,7 +1079,7 @@ export default function VillageBoundaryMap({
     } else if (village.boundary) {
       // Calculate center from boundary (support both GeoJSON and plain object)
       console.log('📍 Processing boundary:', village.boundary);
-      
+
       let coords;
       if (village.boundary.type === 'Polygon' && village.boundary.coordinates) {
         // GeoJSON Polygon format
@@ -1016,15 +1091,15 @@ export default function VillageBoundaryMap({
         // Direct array of coordinates
         coords = village.boundary;
       }
-      
+
       console.log('📍 Extracted coords:', coords);
-      
+
       if (coords && coords.length > 0) {
         const lats = coords.map((c: number[]) => c[1]).filter((v: number) => v !== undefined && !isNaN(v));
         const lngs = coords.map((c: number[]) => c[0]).filter((v: number) => v !== undefined && !isNaN(v));
-        
+
         console.log('📍 Extracted lats/lngs:', { lats, lngs });
-        
+
         if (lats.length > 0 && lngs.length > 0) {
           lat = (Math.min(...lats) + Math.max(...lats)) / 2;
           lng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
@@ -1045,8 +1120,12 @@ export default function VillageBoundaryMap({
       return;
     }
 
-    // Fly to village
-    console.log('🚀 Flying to:', { lat, lng, zoomLevel });
+    // Fly to village (Fallback)
+    console.log('🚀 Flying to (Fallback):', { lat, lng, zoomLevel });
+
+    // ✅ Force invalidateSize before flying
+    map.invalidateSize();
+
     map.flyTo([lat, lng], zoomLevel, {
       duration: 1.5,
     });
@@ -1065,7 +1144,7 @@ export default function VillageBoundaryMap({
 
     const map = mapRef.current;
     const layers = (map as any)._layers;
-    
+
     if (!layers) return;
 
     // Remove all base layers
@@ -1104,7 +1183,7 @@ export default function VillageBoundaryMap({
       `;
 
       let html = '<div style="font-weight: bold; margin-bottom: 8px; font-size: 14px;">🎨 สีขอบเขตหมู่บ้าน</div>';
-      
+
       // Get unique villages with boundaries
       const villagesWithBoundaries = existingBoundaries
         .filter(b => b.boundary && b.villageNo)

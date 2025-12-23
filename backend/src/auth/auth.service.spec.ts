@@ -21,6 +21,7 @@ describe('AuthService', () => {
     password: 'hashedPassword',
     firstName: 'Test',
     lastName: 'User',
+    fullName: 'Test User',
     username: 'testuser',
     role: 'FIELD_OFFICER',
     isActive: true,
@@ -80,7 +81,7 @@ describe('AuthService', () => {
       expect(result).toEqual({
         id: mockUser.id,
         email: mockUser.email,
-        name: mockUser.name,
+        fullName: mockUser.fullName,
         role: mockUser.role,
       });
       expect(mockUsersService.findByEmail).toHaveBeenCalledWith('test@example.com');
@@ -125,7 +126,7 @@ describe('AuthService', () => {
         user: {
           id: mockUser.id,
           email: mockUser.email,
-          name: mockUser.name,
+          fullName: mockUser.fullName,
           role: mockUser.role,
         },
       });
@@ -154,29 +155,32 @@ describe('AuthService', () => {
       const registerDto = {
         email: 'newuser@example.com',
         password: 'password123',
-        name: 'New User',
+        firstName: 'New',
+        lastName: 'User',
       };
 
       const hashedPassword = 'hashedPassword123';
       (bcrypt.hash as jest.Mock).mockResolvedValue(hashedPassword);
 
       const newUser = {
-        ...mockUser,
+        id: '2',
         email: registerDto.email,
-        name: registerDto.name,
-        password: hashedPassword,
+        firstName: registerDto.firstName,
+        lastName: registerDto.lastName,
+        fullName: `${registerDto.firstName} ${registerDto.lastName}`,
+        phone: null,
+        role: 'FIELD_OFFICER' as any,
+        isActive: true,
+        createdAt: new Date(),
       };
 
       mockUsersService.create.mockResolvedValue(newUser);
-      mockJwtService.sign
-        .mockReturnValueOnce('access-token')
-        .mockReturnValueOnce('refresh-token');
 
       const result = await service.register(registerDto);
 
-      expect(result).toHaveProperty('accessToken');
-      expect(result).toHaveProperty('refreshToken');
-      expect(result.user.email).toBe(registerDto.email);
+      expect(result).toHaveProperty('id');
+      expect(result).toHaveProperty('email');
+      expect(result.email).toBe(registerDto.email);
       expect(mockUsersService.create).toHaveBeenCalledWith({
         ...registerDto,
         password: hashedPassword,

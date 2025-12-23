@@ -1,28 +1,9 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  Badge,
-  HStack,
-  Select,
-  Input,
-  Button,
-  useToast,
-  Flex,
-  Text,
-  Code,
-  IconButton,
-  Tooltip,
-} from '@chakra-ui/react';
-import { FiDownload, FiEye } from 'react-icons/fi';
+import '../../pages/admin/AuditLogsPage.css';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import ThaiDatePicker from '../ThaiDatePicker';
+import toast from 'react-hot-toast';
 
 interface AuditLog {
   id: string;
@@ -42,10 +23,9 @@ const AuditLogTable: React.FC = () => {
   const [targetTypeFilter, setTargetTypeFilter] = useState('');
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  const toast = useToast();
 
   // Fetch audit logs
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ['admin', 'audit-logs', page, actionFilter, targetTypeFilter, startDate, endDate],
     queryFn: async () => {
       const params = new URLSearchParams();
@@ -59,6 +39,7 @@ const AuditLogTable: React.FC = () => {
       const { data } = await axios.get(`/api/admin/audit-logs?${params}`);
       return data;
     },
+    keepPreviousData: true,
   });
 
   const handleExportCSV = async () => {
@@ -81,37 +62,29 @@ const AuditLogTable: React.FC = () => {
       link.click();
       link.remove();
 
-      toast({
-        title: 'สำเร็จ',
-        description: 'ดาวน์โหลด CSV สำเร็จ',
-        status: 'success',
-        duration: 3000,
-      });
+      toast.success('ดาวน์โหลด CSV สำเร็จ');
     } catch (error) {
-      toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: 'ไม่สามารถดาวน์โหลด CSV ได้',
-        status: 'error',
-        duration: 3000,
-      });
+      toast.error('ไม่สามารถดาวน์โหลด CSV ได้');
     }
   };
 
-  const getActionBadgeColor = (action: string) => {
-    const colors: Record<string, string> = {
-      CREATE_USER: 'green',
-      UPDATE_USER: 'blue',
-      DELETE_USER: 'red',
-      SUSPEND_USER: 'orange',
-      ACTIVATE_USER: 'green',
-      CHANGE_ROLE: 'purple',
-      UPLOAD_GEOJSON: 'cyan',
-      EDIT_POLYGON: 'teal',
-      DELETE_GEOJSON: 'red',
-      UPDATE_SETTINGS: 'yellow',
-      RESET_SETTINGS: 'orange',
+  const getActionBadgeClass = (action: string) => {
+    const classes: Record<string, string> = {
+      CREATE_USER: 'create',
+      UPDATE_USER: 'update',
+      DELETE_USER: 'delete',
+      SUSPEND_USER: 'review',
+      ACTIVATE_USER: 'create',
+      CHANGE_ROLE: 'assign',
+      UPLOAD_GEOJSON: 'update',
+      EDIT_POLYGON: 'update',
+      DELETE_GEOJSON: 'delete',
+      UPDATE_SETTINGS: 'update',
+      RESET_SETTINGS: 'review',
+      LOGIN: 'login',
+      LOGOUT: 'logout'
     };
-    return colors[action] || 'gray';
+    return classes[action] || 'login';
   };
 
   const getActionLabel = (action: string) => {
@@ -127,58 +100,53 @@ const AuditLogTable: React.FC = () => {
       DELETE_GEOJSON: 'ลบ GeoJSON',
       UPDATE_SETTINGS: 'อัพเดทการตั้งค่า',
       RESET_SETTINGS: 'รีเซ็ตการตั้งค่า',
+      LOGIN: 'เข้าสู่ระบบ',
+      LOGOUT: 'ออกจากระบบ'
     };
     return labels[action] || action;
   };
 
   return (
-    <Box>
+    <div>
       {/* Filters */}
-      <Flex gap={4} mb={4} flexWrap="wrap" align="end">
-        <Box flex={1} minW="150px">
-          <Text fontSize="sm" mb={1} fontWeight="medium">
-            การกระทำ
-          </Text>
-          <Select
-            placeholder="ทุกการกระทำ"
-            value={actionFilter}
-            onChange={(e) => setActionFilter(e.target.value)}
-            size="sm"
-          >
-            <option value="CREATE_USER">สร้างผู้ใช้</option>
-            <option value="UPDATE_USER">แก้ไขผู้ใช้</option>
-            <option value="DELETE_USER">ลบผู้ใช้</option>
-            <option value="SUSPEND_USER">ระงับผู้ใช้</option>
-            <option value="ACTIVATE_USER">เปิดใช้งานผู้ใช้</option>
-            <option value="CHANGE_ROLE">เปลี่ยนบทบาท</option>
-            <option value="UPLOAD_GEOJSON">อัพโหลด GeoJSON</option>
-            <option value="EDIT_POLYGON">แก้ไข Polygon</option>
-            <option value="DELETE_GEOJSON">ลบ GeoJSON</option>
-            <option value="UPDATE_SETTINGS">อัพเดทการตั้งค่า</option>
-          </Select>
-        </Box>
+      <div className="filters-card">
+        <h2>🔍 ค้นหาและกรองข้อมูล</h2>
+        <div className="filter-row">
+          <div className="filter-group">
+            <label>การกระทำ</label>
+            <select
+              value={actionFilter}
+              onChange={(e) => setActionFilter(e.target.value)}
+            >
+              <option value="">ทุกการกระทำ</option>
+              <option value="CREATE_USER">สร้างผู้ใช้</option>
+              <option value="UPDATE_USER">แก้ไขผู้ใช้</option>
+              <option value="DELETE_USER">ลบผู้ใช้</option>
+              <option value="SUSPEND_USER">ระงับผู้ใช้</option>
+              <option value="ACTIVATE_USER">เปิดใช้งานผู้ใช้</option>
+              <option value="CHANGE_ROLE">เปลี่ยนบทบาท</option>
+              <option value="UPLOAD_GEOJSON">อัพโหลด GeoJSON</option>
+              <option value="EDIT_POLYGON">แก้ไข Polygon</option>
+              <option value="DELETE_GEOJSON">ลบ GeoJSON</option>
+              <option value="UPDATE_SETTINGS">อัพเดทการตั้งค่า</option>
+            </select>
+          </div>
 
-        <Box flex={1} minW="150px">
-          <Text fontSize="sm" mb={1} fontWeight="medium">
-            ประเภทเป้าหมาย
-          </Text>
-          <Select
-            placeholder="ทุกประเภท"
-            value={targetTypeFilter}
-            onChange={(e) => setTargetTypeFilter(e.target.value)}
-            size="sm"
-          >
-            <option value="USER">ผู้ใช้</option>
-            <option value="GEOJSON">GeoJSON</option>
-            <option value="SETTINGS">การตั้งค่า</option>
-          </Select>
-        </Box>
+          <div className="filter-group">
+            <label>ประเภทเป้าหมาย</label>
+            <select
+              value={targetTypeFilter}
+              onChange={(e) => setTargetTypeFilter(e.target.value)}
+            >
+              <option value="">ทุกประเภท</option>
+              <option value="USER">ผู้ใช้</option>
+              <option value="GEOJSON">GeoJSON</option>
+              <option value="SETTINGS">การตั้งค่า</option>
+            </select>
+          </div>
 
-        <Box minW="150px">
-          <Text fontSize="sm" mb={1} fontWeight="medium">
-            วันที่เริ่มต้น
-          </Text>
-          <div style={{ marginTop: '4px' }}>
+          <div className="filter-group">
+            <label>วันที่เริ่มต้น</label>
             <ThaiDatePicker
               id="audit-start-date"
               value={startDate}
@@ -186,13 +154,9 @@ const AuditLogTable: React.FC = () => {
               placeholder="เลือกวันเริ่มต้น"
             />
           </div>
-        </Box>
 
-        <Box minW="150px">
-          <Text fontSize="sm" mb={1} fontWeight="medium">
-            วันที่สิ้นสุด
-          </Text>
-          <div style={{ marginTop: '4px' }}>
+          <div className="filter-group">
+            <label>วันที่สิ้นสุด</label>
             <ThaiDatePicker
               id="audit-end-date"
               value={endDate}
@@ -200,127 +164,141 @@ const AuditLogTable: React.FC = () => {
               placeholder="เลือกวันสิ้นสุด"
             />
           </div>
-        </Box>
+        </div>
 
-        <Button
-          leftIcon={<FiDownload />}
-          colorScheme="green"
-          size="sm"
-          onClick={handleExportCSV}
-        >
-          Export CSV
-        </Button>
-      </Flex>
+        <div className="filter-actions">
+          <button
+            className="btn-reset"
+            onClick={() => refetch()}
+            disabled={isLoading}
+          >
+            🔄 รีโหลด
+          </button>
+          <button
+            className="btn-export"
+            onClick={handleExportCSV}
+          >
+            ⬇️ Export CSV
+          </button>
+        </div>
+      </div>
+
+      {/* Error State */}
+      {isError && (
+        <div className="empty-state">
+          <div className="empty-icon">❌</div>
+          <p className="empty-text">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>
+          <p className="empty-hint">กรุณาลองใหม่อีกครั้ง</p>
+        </div>
+      )}
 
       {/* Table */}
-      <Box overflowX="auto" borderWidth="1px" borderRadius="lg">
-        <Table variant="simple" size="sm">
-          <Thead>
-            <Tr>
-              <Th>เวลา</Th>
-              <Th>ผู้ใช้</Th>
-              <Th>การกระทำ</Th>
-              <Th>เป้าหมาย</Th>
-              <Th>IP Address</Th>
-              <Th>รายละเอียด</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {isLoading ? (
-              <Tr>
-                <Td colSpan={6} textAlign="center">
-                  กำลังโหลด...
-                </Td>
-              </Tr>
-            ) : data?.data?.length === 0 ? (
-              <Tr>
-                <Td colSpan={6} textAlign="center">
-                  ไม่พบข้อมูล
-                </Td>
-              </Tr>
-            ) : (
-              data?.data?.map((log: AuditLog) => (
-                <Tr key={log.id}>
-                  <Td>
-                    <Text fontSize="xs">
-                      {new Date(log.createdAt).toLocaleString('th-TH')}
-                    </Text>
-                  </Td>
-                  <Td>
-                    <Text fontSize="sm" fontWeight="medium">
-                      {log.username}
-                    </Text>
-                    <Text fontSize="xs" color="gray.500">
-                      {log.userId.substring(0, 8)}...
-                    </Text>
-                  </Td>
-                  <Td>
-                    <Badge colorScheme={getActionBadgeColor(log.action)} fontSize="xs">
-                      {getActionLabel(log.action)}
-                    </Badge>
-                  </Td>
-                  <Td>
-                    {log.targetType && (
-                      <>
-                        <Text fontSize="sm">{log.targetType}</Text>
-                        {log.targetId && (
-                          <Code fontSize="xs">{log.targetId.substring(0, 8)}...</Code>
-                        )}
-                      </>
-                    )}
-                  </Td>
-                  <Td>
-                    <Text fontSize="xs" fontFamily="mono">
-                      {log.ipAddress || '-'}
-                    </Text>
-                  </Td>
-                  <Td>
-                    {log.details && (
-                      <Tooltip
-                        label={JSON.stringify(log.details, null, 2)}
-                        placement="left"
-                      >
-                        <IconButton
-                          icon={<FiEye />}
-                          size="xs"
-                          variant="ghost"
-                          aria-label="View details"
-                        />
-                      </Tooltip>
-                    )}
-                  </Td>
-                </Tr>
-              ))
-            )}
-          </Tbody>
-        </Table>
-      </Box>
+      <div className="logs-card">
+        <div className="logs-header">
+          <h2>📋 รายการกิจกรรม</h2>
+          <span className="logs-count">ทั้งหมด {data?.total || 0} รายการ</span>
+        </div>
 
-      {/* Pagination */}
-      {data && data.totalPages > 1 && (
-        <Flex justify="space-between" align="center" mt={4}>
-          <Text fontSize="sm" color="gray.600">
-            หน้า {data.page} จาก {data.totalPages} (ทั้งหมด {data.total} รายการ)
-          </Text>
-          <HStack>
-            <Button
-              size="sm"
+        <div className="logs-table-wrapper">
+          <table className="logs-table">
+            <thead>
+              <tr>
+                <th>เวลา</th>
+                <th>ผู้ใช้</th>
+                <th>การกระทำ</th>
+                <th>เป้าหมาย</th>
+                <th>IP Address</th>
+                <th>รายละเอียด</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="loading-state">
+                    <div className="loading-spinner"></div>
+                    <p className="loading-text">กำลังโหลดข้อมูล...</p>
+                  </td>
+                </tr>
+              ) : !data?.data || data.data.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="empty-state-cell">
+                    <div className="empty-icon">📝</div>
+                    <p className="empty-text">ไม่พบข้อมูลกิจกรรม</p>
+                  </td>
+                </tr>
+              ) : (
+                data.data.map((log: AuditLog) => (
+                  <tr key={log.id}>
+                    <td className="log-time">
+                      <div className="log-date">
+                        {new Date(log.createdAt).toLocaleDateString('th-TH')}
+                      </div>
+                      <div className="log-clock">
+                        {new Date(log.createdAt).toLocaleTimeString('th-TH')}
+                      </div>
+                    </td>
+                    <td className="log-user">
+                      <div className="user-name">{log.username}</div>
+                      <div className="user-details">{log.userId.substring(0, 8)}...</div>
+                    </td>
+                    <td className="log-action">
+                      <span className={`action-badge ${getActionBadgeClass(log.action)}`}>
+                        {getActionLabel(log.action)}
+                      </span>
+                    </td>
+                    <td className="log-incident">
+                      {log.targetType && (
+                        <div>
+                          <div className="incident-title">{log.targetType}</div>
+                          {log.targetId && (
+                            <div className="incident-id">{log.targetId.substring(0, 8)}...</div>
+                          )}
+                        </div>
+                      )}
+                    </td>
+                    <td className="text-center">
+                      <span className="incident-id">{log.ipAddress || '-'}</span>
+                    </td>
+                    <td className="log-details">
+                      {log.details ? (
+                        <div className="details-json" title={JSON.stringify(log.details, null, 2)}>
+                          {JSON.stringify(log.details)}
+                        </div>
+                      ) : (
+                        <span className="details-empty">-</span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {data && data.totalPages > 1 && (
+          <div className="pagination">
+            <button
+              className="pagination-button"
               onClick={() => setPage(page - 1)}
-              isDisabled={page === 1}
+              disabled={page === 1}
             >
-              ก่อนหน้า
-            </Button>
-            <Button
-              size="sm"
+              &lt; ก่อนหน้า
+            </button>
+            <span className="pagination-info">
+              หน้า {data.page} จาก {data.totalPages}
+            </span>
+            <button
+              className="pagination-button"
               onClick={() => setPage(page + 1)}
-              isDisabled={page === data.totalPages}
+              disabled={page === data.totalPages}
             >
-              ถัดไป
-            </Button>
-          </HStack>
-        </Flex>
-      )}
-    </Box>
+              ถัดไป &gt;
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

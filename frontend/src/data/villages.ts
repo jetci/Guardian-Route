@@ -352,9 +352,9 @@ export const VILLAGES: Village[] = [
 ];
 
 /**
- * รายชื่อหมู่บ้าน (ชื่ออย่างเดียว)
+ * รายชื่อหมู่บ้าน (รวมหมู่ที่)
  */
-export const VILLAGE_NAMES = VILLAGES.map(v => v.name);
+export const VILLAGE_NAMES = VILLAGES.map(v => `หมู่ ${v.moo} ${v.name}`);
 
 /**
  * ข้อมูลตำบล

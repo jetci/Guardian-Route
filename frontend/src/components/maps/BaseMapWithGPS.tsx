@@ -130,7 +130,7 @@ interface BaseMapWithGPSProps {
 }
 
 export const BaseMapWithGPS = ({
-  center = [19.9263, 99.8832] as LatLngExpression, // ตำบลเวียง
+  center = [19.9167, 99.2333] as LatLngExpression, // ตำบลเวียง อ.ฝาง จ.เชียงใหม่
   zoom = 13,
   height = '500px',
   children,

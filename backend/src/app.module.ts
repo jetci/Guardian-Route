@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuditLogInterceptor } from './audit-log/audit-log.interceptor';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -19,7 +20,8 @@ import { SettingsModule } from './settings/settings.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 // import { AnalysisModule } from './analysis/analysis.module'; // Disabled - causing errors
-// import { AuditLogModule } from './audit-log/audit-log.module'; // Disabled - causing errors
+import { AuditLogModule } from './audit-log/audit-log.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -47,7 +49,8 @@ import { AnalyticsModule } from './analytics/analytics.module';
     NotificationsModule,
     AnalyticsModule,
     // AnalysisModule, // Disabled - causing errors
-    // AuditLogModule, // Disabled - causing errors
+    AuditLogModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [
@@ -56,6 +59,10 @@ import { AnalyticsModule } from './analytics/analytics.module';
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AuditLogInterceptor,
+    },
   ],
 })
-export class AppModule {}
+export class AppModule { }

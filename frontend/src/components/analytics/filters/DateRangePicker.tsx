@@ -9,7 +9,6 @@ import {
   VStack,
   HStack,
   Text,
-  Input,
   Button,
   Popover,
   PopoverTrigger,
@@ -25,6 +24,7 @@ import {
   getDateRangeLabel,
   toBuddhistYear,
 } from '../../../utils/thaiCalendar';
+import ThaiDatePicker from '../../ThaiDatePicker';
 
 interface DateRangePickerProps {
   startDate: Date;
@@ -99,15 +99,12 @@ export const DateRangePicker = ({
               <Text fontSize="sm" mb={1} color="gray.600">
                 วันที่เริ่มต้น
               </Text>
-              <Input
-                type="date"
-                size="sm"
-                value={dateToInputValue(tempStartDate)}
-                onChange={(e) => setTempStartDate(inputValueToDate(e.target.value))}
+              <ThaiDatePicker
+                id="start-date-range"
+                value={tempStartDate}
+                onChange={(date) => date && setTempStartDate(date)}
+                placeholder="เลือกวันที่เริ่มต้น"
               />
-              <Text fontSize="xs" color="gray.500" mt={1}>
-                {formatThaiDateShort(tempStartDate)} (พ.ศ. {toBuddhistYear(tempStartDate.getFullYear())})
-              </Text>
             </Box>
 
             {/* End Date */}
@@ -115,15 +112,12 @@ export const DateRangePicker = ({
               <Text fontSize="sm" mb={1} color="gray.600">
                 วันที่สิ้นสุด
               </Text>
-              <Input
-                type="date"
-                size="sm"
-                value={dateToInputValue(tempEndDate)}
-                onChange={(e) => setTempEndDate(inputValueToDate(e.target.value))}
+              <ThaiDatePicker
+                id="end-date-range"
+                value={tempEndDate}
+                onChange={(date) => date && setTempEndDate(date)}
+                placeholder="เลือกวันที่สิ้นสุด"
               />
-              <Text fontSize="xs" color="gray.500" mt={1}>
-                {formatThaiDateShort(tempEndDate)} (พ.ศ. {toBuddhistYear(tempEndDate.getFullYear())})
-              </Text>
             </Box>
 
             {/* Action Buttons */}

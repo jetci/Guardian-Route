@@ -3,113 +3,93 @@
  * Standardized with DashboardLayout
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { StatCard } from '../../components/common/StatCard';
+import { WeatherWidget } from '../../components/dashboard/WeatherWidget';
+import { incidentService } from '../../services/incidentService';
+import usersApi from '../../services/userService';
 import './SupervisorDashboardModern.css';
 
 export default function SupervisorDashboardModern() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'urgent' | 'normal'>('urgent');
+  const [loading, setLoading] = useState(true);
 
-  // Enhanced mock data
-  const urgentReports = [
-    { 
-      id: 1, 
-      title: "น้ำท่วม - บ้านหนองบัว", 
-      officer: "นายสมชาย ใจดี", 
-      date: "2025-11-12 14:30",
-      status: "กำลังดำเนินการ",
-      priority: "สูง",
-      village: "หมู่ 3",
-      type: "น้ำท่วม"
-    },
-    { 
-      id: 2, 
-      title: "ดินถล่ม - หมู่ 5", 
-      officer: "นางสาวสมหญิง รักดี", 
-      date: "2025-11-12 10:15",
-      status: "รอตรวจสอบ",
-      priority: "สูงมาก",
-      village: "หมู่ 5",
-      type: "ดินถล่ม"
-    },
-    { 
-      id: 5, 
-      title: "ไฟไหม้บ้าน - ป่าบง", 
-      officer: "นายวิชัย สุขสันต์", 
-      date: "2025-11-12 08:00",
-      status: "รอมอบหมาย",
-      priority: "สูง",
-      village: "หมู่ 2",
-      type: "ไฟไหม้"
+  // Data states
+  const [incidents, setIncidents] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalIncidents: 0,
+    urgentIncidents: 0,
+    activeOfficers: 0,
+    totalOfficers: 0,
+    avgResponseTime: "2.5 ชม." // Mock for now as backend doesn't support this yet
+  });
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch incidents and users in parallel
+      const [incidentsData, usersData] = await Promise.all([
+        incidentService.getAll(),
+        usersApi.getAll()
+      ]);
+
+      setIncidents(incidentsData);
+
+      // Calculate stats
+      const urgentCount = incidentsData.filter((i: any) =>
+        i.priority === 'HIGH' || i.priority === 'CRITICAL'
+      ).length;
+
+      const fieldOfficers = usersData.filter((u: any) => u.role === 'FIELD_OFFICER');
+      const activeOfficers = fieldOfficers.filter((u: any) => u.isActive).length;
+
+      setStats({
+        totalIncidents: incidentsData.length,
+        urgentIncidents: urgentCount,
+        activeOfficers,
+        totalOfficers: fieldOfficers.length,
+        avgResponseTime: "2.5 ชม."
+      });
+
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+      toast.error('ไม่สามารถโหลดข้อมูลได้');
+    } finally {
+      setLoading(false);
     }
-  ];
-
-  const normalReports = [
-    { 
-      id: 3, 
-      title: "ไฟไหม้ป่า - เขาใหญ่", 
-      officer: "นายประสิทธิ์ มั่นคง", 
-      date: "2025-11-11 16:45",
-      status: "เสร็จสิ้น",
-      priority: "ปานกลาง",
-      village: "หมู่ 8",
-      type: "ไฟไหม้"
-    },
-    { 
-      id: 4, 
-      title: "แผ่นดินไหว - ตำบลเวียง", 
-      officer: "นางสาววิภา สุขใจ", 
-      date: "2025-11-11 09:20",
-      status: "กำลังดำเนินการ",
-      priority: "ปานกลาง",
-      village: "หมู่ 12",
-      type: "แผ่นดินไหว"
-    },
-    { 
-      id: 6, 
-      title: "ถนนชำรุด - สันทรายคองน้อย", 
-      officer: "นายสมศักดิ์ ใจกล้า", 
-      date: "2025-11-10 14:20",
-      status: "เสร็จสิ้น",
-      priority: "ต่ำ",
-      village: "หมู่ 6",
-      type: "โครงสร้าง"
-    }
-  ];
-
-  // Statistics
-  const stats = {
-    totalIncidents: 24,
-    urgentIncidents: 3,
-    inProgress: 8,
-    completed: 13,
-    activeOfficers: 12,
-    totalOfficers: 15,
-    avgResponseTime: "2.5 ชม.",
-    todayIncidents: 5
   };
 
-  const reports = activeTab === 'urgent' ? urgentReports : normalReports;
+  // Filter incidents based on tab
+  const filteredIncidents = incidents.filter(incident => {
+    const isUrgent = incident.priority === 'HIGH' || incident.priority === 'CRITICAL';
+    return activeTab === 'urgent' ? isUrgent : !isUrgent;
+  });
 
   const getPriorityClass = (priority: string) => {
     switch (priority) {
-      case 'สูงมาก': return 'priority-critical';
-      case 'สูง': return 'priority-high';
-      case 'ปานกลาง': return 'priority-medium';
-      case 'ต่ำ': return 'priority-low';
+      case 'CRITICAL': return 'priority-critical';
+      case 'HIGH': return 'priority-high';
+      case 'MEDIUM': return 'priority-medium';
+      case 'LOW': return 'priority-low';
       default: return '';
     }
   };
 
   const getStatusClass = (status: string) => {
     switch (status) {
-      case 'รอมอบหมาย': return 'status-pending';
-      case 'รอตรวจสอบ': return 'status-review';
-      case 'กำลังดำเนินการ': return 'status-progress';
-      case 'เสร็จสิ้น': return 'status-completed';
+      case 'PENDING': return 'status-pending';
+      case 'IN_PROGRESS': return 'status-progress';
+      case 'RESOLVED': return 'status-completed';
+      case 'CLOSED': return 'status-completed';
       default: return '';
     }
   };
@@ -133,65 +113,70 @@ export default function SupervisorDashboardModern() {
           </div>
         </header>
 
+        {/* Weather Widget */}
+        <div className="mb-6 min-h-[250px] h-auto">
+          <WeatherWidget />
+        </div>
+
         {/* KPI Cards */}
         <div className="kpi-grid">
-          <div className="kpi-card kpi-purple">
-            <div className="kpi-icon">📊</div>
-            <div className="kpi-content">
-              <div className="kpi-value">{stats.totalIncidents}</div>
-              <div className="kpi-label">เหตุการณ์ทั้งหมด</div>
-              <div className="kpi-trend positive">+5 จากเมื่อวาน</div>
-            </div>
-          </div>
-
-          <div className="kpi-card kpi-red">
-            <div className="kpi-icon">🚨</div>
-            <div className="kpi-content">
-              <div className="kpi-value">{stats.urgentIncidents}</div>
-              <div className="kpi-label">เหตุการณ์ด่วน</div>
-              <div className="kpi-trend negative">ต้องดำเนินการ</div>
-            </div>
-          </div>
-
-          <div className="kpi-card kpi-blue">
-            <div className="kpi-icon">⏱️</div>
-            <div className="kpi-content">
-              <div className="kpi-value">{stats.avgResponseTime}</div>
-              <div className="kpi-label">เวลาตอบสนองเฉลี่ย</div>
-              <div className="kpi-trend positive">ดีขึ้น 0.3 ชม.</div>
-            </div>
-          </div>
-
-          <div className="kpi-card kpi-green">
-            <div className="kpi-icon">👥</div>
-            <div className="kpi-content">
-              <div className="kpi-value">{stats.activeOfficers}/{stats.totalOfficers}</div>
-              <div className="kpi-label">เจ้าหน้าที่ปฏิบัติงาน</div>
-              <div className="kpi-trend positive">{Math.round((stats.activeOfficers/stats.totalOfficers)*100)}% พร้อมใช้งาน</div>
-            </div>
-          </div>
+          <StatCard
+            title="เหตุการณ์ทั้งหมด"
+            value={stats.totalIncidents}
+            icon="📊"
+            color="purple"
+            loading={loading}
+            trend="+5 จากเมื่อวาน"
+            trendDirection="positive"
+          />
+          <StatCard
+            title="เหตุการณ์ด่วน"
+            value={stats.urgentIncidents}
+            icon="🚨"
+            color="red"
+            loading={loading}
+            trend="ต้องดำเนินการ"
+            trendDirection="negative"
+          />
+          <StatCard
+            title="เวลาตอบสนองเฉลี่ย"
+            value={stats.avgResponseTime}
+            icon="⏱️"
+            color="blue"
+            loading={loading}
+            trend="ดีขึ้น 0.3 ชม."
+            trendDirection="positive"
+          />
+          <StatCard
+            title="เจ้าหน้าที่ปฏิบัติงาน"
+            value={`${stats.activeOfficers}/${stats.totalOfficers}`}
+            icon="👥"
+            color="green"
+            loading={loading}
+            trend={`${stats.totalOfficers > 0 ? Math.round((stats.activeOfficers / stats.totalOfficers) * 100) : 0}% พร้อมใช้งาน`}
+            trendDirection="positive"
+          />
         </div>
 
         {/* Quick Actions */}
         <div className="quick-actions">
-          <button className="btn-primary" onClick={() => toast.success('✅ Feature coming soon!')}>
+          <button className="btn-primary" onClick={() => navigate('/tasks/create')}>
             ➕ มอบหมายงานใหม่
           </button>
-          <button className="btn-secondary" onClick={() => toast.success('✅ Feature coming soon!')}>
+          <button className="btn-secondary" onClick={() => navigate('/manage-users')}>
             👥 ดูภาพรวมทีม
           </button>
-          <button className="btn-secondary" onClick={() => toast.success('✅ Feature coming soon!')}>
-            📊 สร้างรายงาน
+          <button className="btn-secondary" onClick={() => navigate('/reports')}>
+            📊 ดูรายงานทั้งหมด
           </button>
         </div>
 
         {/* Reports Section */}
         <div className="reports-section">
           <div className="section-header">
-            <h2 className="section-title">📝 รายงานรอตรวจสอบ</h2>
+            <h2 className="section-title">📝 รายงานและเหตุการณ์</h2>
             <div className="section-actions">
-              <button className="btn-filter">🔍 ค้นหา</button>
-              <button className="btn-filter">⚙️ ตัวกรอง</button>
+              <button className="btn-filter" onClick={fetchDashboardData}>🔄 รีเฟรช</button>
             </div>
           </div>
 
@@ -201,126 +186,88 @@ export default function SupervisorDashboardModern() {
               onClick={() => setActiveTab('urgent')}
               className={`tab ${activeTab === 'urgent' ? 'active' : ''}`}
             >
-              🔴 เหตุการณ์ด่วน ({urgentReports.length})
+              🔴 เหตุการณ์ด่วน ({incidents.filter(i => i.priority === 'HIGH' || i.priority === 'CRITICAL').length})
             </button>
             <button
               onClick={() => setActiveTab('normal')}
               className={`tab ${activeTab === 'normal' ? 'active' : ''}`}
             >
-              🟡 เหตุการณ์ปกติ ({normalReports.length})
+              🟡 เหตุการณ์ปกติ ({incidents.filter(i => !(i.priority === 'HIGH' || i.priority === 'CRITICAL')).length})
             </button>
           </div>
 
           {/* Report Cards */}
           <div className="reports-list">
-            {reports.map(report => (
-              <div key={report.id} className="report-card">
-                <div className="report-header">
-                  <div className="report-title-section">
-                    <h3 className="report-title">{report.title}</h3>
-                    <div className="report-meta">
-                      <span className="report-village">📍 {report.village}</span>
-                      <span className="report-type">🏷️ {report.type}</span>
+            {loading ? (
+              <div className="p-8 text-center text-gray-500">กำลังโหลดข้อมูล...</div>
+            ) : filteredIncidents.length === 0 ? (
+              <div className="p-8 text-center text-gray-500">ไม่พบข้อมูลเหตุการณ์</div>
+            ) : (
+              filteredIncidents.map(incident => (
+                <div key={incident.id} className="report-card">
+                  <div className="report-header">
+                    <div className="report-title-section">
+                      <h3 className="report-title">{incident.title}</h3>
+                      <div className="report-meta">
+                        <span className="report-village">📍 {incident.location?.address || 'ไม่ระบุพิกัด'}</span>
+                        <span className="report-type">🏷️ {incident.type}</span>
+                      </div>
+                    </div>
+                    <div className="report-badges">
+                      <span className={`badge ${getPriorityClass(incident.priority)}`}>
+                        {incident.priority}
+                      </span>
+                      <span className={`badge ${getStatusClass(incident.status)}`}>
+                        {incident.status}
+                      </span>
                     </div>
                   </div>
-                  <div className="report-badges">
-                    <span className={`badge ${getPriorityClass(report.priority)}`}>
-                      {report.priority}
-                    </span>
-                    <span className={`badge ${getStatusClass(report.status)}`}>
-                      {report.status}
-                    </span>
-                  </div>
-                </div>
 
-                <div className="report-body">
-                  <div className="report-info">
-                    <div className="info-item">
-                      <span className="info-icon">👤</span>
-                      <span className="info-text">{report.officer}</span>
-                    </div>
-                    <div className="info-item">
-                      <span className="info-icon">🕐</span>
-                      <span className="info-text">{report.date}</span>
+                  <div className="report-body">
+                    <p className="text-gray-600 mb-4 line-clamp-2">{incident.description}</p>
+                    <div className="report-info">
+                      <div className="info-item">
+                        <span className="info-icon">🕐</span>
+                        <span className="info-text">{new Date(incident.createdAt).toLocaleString('th-TH')}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div style={{
-                  display: 'flex',
-                  gap: '8px',
-                  marginTop: '12px',
-                  paddingTop: '12px',
-                  borderTop: '1px solid #e2e8f0'
-                }}>
-                  <button 
-                    onClick={() => toast.success('📄 View details')}
-                    title="ดูรายละเอียด"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '8px 12px',
-                      background: '#3b82f6',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    👁️ ดูรายละเอียด
-                  </button>
-                  
-                  <button 
-                    onClick={() => toast.success('✅ Approved!')}
-                    title="อนุมัติรายงาน"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '8px 12px',
-                      background: '#10b981',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    ✅ อนุมัติ
-                  </button>
-                  
-                  <button 
-                    onClick={() => toast.error('❌ Rejected')}
-                    title="ปฏิเสธรายงาน"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      padding: '8px 12px',
-                      background: '#ef4444',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    ❌ ปฏิเสธ
-                  </button>
+                  <div style={{
+                    display: 'flex',
+                    gap: '8px',
+                    marginTop: '12px',
+                    paddingTop: '12px',
+                    borderTop: '1px solid #e2e8f0'
+                  }}>
+                    <button
+                      onClick={() => navigate(`/incidents/${incident.id}`)}
+                      title="ดูรายละเอียด"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '8px 12px',
+                        background: '#3b82f6',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      👁️ ดูรายละเอียด
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
     </DashboardLayout>
   );
 }
+

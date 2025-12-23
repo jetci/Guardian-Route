@@ -204,7 +204,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
               valueAsNumber: true,
             })}
             className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            placeholder="19.9263"
+            placeholder="19.9167"
           />
           {errors.latitude && (
             <p className="text-red-600 text-sm mt-1 font-medium">{errors.latitude.message}</p>
@@ -224,7 +224,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
               valueAsNumber: true,
             })}
             className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            placeholder="99.8832"
+            placeholder="99.2333"
           />
           {errors.longitude && (
             <p className="text-red-600 text-sm mt-1 font-medium">{errors.longitude.message}</p>

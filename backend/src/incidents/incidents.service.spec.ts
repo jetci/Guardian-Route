@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { IncidentsService } from './incidents.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '../database/prisma.service';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('IncidentsService', () => {
@@ -56,9 +56,10 @@ describe('IncidentsService', () => {
   describe('create', () => {
     it('should create a new incident', async () => {
       const createDto = {
-        type: 'FLOOD',
-        location: { lat: 19.9167, lng: 99.2333 },
-        severity: 'MEDIUM',
+        title: 'Test Flood Incident',
+        disasterType: 'FLOOD' as any,
+        location: { type: 'Point' as const, coordinates: [99.2333, 19.9167] as [number, number] },
+        priority: 'MEDIUM' as any,
         description: 'Test incident',
       };
 
@@ -113,7 +114,7 @@ describe('IncidentsService', () => {
   describe('update', () => {
     it('should update an incident when user is the creator', async () => {
       const updateDto = {
-        status: 'IN_PROGRESS',
+        status: 'IN_PROGRESS' as any,
         description: 'Updated description',
       };
 
@@ -132,7 +133,7 @@ describe('IncidentsService', () => {
     });
 
     it('should throw ForbiddenException when user is not the creator', async () => {
-      const updateDto = { status: 'IN_PROGRESS' };
+      const updateDto = { status: 'IN_PROGRESS' as any };
 
       mockPrismaService.incident.findUnique.mockResolvedValue(mockIncident);
 

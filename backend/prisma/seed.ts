@@ -11,7 +11,7 @@ async function main() {
   // 1. SEED VILLAGES (20 หมู่บ้าน)
   // ========================================
   console.log('📍 Seeding Villages...');
-  
+
   for (const villageData of villagesWithGeoJSONData) {
     const village = await prisma.village.upsert({
       where: { villageNo: villageData.villageNo },
@@ -33,14 +33,14 @@ async function main() {
     });
     console.log(`  ✅ หมู่ ${village.villageNo}: ${village.name} (📍 ${villageData.centerPoint ? 'มีพิกัด' : 'ไม่มีพิกัด'})`);
   }
-  
+
   console.log(`\n✅ Created ${villagesWithGeoJSONData.length} villages with GeoJSON data\n`);
 
   // ========================================
   // 2. SEED USERS (4 roles)
   // ========================================
   console.log('👥 Seeding Users...');
-  
+
   // Hash password
   const hashedPassword = await bcrypt.hash('password123', 10);
 
@@ -116,15 +116,33 @@ async function main() {
 
   console.log('  ✅ Created Field Officer:', fieldOfficer.email);
 
+  // Create Developer
+  const developer = await prisma.user.upsert({
+    where: { email: 'jetci.jm@gmail.com' },
+    update: {},
+    create: {
+      username: 'jetci',
+      email: 'jetci.jm@gmail.com',
+      password: await bcrypt.hash('g0KEk,^],k;yo', 10),
+      fullName: 'Jetci Developer',
+      firstName: 'Jetci',
+      lastName: 'Developer',
+      phone: '081-234-9999',
+      role: Role.DEVELOPER,
+    },
+  });
+
+  console.log('  ✅ Created Developer:', developer.email);
+
   // ========================================
   // SUMMARY
   // ========================================
   console.log('\n✅ Seed completed!\n');
-  
+
   console.log('📊 Summary:');
   console.log(`  • Villages: ${villagesWithGeoJSONData.length}`);
   console.log(`  • Users: 4`);
-  
+
   console.log('\n📝 Test Users:');
   console.log('┌──────────────────────────────┬─────────────┬───────────────┐');
   console.log('│ Email                        │ Password    │ Role          │');
@@ -132,9 +150,10 @@ async function main() {
   console.log('│ admin@obtwiang.go.th         │ password123 │ ADMIN         │');
   console.log('│ executive@obtwiang.go.th     │ password123 │ EXECUTIVE     │');
   console.log('│ supervisor@obtwiang.go.th    │ password123 │ SUPERVISOR    │');
-  console.log('│ field@obtwiang.go.th         │ password123 │ FIELD_OFFICER │');
-  console.log('└──────────────────────────────┴─────────────┴───────────────┘');
-  
+  console.log('│ field@obtwiang.go.th         │ password123   │ FIELD_OFFICER │');
+  console.log('│ jetci.jm@gmail.com           │ g0KEk,^],k;yo │ DEVELOPER     │');
+  console.log('└──────────────────────────────┴───────────────┴───────────────┘');
+
   console.log('\n🏘️  Villages (20 หมู่บ้าน):');
   console.log('┌────┬──────────────────────┬──────────┬──────────┐');
   console.log('│ หมู่│ ชื่อหมู่บ้าน         │ ครัวเรือน│ ประชากร │');

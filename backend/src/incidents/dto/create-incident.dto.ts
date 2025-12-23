@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsObject, IsUUID, IsArray } from 'class-validator';
+import { IsString, IsNotEmpty, IsEnum, IsOptional, IsObject, IsUUID, IsArray, IsNumber, Min, Max } from 'class-validator';
 import { DisasterType, Priority } from '@prisma/client';
 
 export class CreateIncidentDto {
@@ -32,7 +32,7 @@ export class CreateIncidentDto {
   @ApiProperty({
     example: {
       type: 'Point',
-      coordinates: [99.8832, 19.9263]
+      coordinates: [99.2333, 19.9167]
     },
     description: 'GeoJSON Point [longitude, latitude]'
   })
@@ -61,4 +61,39 @@ export class CreateIncidentDto {
   @IsString({ each: true })
   @IsOptional()
   images?: string[];
+
+  @ApiProperty({ 
+    example: { 
+      type: 'Polygon', 
+      coordinates: [[[99.2333, 19.9167], [99.2343, 19.9167], [99.2343, 19.9157], [99.2333, 19.9157], [99.2333, 19.9167]]] 
+    },
+    description: 'GeoJSON Polygon of affected area',
+    required: false 
+  })
+  @IsObject()
+  @IsOptional()
+  polygon?: any;
+
+  @ApiProperty({ 
+    example: 25, 
+    description: 'Estimated number of affected households',
+    required: false 
+  })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  estimatedHouseholds?: number;
+
+  @ApiProperty({ 
+    example: 3, 
+    minimum: 1, 
+    maximum: 5, 
+    description: 'Severity level (1=Low, 5=Critical)',
+    required: false 
+  })
+  @IsNumber()
+  @Min(1)
+  @Max(5)
+  @IsOptional()
+  severity?: number;
 }

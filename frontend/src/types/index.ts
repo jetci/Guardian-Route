@@ -47,6 +47,8 @@ export interface Village {
   };
   households?: number;
   population?: number;
+  populationMale?: number;
+  populationFemale?: number;
   area?: number;
   description?: string;
   createdAt: string;
@@ -130,6 +132,9 @@ export interface CreateIncidentDto {
   address?: string;
   images?: string[];
   villageId?: string;
+  polygon?: any; // GeoJSON Polygon
+  estimatedHouseholds?: number;
+  severity?: number;
 }
 
 export interface UpdateIncidentDto extends Partial<CreateIncidentDto> {
@@ -140,6 +145,7 @@ export interface UpdateIncidentDto extends Partial<CreateIncidentDto> {
 export enum TaskStatus {
   PENDING = 'PENDING',
   IN_PROGRESS = 'IN_PROGRESS',
+  SURVEYED = 'SURVEYED',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
 }

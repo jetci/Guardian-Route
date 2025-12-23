@@ -103,7 +103,7 @@ export const updateSettings = async (data: UpdateSettingsDto): Promise<Settings>
 /**
  * Trigger manual backup
  */
-export const triggerBackup = async (): Promise<{ message: string }> => {
+export const triggerBackup = async (): Promise<{ message: string; filename: string }> => {
   const token = localStorage.getItem('access_token');
   const response = await axios.post(`${API_URL}/settings/backup`, {}, {
     headers: {
@@ -114,9 +114,9 @@ export const triggerBackup = async (): Promise<{ message: string }> => {
 };
 
 /**
- * Purge old data based on retention policy
+ * Purge old data
  */
-export const purgeOldData = async (): Promise<{ message: string; retentionDate: string }> => {
+export const purgeOldData = async (): Promise<{ message: string; deletedFiles: number }> => {
   const token = localStorage.getItem('access_token');
   const response = await axios.delete(`${API_URL}/settings/purge`, {
     headers: {
@@ -137,4 +137,39 @@ export const factoryReset = async (): Promise<{ message: string; settings: Setti
     },
   });
   return response.data;
+};
+
+/**
+ * Get list of backups
+ */
+export const getBackups = async (): Promise<Array<{ filename: string; size: number; createdAt: string }>> => {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.get(`${API_URL}/settings/backups`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+};
+
+/**
+ * Download a backup file
+ */
+export const downloadBackup = async (filename: string): Promise<void> => {
+  const token = localStorage.getItem('access_token');
+  const response = await axios.get(`${API_URL}/settings/backups/${filename}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    responseType: 'blob',
+  });
+
+  // Create download link
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 };

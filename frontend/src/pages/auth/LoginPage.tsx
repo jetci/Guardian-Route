@@ -66,6 +66,9 @@ export const LoginPage = () => {
         case 'FIELD_OFFICER':
           navigate('/field-officer');
           break;
+        case 'DEVELOPER':
+          navigate('/developer');
+          break;
         default:
           navigate('/');
       }
@@ -170,7 +173,8 @@ export const LoginPage = () => {
                 <Text>Executive: executive@obtwiang.go.th</Text>
                 <Text>Supervisor: supervisor@obtwiang.go.th</Text>
                 <Text>Field Officer: field@obtwiang.go.th</Text>
-                <Text fontWeight="bold">Password: password123</Text>
+                <Text>Developer: jetci.jm@gmail.com</Text>
+                <Text fontWeight="bold">Password: password123 (g0KEk,^],k;yo for Developer)</Text>
               </VStack>
             </Box>
           </VStack>

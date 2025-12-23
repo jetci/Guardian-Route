@@ -25,7 +25,10 @@ export function Sidebar() {
   const getMenuItems = () => {
     // Convert role to string for comparison (handles both string and enum)
     const userRole = user?.role ? String(user.role) : '';
-    
+
+    console.log('🔍 Sidebar - Current user role:', userRole);
+    console.log('👤 Sidebar - User data:', user);
+
     switch (userRole) {
       case 'DEVELOPER':
         return [
@@ -35,11 +38,13 @@ export function Sidebar() {
         ];
       case 'ADMIN':
         return [
-          { icon: '🗄️', label: 'แดชบอร์ดระบบ (System Dashboard)', path: '/dashboard/admin' },
-          { icon: '👤', label: 'จัดการผู้ใช้ (Manage Users)', path: '/manage-users' },
-          { icon: '💾', label: 'จัดการข้อมูล (Manage Data)', path: '/manage-data' },
-          { icon: '🌐', label: 'กำหนดขอบเขตหมู่บ้าน (Define Village Boundaries)', path: '/village-boundaries' },
-          { icon: '⚙️', label: 'ตั้งค่า (Settings)', path: '/settings' },
+          { icon: '🗄️', label: 'แดชบอร์ดระบบ', path: '/dashboard/admin' },
+          { icon: '👤', label: 'จัดการผู้ใช้', path: '/manage-users' },
+          { icon: '💾', label: 'จัดการข้อมูล', path: '/manage-data' },
+          { icon: '🏘️', label: 'จัดการข้อมูลหมู่บ้าน', path: '/manage-villages' },
+          { icon: '🗺️', label: 'กำหนดขอบเขตหมู่บ้าน', path: '/village-boundaries' },
+          { icon: '🌏', label: 'แผนที่ภาพรวม', path: '/supervisor/map' },
+          { icon: '⚙️', label: 'ตั้งค่า', path: '/settings' },
           { icon: '📋', label: 'Audit Log', path: '/audit-log' },
         ];
       case 'SUPERVISOR':
@@ -60,6 +65,7 @@ export function Sidebar() {
       case 'FIELD_OFFICER':
         return [
           { icon: '📋', label: 'งานของฉัน (My Tasks)', path: '/dashboard/officer' },
+          { icon: '📝', label: 'สร้างรายงานเหตุการณ์', path: '/create-incident' },
           { icon: '🗺️', label: 'แผนที่และรายงานเหตุการณ์', path: '/map-incidents' },
           { icon: '🔍', label: 'สำรวจพื้นที่ (Survey Area)', path: '/survey-area' },
           { icon: '📜', label: 'ประวัติการรายงาน (Report History)', path: '/report-history' },

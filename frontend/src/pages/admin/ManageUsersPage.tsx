@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import Swal from 'sweetalert2';
 import { useAuthStore } from '../../stores/authStore';
 import { UserModal } from '../../components/admin/UserModal';
+import { StatCard } from '../../components/common/StatCard';
 import './ManageUsersPage.css';
 
 export default function ManageUsersPage() {
@@ -136,27 +137,36 @@ export default function ManageUsersPage() {
         </div>
 
         {/* Stats Cards */}
+        {/* Stats Cards */}
         <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon">👥</div>
-            <div className="stat-value">{users.length}</div>
-            <div className="stat-label">ผู้ใช้ทั้งหมด</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">✅</div>
-            <div className="stat-value">{users.filter(u => u.isActive).length}</div>
-            <div className="stat-label">ใช้งานอยู่</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">👑</div>
-            <div className="stat-value">{users.filter(u => u.role === 'ADMIN').length}</div>
-            <div className="stat-label">Admin</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">🎯</div>
-            <div className="stat-value">{users.filter(u => u.role === 'FIELD_OFFICER').length}</div>
-            <div className="stat-label">Field Officer</div>
-          </div>
+          <StatCard
+            title="ผู้ใช้ทั้งหมด"
+            value={users.length}
+            icon="👥"
+            color="purple"
+            loading={loading}
+          />
+          <StatCard
+            title="ใช้งานอยู่"
+            value={users.filter(u => u.isActive).length}
+            icon="✅"
+            color="green"
+            loading={loading}
+          />
+          <StatCard
+            title="Admin"
+            value={users.filter(u => u.role === 'ADMIN').length}
+            icon="👑"
+            color="blue"
+            loading={loading}
+          />
+          <StatCard
+            title="Field Officer"
+            value={users.filter(u => u.role === 'FIELD_OFFICER').length}
+            icon="🎯"
+            color="orange"
+            loading={loading}
+          />
         </div>
 
         {/* Search and Filter */}

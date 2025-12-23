@@ -6,6 +6,7 @@
 import { useState, useRef } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import toast from 'react-hot-toast';
+import { StatCard } from '../../components/common/StatCard';
 import './ManageDataPage.css';
 
 export default function ManageDataPage() {
@@ -42,7 +43,7 @@ export default function ManageDataPage() {
 
   const handleFiles = async (files: FileList) => {
     const file = files[0];
-    
+
     // Validate file type
     if (!file.name.endsWith('.geojson') && !file.name.endsWith('.json')) {
       toast.error('กรุณาเลือกไฟล์ .geojson หรือ .json เท่านั้น');
@@ -73,7 +74,7 @@ export default function ManageDataPage() {
       // Read and validate GeoJSON
       const text = await file.text();
       const geojson = JSON.parse(text);
-      
+
       if (!geojson.type || !geojson.features) {
         throw new Error('ไฟล์ไม่ใช่ GeoJSON ที่ถูกต้อง');
       }
@@ -111,39 +112,45 @@ export default function ManageDataPage() {
     <DashboardLayout>
       <div className="manage-data-page">
         <div className="page-header">
-          <h1>💾 จัดการข้อมูล</h1>
-          <p className="subtitle">อัปโหลดและจัดการข้อมูล GeoJSON สำหรับขอบเขตหมู่บ้านและพื้นที่เสี่ยงภัย</p>
+          <div className="header-content">
+            <h1>💾 จัดการข้อมูล</h1>
+            <p className="subtitle">อัปโหลดและจัดการข้อมูล GeoJSON สำหรับขอบเขตหมู่บ้านและพื้นที่เสี่ยงภัย</p>
+          </div>
         </div>
 
         {/* Stats */}
         <div className="stats-grid">
-          <div className="stat-card villages">
-            <span className="stat-icon">🗺️</span>
-            <div className="stat-value">20</div>
-            <div className="stat-label">หมู่บ้าน</div>
-          </div>
-          <div className="stat-card geojson">
-            <span className="stat-icon">📍</span>
-            <div className="stat-value">20</div>
-            <div className="stat-label">ขอบเขต GeoJSON</div>
-          </div>
-          <div className="stat-card risk-areas">
-            <span className="stat-icon">⚠️</span>
-            <div className="stat-value">5</div>
-            <div className="stat-label">พื้นที่เสี่ยงภัย</div>
-          </div>
-          <div className="stat-card last-update">
-            <span className="stat-icon">🕐</span>
-            <div className="stat-value">วันนี้</div>
-            <div className="stat-label">อัปเดตล่าสุด</div>
-          </div>
+          <StatCard
+            title="หมู่บ้าน"
+            value={20}
+            icon="🗺️"
+            color="blue"
+          />
+          <StatCard
+            title="ขอบเขต GeoJSON"
+            value={20}
+            icon="📍"
+            color="purple"
+          />
+          <StatCard
+            title="พื้นที่เสี่ยงภัย"
+            value={5}
+            icon="⚠️"
+            color="orange"
+          />
+          <StatCard
+            title="อัปเดตล่าสุด"
+            value="วันนี้"
+            icon="🕐"
+            color="green"
+          />
         </div>
 
         {/* Upload Section */}
         <div className="content-card">
           <h2>📤 อัปโหลด GeoJSON</h2>
           <div className="upload-section">
-            <div 
+            <div
               className={`upload-box ${dragOver ? 'drag-over' : ''}`}
               onClick={() => fileInputRef.current?.click()}
               onDragOver={handleDragOver}

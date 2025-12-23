@@ -127,13 +127,16 @@ export class AuthService {
     });
 
     return {
-      accessToken,
+      access_token: accessToken, // Use snake_case for frontend compatibility
+      accessToken, // Keep camelCase for backward compatibility
+      refresh_token: refreshToken,
       refreshToken,
       user: {
         id: user.id,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        fullName: `${user.firstName} ${user.lastName}`,
         role: user.role,
       },
     };

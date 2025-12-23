@@ -186,7 +186,7 @@ function MapEventHandler({
 }
 
 export const DrawingMap = ({
-  center = [19.9263, 99.8832] as LatLngExpression,
+  center = [19.9167, 99.2333] as LatLngExpression,
   zoom = 13,
   height = '600px',
   onMarkerSet,

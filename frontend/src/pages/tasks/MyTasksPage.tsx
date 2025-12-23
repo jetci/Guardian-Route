@@ -19,6 +19,7 @@ import {
   AlertDescription,
 } from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { TaskCard } from '../../components/tasks/TaskCard';
 import { taskService } from '../../services/taskService';
 
@@ -99,17 +100,20 @@ export const MyTasksPage = () => {
 
   if (isLoading) {
     return (
-      <Container maxW="container.xl" py={8}>
-        <VStack spacing={4}>
-          <Spinner size="xl" color="blue.500" />
-          <Text>กำลังโหลดข้อมูล...</Text>
-        </VStack>
-      </Container>
+      <DashboardLayout>
+        <Container maxW="container.xl" py={8}>
+          <VStack spacing={4}>
+            <Spinner size="xl" color="blue.500" />
+            <Text>กำลังโหลดข้อมูล...</Text>
+          </VStack>
+        </Container>
+      </DashboardLayout>
     );
   }
 
   return (
-    <Container maxW="container.xl" py={8}>
+    <DashboardLayout>
+      <Container maxW="container.xl" py={8}>
       <VStack spacing={6} align="stretch">
         {/* Header */}
         <Box>
@@ -237,5 +241,6 @@ export const MyTasksPage = () => {
         </Tabs>
       </VStack>
     </Container>
+    </DashboardLayout>
   );
 };

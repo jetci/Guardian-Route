@@ -1,59 +1,75 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { KPICard } from '../../components/KPICard';
-import { mockKPIs, mockTasks } from '../../mocks/dashboardData';
+import { tasksApi } from '../../api/tasks';
 import { formatThaiDateShort } from '../../utils/dateFormatter';
+import toast from 'react-hot-toast';
+import type { Task } from '../../types';
 import './FieldOfficerDashboard.css';
 
 export function FieldOfficerDashboard() {
   const navigate = useNavigate();
-  const kpis = mockKPIs.officer;
   const [selectedTask, setSelectedTask] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'NEW_ASSIGNMENT' | 'SURVEY_COMPLETE' | 'REVISION_REQUIRED'>('NEW_ASSIGNMENT');
-  
-  const newTasks = mockTasks.filter(t => t.status === 'NEW_ASSIGNMENT');
-  const surveyCompleteTasks = mockTasks.filter(t => t.status === 'SURVEY_COMPLETE');
-  const revisionTasks = mockTasks.filter(t => t.status === 'REVISION_REQUIRED');
+  const [activeTab, setActiveTab] = useState<'PENDING' | 'COMPLETED' | 'IN_PROGRESS'>('PENDING');
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleStartSurvey = (taskId: number) => {
-    navigate(`/field-survey/${taskId}`);
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  const loadTasks = async () => {
+    try {
+      const myTasks = await tasksApi.getMyTasks();
+      setTasks(myTasks);
+    } catch (error) {
+      console.error('Failed to load tasks:', error);
+      toast.error('ไม่สามารถโหลดงานได้');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleCreateReport = (taskId: number) => {
-    navigate(`/detailed-assessment/${taskId}`);
+  const newTasks = tasks.filter(t => t.status === 'PENDING');
+  const surveyCompleteTasks = tasks.filter(t => t.status === 'COMPLETED');
+  const inProgressTasks = tasks.filter(t => t.status === 'IN_PROGRESS');
+
+  const handleViewTask = (taskId: string) => {
+    // Navigate to TaskDetailPageNew to view and accept task
+    navigate(`/tasks/${taskId}`);
   };
 
-  const handleViewRevision = (taskId: number) => {
+  const handleCreateReport = (taskId: string) => {
     navigate(`/detailed-assessment/${taskId}`);
   };
 
   const getTasksByStatus = () => {
-    switch(activeTab) {
-      case 'NEW_ASSIGNMENT': return newTasks;
-      case 'SURVEY_COMPLETE': return surveyCompleteTasks;
-      case 'REVISION_REQUIRED': return revisionTasks;
+    switch (activeTab) {
+      case 'PENDING': return newTasks;
+      case 'COMPLETED': return surveyCompleteTasks;
+      case 'IN_PROGRESS': return inProgressTasks;
     }
   };
 
-  const getActionButton = (task: any) => {
-    switch(task.status) {
-      case 'NEW_ASSIGNMENT':
+  const getActionButton = (task: Task) => {
+    switch (task.status) {
+      case 'PENDING':
         return (
-          <button className="btn btn-primary btn-block" onClick={() => handleStartSurvey(task.id)}>
+          <button className="btn btn-primary btn-block" onClick={() => handleViewTask(task.id)}>
             🔍 รับทราบและเริ่มสำรวจ
           </button>
         );
-      case 'SURVEY_COMPLETE':
+      case 'COMPLETED':
         return (
           <button className="btn btn-primary btn-block" onClick={() => handleCreateReport(task.id)}>
             📝 สร้างรายงาน
           </button>
         );
-      case 'REVISION_REQUIRED':
+      case 'IN_PROGRESS':
         return (
-          <button className="btn btn-primary btn-block" onClick={() => handleViewRevision(task.id)}>
-            💬 ดูความคิดเห็นและแก้ไข
+          <button className="btn btn-success btn-block" onClick={() => handleViewTask(task.id)}>
+            📋 ดูรายละเอียด
           </button>
         );
     }
@@ -75,20 +91,20 @@ export function FieldOfficerDashboard() {
           color="blue"
         />
         <KPICard
-          title="สำรวจเสร็จ"
+          title="กำลังดำเนินการ"
+          value={inProgressTasks.length}
+          icon="⚙️"
+          color="orange"
+        />
+        <KPICard
+          title="เสร็จสิ้น"
           value={surveyCompleteTasks.length}
           icon="✅"
           color="green"
         />
         <KPICard
-          title="ต้องแก้ไข"
-          value={revisionTasks.length}
-          icon="⚠️"
-          color="orange"
-        />
-        <KPICard
           title="งานทั้งหมด"
-          value={mockTasks.length}
+          value={tasks.length}
           icon="📊"
           color="purple"
         />
@@ -96,72 +112,76 @@ export function FieldOfficerDashboard() {
 
       {/* Tab Navigation */}
       <div className="task-tabs">
-        <button 
-          className={`tab-button ${activeTab === 'NEW_ASSIGNMENT' ? 'active' : ''}`}
-          onClick={() => setActiveTab('NEW_ASSIGNMENT')}
+        <button
+          className={`tab-button ${activeTab === 'PENDING' ? 'active' : ''}`}
+          onClick={() => setActiveTab('PENDING')}
         >
           📋 งานใหม่ ({newTasks.length})
         </button>
-        <button 
-          className={`tab-button ${activeTab === 'SURVEY_COMPLETE' ? 'active' : ''}`}
-          onClick={() => setActiveTab('SURVEY_COMPLETE')}
+        <button
+          className={`tab-button ${activeTab === 'IN_PROGRESS' ? 'active' : ''}`}
+          onClick={() => setActiveTab('IN_PROGRESS')}
         >
-          ✅ สำรวจเสร็จ ({surveyCompleteTasks.length})
+          ⚙️ กำลังดำเนินการ ({inProgressTasks.length})
         </button>
-        <button 
-          className={`tab-button ${activeTab === 'REVISION_REQUIRED' ? 'active' : ''}`}
-          onClick={() => setActiveTab('REVISION_REQUIRED')}
+        <button
+          className={`tab-button ${activeTab === 'COMPLETED' ? 'active' : ''}`}
+          onClick={() => setActiveTab('COMPLETED')}
         >
-          ⚠️ ต้องแก้ไข ({revisionTasks.length})
+          ✅ เสร็จสิ้น ({surveyCompleteTasks.length})
         </button>
       </div>
 
       {/* Task List */}
       <div className="content-section">
-        <div className="tasks-grid">
-          {currentTasks.map((task) => (
-            <div key={task.id} className="task-card-new">
-              <div className="task-card-header-new">
-                <span className={`priority priority-${task.priority.toLowerCase()}`}>
-                  {task.priority}
-                </span>
-                <span className="task-date">📅 {formatThaiDateShort(task.dueDate)}</span>
-              </div>
-              
-              <h3 className="task-title-new">{task.title}</h3>
-              <p className="task-description-new">{task.description}</p>
-              
-              <div className="task-location">
-                📍 {task.location}
-              </div>
-
-              {task.surveyDate && (
-                <div className="task-survey-date">
-                  ✅ สำรวจเมื่อ: {formatThaiDateShort(task.surveyDate)}
+        {loading ? (
+          <div className="loading-state">กำลังโหลดงาน...</div>
+        ) : (
+          <div className="tasks-grid">
+            {currentTasks.map((task) => (
+              <div key={task.id} className="task-card-new">
+                <div className="task-card-header-new">
+                  <span className={`priority priority-${task.priority.toLowerCase()}`}>
+                    {task.priority}
+                  </span>
+                  <span className="task-date">📅 {task.dueDate ? formatThaiDateShort(task.dueDate) : 'ไม่ระบุ'}</span>
                 </div>
-              )}
 
-              {task.revisionNote && (
-                <div className="revision-note">
-                  <strong>💬 ความคิดเห็น Supervisor:</strong>
-                  <p>{task.supervisorComment}</p>
-                  <strong>📝 ต้องแก้ไข:</strong>
-                  <p>{task.revisionNote}</p>
+                <h3 className="task-title-new">{task.title}</h3>
+                <p className="task-description-new">{task.description || 'ไม่มีรายละเอียด'}</p>
+
+                <div className="task-location">
+                  📍 {task.village?.name || task.incident?.address || 'ไม่ระบุ'}
                 </div>
-              )}
 
-              <div className="task-card-footer">
-                {getActionButton(task)}
+                {task.surveyDate && (
+                  <div className="task-survey-date">
+                    ✅ สำรวจเมื่อ: {formatThaiDateShort(task.surveyDate)}
+                  </div>
+                )}
+
+                {task.revisionNote && (
+                  <div className="revision-note">
+                    <strong>💬 ความคิดเห็น Supervisor:</strong>
+                    <p>{task.supervisorComment}</p>
+                    <strong>📝 ต้องแก้ไข:</strong>
+                    <p>{task.revisionNote}</p>
+                  </div>
+                )}
+
+                <div className="task-card-footer">
+                  {getActionButton(task)}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
 
-          {currentTasks.length === 0 && (
-            <div className="empty-state">
-              <p>ไม่มีงานในหมวดนี้</p>
-            </div>
-          )}
-        </div>
+            {currentTasks.length === 0 && (
+              <div className="empty-state">
+                <p>ไม่มีงานในหมวดนี้</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Revision Modal */}
@@ -195,19 +215,19 @@ export function FieldOfficerDashboard() {
 
               <div className="task-detail-section">
                 <h3>📷 อัปโหลดรูปเพิ่มเติม</h3>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  multiple 
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
                   className="form-input"
                 />
               </div>
 
               <div className="task-detail-section">
                 <h3>📝 หมายเหตุเพิ่มเติม</h3>
-                <textarea 
-                  className="form-input" 
-                  rows={4} 
+                <textarea
+                  className="form-input"
+                  rows={4}
                   placeholder="เพิ่มข้อมูลที่ Supervisor ขอ..."
                 ></textarea>
               </div>

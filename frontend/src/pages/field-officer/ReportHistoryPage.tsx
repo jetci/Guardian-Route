@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
+import { EmptyState } from '../../components/common';
 import { reportService } from '../../services/reportService';
 import ThaiDatePicker from '../../components/ThaiDatePicker';
 import './ReportHistoryPage.css';
@@ -55,7 +56,7 @@ export function ReportHistoryPage() {
   });
 
   const getStatusClass = (status: string) => {
-    switch(status) {
+    switch (status) {
       case 'APPROVED': return 'status-approved';
       case 'REJECTED': return 'status-rejected';
       case 'REVISION_REQUIRED': return 'status-revision';
@@ -86,7 +87,7 @@ export function ReportHistoryPage() {
         <div className="filters-section">
           <div className="filter-group">
             <label>สถานะ:</label>
-            <select 
+            <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as ReportStatus)}
             >
@@ -180,14 +181,14 @@ export function ReportHistoryPage() {
                       {report.supervisorComment || report.revisionNote || '-'}
                     </td>
                     <td className="actions-cell">
-                      <button 
+                      <button
                         className="btn-icon"
                         onClick={() => handleViewReport(report.id)}
                         title="ดูรายละเอียด"
                       >
                         👁️
                       </button>
-                      <button 
+                      <button
                         className="btn-icon"
                         onClick={() => handleDownloadPDF(report.id)}
                         title="ดาวน์โหลด PDF"

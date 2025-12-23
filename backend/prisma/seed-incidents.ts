@@ -100,8 +100,13 @@ async function main() {
           description: randomElement(DESCRIPTIONS),
           status: status as IncidentStatus,
           priority: priority as Priority,
-          latitude: location.lat + (Math.random() - 0.5) * 0.1, // Add some randomness
-          longitude: location.lng + (Math.random() - 0.5) * 0.1,
+          location: {
+            type: 'Point',
+            coordinates: [
+              location.lng + (Math.random() - 0.5) * 0.1,
+              location.lat + (Math.random() - 0.5) * 0.1
+            ]
+          },
           createdAt,
         };
 

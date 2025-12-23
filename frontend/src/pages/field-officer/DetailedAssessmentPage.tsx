@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
-import { mockTasks } from '../../mocks/dashboardData';
+import { tasksApi } from '../../api/tasks';
+import type { Task } from '../../types';
 import { AssessmentSteps } from './AssessmentSteps';
 import './DetailedAssessmentPage.css';
 
@@ -49,8 +50,9 @@ export interface AssessmentData {
 export function DetailedAssessmentPage() {
   const { taskId } = useParams<{ taskId: string }>();
   const navigate = useNavigate();
-  const task = mockTasks.find(t => t.id === Number(taskId));
 
+  const [task, setTask] = useState<Task | null>(null);
+  const [taskLoading, setTaskLoading] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 8;
   const [editMode, setEditMode] = useState(false);
@@ -68,10 +70,26 @@ export function DetailedAssessmentPage() {
     personnel: '', budget: '', additionalComments: ''
   });
 
+  // Fetch task from API
+  useEffect(() => {
+    if (taskId) {
+      setTaskLoading(true);
+      tasksApi.getById(taskId)
+        .then(taskData => {
+          setTask(taskData);
+          setTaskLoading(false);
+        })
+        .catch(error => {
+          console.error('Failed to load task:', error);
+          setTaskLoading(false);
+        });
+    }
+  }, [taskId]);
+
   useEffect(() => {
     if (task && task.status === 'REVISION_REQUIRED') {
       setEditMode(true);
-      setSupervisorComments(task.supervisorComment || '');
+      // setSupervisorComments(task.supervisorComment || '');
       // TODO: Load saved assessment data and pre-fill form
     }
   }, [task]);
@@ -99,6 +117,16 @@ export function DetailedAssessmentPage() {
     alert('✅ ส่งรายงานฉบับเต็มสำเร็จ!');
     navigate('/dashboard/officer');
   };
+
+  if (taskLoading) {
+    return (
+      <DashboardLayout>
+        <div className="error-page">
+          <h2>⏳ กำลังโหลดข้อมูลงาน...</h2>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (!task) {
     return (
@@ -153,7 +181,7 @@ export function DetailedAssessmentPage() {
         )}
 
         <div className="assessment-content">
-          <AssessmentSteps 
+          <AssessmentSteps
             currentStep={currentStep}
             formData={formData}
             updateField={updateField}

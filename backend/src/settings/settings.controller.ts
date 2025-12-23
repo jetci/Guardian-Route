@@ -8,7 +8,10 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Param,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { SettingsService } from './settings.service';
 import { UpdateSettingsDto } from './dto/update-settings.dto';
@@ -23,7 +26,7 @@ import { Role } from '@prisma/client';
 @Roles(Role.ADMIN, Role.DEVELOPER)
 @Controller('settings')
 export class SettingsController {
-  constructor(private readonly settingsService: SettingsService) {}
+  constructor(private readonly settingsService: SettingsService) { }
 
   @Get()
   @ApiOperation({ summary: 'Get current system settings' })
@@ -55,6 +58,21 @@ export class SettingsController {
   @ApiResponse({ status: 500, description: 'Purge operation failed' })
   async purgeOldData() {
     return this.settingsService.purgeOldData();
+  }
+
+  @Get('backups')
+  @ApiOperation({ summary: 'List available backups' })
+  @ApiResponse({ status: 200, description: 'Returns list of backups' })
+  async getBackups() {
+    return this.settingsService.getBackups();
+  }
+
+  @Get('backups/:filename')
+  @ApiOperation({ summary: 'Download backup file' })
+  @ApiResponse({ status: 200, description: 'Returns backup file stream' })
+  async downloadBackup(@Param('filename') filename: string, @Res() res: Response) {
+    const filePath = this.settingsService.getBackupPath(filename);
+    res.download(filePath);
   }
 
   @Post('reset')

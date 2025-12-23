@@ -9,6 +9,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
+    "dev": "nest start --watch",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main.js",
@@ -17,7 +18,10 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "generate:openapi": "ts-node src/generate-openapi.ts",
+    "seed:field-officer": "ts-node prisma/seed-field-officer-data.ts",
+    "seed:all": "npx prisma db seed && npm run seed:field-officer"
   },
   "dependencies": {
     "@chakra-ui/react": "^2.10.9",
@@ -34,6 +38,7 @@
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/websockets": "^11.1.9",
     "@prisma/client": "^6.19.0",
+    "@turf/turf": "^7.3.1",
     "@types/uuid": "^10.0.0",
     "bcrypt": "^6.0.0",
     "class-transformer": "^0.5.1",
@@ -61,6 +66,7 @@
     "@types/node": "^22.10.7",
     "@types/passport-jwt": "^4.0.1",
     "@types/supertest": "^6.0.2",
+    "@types/turf": "^3.5.32",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",

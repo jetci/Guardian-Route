@@ -8,10 +8,12 @@ import {
   type UpdateReportDto,
 } from '../../types/Report';
 import { createReport, updateReport } from '../../api/reports';
+import ThaiDatePicker from '../ThaiDatePicker';
+import { FileText, DollarSign, Image, Calendar } from 'lucide-react';
 
 interface ReportFormProps {
-  report?: Report; // If editing
-  incidentId?: string; // If creating from incident
+  report?: Report;
+  incidentId?: string;
   onSuccess?: (report: Report) => void;
   onCancel?: () => void;
 }
@@ -45,55 +47,14 @@ const ReportForm: React.FC<ReportFormProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value, type } = e.target;
-    
-    setFormData((prev) => ({
-      ...prev,
-      [name]:
-        type === 'number'
-          ? value === ''
-            ? undefined
-            : parseFloat(value)
-          : value,
-    }));
-  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Validate required fields based on report type
-      if (formData.type === ReportType.INCIDENT && !formData.incidentId) {
-        throw new Error('กรุณาเลือกเหตุการณ์สำหรับรายงานประเภท INCIDENT');
-      }
-
-      if (
-        (formData.type === ReportType.MONTHLY || formData.type === ReportType.CUSTOM) &&
-        (!formData.periodStart || !formData.periodEnd)
-      ) {
-        throw new Error('กรุณาระบุช่วงเวลาสำหรับรายงานประเภท MONTHLY หรือ CUSTOM');
-      }
-
-      let result: Report;
-      
-      if (report) {
-        // Update existing report
-        result = await updateReport(report.id, formData as UpdateReportDto);
-      } else {
-        // Create new report
-        result = await createReport(formData);
-      }
-
-      if (onSuccess) {
-        onSuccess(result);
-      } else {
-        navigate(`/reports/${result.id}`);
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || err.message || 'เกิดข้อผิดพลาด');
-    } finally {
-      setLoading(false);
+    if (type === 'number') {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value === '' ? undefined : parseFloat(value),
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
@@ -105,126 +66,188 @@ const ReportForm: React.FC<ReportFormProps> = ({
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const photoUrls = formData.photoUrls
+        ? (Array.isArray(formData.photoUrls)
+          ? formData.photoUrls
+          : formData.photoUrls.split(',').map((url) => url.trim())
+        ).filter(Boolean)
+        : [];
+
+      const submitData: CreateReportDto | UpdateReportDto = {
+        ...formData,
+        photoUrls,
+      };
+
+      let result: Report;
+      if (report) {
+        result = await updateReport(report.id, submitData);
+      } else {
+        result = await createReport(submitData);
+      }
+
+      if (onSuccess) {
+        onSuccess(result);
+      } else {
+        navigate(`/reports/${result.id}`);
+      }
+    } catch (err: any) {
+      setError(err.message || 'เกิดข้อผิดพลาดในการบันทึกรายงาน');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-8 p-6">
       {/* Error Message */}
       {error && (
-        <div className="bg-red-50 border border-red-300 text-red-800 px-6 py-4 rounded-xl shadow-md font-medium">
+        <div className="bg-red-50 border-2 border-red-300 text-red-900 px-5 py-4 rounded-lg text-base">
           {error}
         </div>
       )}
 
-      {/* Report Type */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          ประเภทรายงาน <span className="text-red-500">*</span>
-        </label>
-        <select
-          name="type"
-          value={formData.type}
-          onChange={handleChange}
-          required
-          disabled={!!report} // Cannot change type when editing
-          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 transition-colors"
-        >
-          {Object.values(ReportType).map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
-          ))}
-        </select>
-      </div>
+      {/* Basic Information Section */}
+      <section className="bg-white rounded-lg border-2 border-gray-300 p-8">
+        <h3 className="text-xl font-bold text-gray-900 mb-6 pb-4 border-b-2 border-gray-400 flex items-center gap-2">
+          <FileText className="w-6 h-6" />
+          ข้อมูลพื้นฐาน
+        </h3>
 
-      {/* Title */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          ชื่อรายงาน <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          name="title"
-          value={formData.title}
-          onChange={handleChange}
-          required
-          placeholder="เช่น รายงานสรุปเหตุการณ์น้ำท่วม หมู่ 1"
-          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-        />
-      </div>
-
-      {/* Summary */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          สรุปรายงาน
-        </label>
-        <textarea
-          name="summary"
-          value={formData.summary}
-          onChange={handleChange}
-          rows={3}
-          placeholder="สรุปสั้นๆ เกี่ยวกับรายงาน"
-          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-        />
-      </div>
-
-      {/* Period (for MONTHLY and CUSTOM reports) */}
-      {(formData.type === ReportType.MONTHLY || formData.type === ReportType.CUSTOM) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-6">
+          {/* Report Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              วันที่เริ่มต้น <span className="text-red-500">*</span>
+            <label htmlFor="type" className="block text-base font-semibold text-gray-900 mb-3">
+              ประเภทรายงาน <span className="text-red-600">*</span>
+            </label>
+            <select
+              id="type"
+              name="type"
+              value={formData.type}
+              onChange={handleChange}
+              required
+              disabled={!!report}
+              className="w-full px-4 py-4 text-lg border-2 border-gray-400 rounded-lg text-gray-900
+                         focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500
+                         disabled:bg-gray-100 disabled:text-gray-500 transition-all"
+            >
+              {Object.values(ReportType).map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Title */}
+          <div>
+            <label htmlFor="title" className="block text-base font-semibold text-gray-900 mb-3">
+              ชื่อรายงาน <span className="text-red-600">*</span>
             </label>
             <input
-              type="datetime-local"
-              name="periodStart"
-              value={
-                formData.periodStart
-                  ? new Date(formData.periodStart).toISOString().slice(0, 16)
-                  : ''
-              }
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  periodStart: e.target.value ? new Date(e.target.value).toISOString() : '',
-                }))
-              }
+              id="title"
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              placeholder="เช่น รายงานสรุปเหตุการณ์น้ำท่วม หมู่ 1 บ้านเวียง"
+              className="w-full px-4 py-4 text-lg border-2 border-gray-400 rounded-lg text-gray-900 placeholder-gray-500
+                         focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all"
             />
           </div>
+
+          {/* Summary */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              วันที่สิ้นสุด <span className="text-red-500">*</span>
+            <label htmlFor="summary" className="block text-base font-semibold text-gray-900 mb-3">
+              สรุปรายงาน
             </label>
-            <input
-              type="datetime-local"
-              name="periodEnd"
-              value={
-                formData.periodEnd
-                  ? new Date(formData.periodEnd).toISOString().slice(0, 16)
-                  : ''
-              }
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  periodEnd: e.target.value ? new Date(e.target.value).toISOString() : '',
-                }))
-              }
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            <textarea
+              id="summary"
+              name="summary"
+              value={formData.summary}
+              onChange={handleChange}
+              rows={5}
+              placeholder="สรุปสั้นๆ เกี่ยวกับรายงาน เช่น สภาพความเสียหาย ผลกระทบต่อพื้นที่"
+              className="w-full px-4 py-4 text-lg border-2 border-gray-400 rounded-lg text-gray-900 placeholder-gray-500
+                         focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 
+                         transition-all resize-none"
             />
+            <p className="mt-3 text-sm text-gray-600 leading-relaxed">
+              กรอกสรุปรายงานเพื่อให้ผู้อ่านเข้าใจภาพรวมได้รวดเร็ว
+            </p>
           </div>
         </div>
+      </section>
+
+      {/* Period Selection Section (for MONTHLY and CUSTOM reports) */}
+      {(formData.type === ReportType.MONTHLY || formData.type === ReportType.CUSTOM) && (
+        <section className="bg-white rounded-lg border-2 border-gray-300 p-8">
+          <h3 className="text-xl font-bold text-gray-900 mb-6 pb-4 border-b-2 border-gray-400 flex items-center gap-2">
+            <Calendar className="w-6 h-6" />
+            ช่วงเวลารายงาน
+          </h3>
+
+          <div className="space-y-6">
+            {/* Start Date */}
+            <div>
+              <label className="block text-base font-semibold text-gray-900 mb-3">
+                วันที่เริ่มต้น <span className="text-red-600">*</span>
+              </label>
+              <ThaiDatePicker
+                id="period-start"
+                value={formData.periodStart ? new Date(formData.periodStart) : null}
+                onChange={(date) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    periodStart: date ? date.toISOString() : '',
+                  }))
+                }
+                placeholder="เลือกวันที่เริ่มต้น"
+              />
+            </div>
+
+            {/* End Date */}
+            <div>
+              <label className="block text-base font-semibold text-gray-900 mb-3">
+                วันที่สิ้นสุด <span className="text-red-600">*</span>
+              </label>
+              <ThaiDatePicker
+                id="period-end"
+                value={formData.periodEnd ? new Date(formData.periodEnd) : null}
+                onChange={(date) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    periodEnd: date ? date.toISOString() : '',
+                  }))
+                }
+                placeholder="เลือกวันที่สิ้นสุด"
+              />
+            </div>
+          </div>
+        </section>
       )}
 
-      {/* Damage Assessment */}
-      <div className="pt-6 border-t border-gray-200">
-        <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">ประเมินความเสียหาย</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Damage Assessment Section */}
+      <section className="bg-white rounded-lg border-2 border-gray-300 p-8">
+        <h3 className="text-xl font-bold text-gray-900 mb-6 pb-4 border-b-2 border-gray-400 flex items-center gap-2">
+          <DollarSign className="w-6 h-6" />
+          ประเมินความเสียหาย
+        </h3>
+
+        <div className="space-y-6">
+          {/* Total Damage */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              ความเสียหายโดยประมาณ (บาท)
+            <label htmlFor="totalDamageEstimate" className="block text-base font-semibold text-gray-900 mb-3">
+              ความเสียหาย (บาท)
             </label>
             <input
+              id="totalDamageEstimate"
               type="number"
               name="totalDamageEstimate"
               value={formData.totalDamageEstimate || ''}
@@ -232,84 +255,109 @@ const ReportForm: React.FC<ReportFormProps> = ({
               min="0"
               step="0.01"
               placeholder="0.00"
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-4 text-lg border-2 border-gray-400 rounded-lg text-gray-900 placeholder-gray-500
+                         focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all"
             />
           </div>
+
+          {/* Affected Households */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              จำนวนครัวเรือนที่ได้รับผลกระทบ
+            <label htmlFor="affectedHouseholds" className="block text-base font-semibold text-gray-900 mb-3">
+              จำนวนครัวเรือน
             </label>
             <input
+              id="affectedHouseholds"
               type="number"
               name="affectedHouseholds"
               value={formData.affectedHouseholds || ''}
               onChange={handleChange}
               min="0"
+              step="1"
               placeholder="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-4 text-lg border-2 border-gray-400 rounded-lg text-gray-900 placeholder-gray-500
+                         focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all"
             />
           </div>
+
+          {/* Affected Persons */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              จำนวนผู้ได้รับผลกระทบ (คน)
+            <label htmlFor="affectedPersons" className="block text-base font-semibold text-gray-900 mb-3">
+              จำนวนผู้ได้รับผลกระทบ
             </label>
             <input
+              id="affectedPersons"
               type="number"
               name="affectedPersons"
               value={formData.affectedPersons || ''}
               onChange={handleChange}
               min="0"
+              step="1"
               placeholder="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              className="w-full px-4 py-4 text-lg border-2 border-gray-400 rounded-lg text-gray-900 placeholder-gray-500
+                         focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all"
             />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Photo URLs */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          URL รูปภาพ (คั่นด้วย comma)
-        </label>
-        <textarea
-          name="photoUrls"
-          value={formData.photoUrls?.join(', ') || ''}
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              photoUrls: e.target.value
-                .split(',')
-                .map((url) => url.trim())
-                .filter((url) => url),
-            }))
-          }
-          rows={2}
-          placeholder="https://example.com/photo1.jpg, https://example.com/photo2.jpg"
-          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-        />
-        <p className="mt-2 text-sm text-gray-600">
-          ใส่ URL รูปภาพ คั่นด้วยเครื่องหมาย comma (,)
-        </p>
-      </div>
+      {/* Photo URLs Section */}
+      <section className="bg-white rounded-lg border-2 border-gray-300 p-8">
+        <h3 className="text-xl font-bold text-gray-900 mb-6 pb-4 border-b-2 border-gray-400 flex items-center gap-2">
+          <Image className="w-6 h-6" />
+          รูปภาพประกอบ
+        </h3>
+
+        <div>
+          <label htmlFor="photoUrls" className="block text-base font-semibold text-gray-900 mb-3">
+            URL รูปภาพ (คั่นด้วย comma)
+          </label>
+          <textarea
+            id="photoUrls"
+            name="photoUrls"
+            value={Array.isArray(formData.photoUrls) ? formData.photoUrls.join(', ') : formData.photoUrls}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                photoUrls: e.target.value,
+              }))
+            }
+            rows={4}
+            placeholder="https://example.com/photo1.jpg, https://example.com/photo2.jpg"
+            className="w-full px-4 py-4 text-lg border-2 border-gray-400 rounded-lg text-gray-900 placeholder-gray-500 font-mono
+                       focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-500 
+                       transition-all resize-none"
+          />
+          <p className="mt-3 text-sm text-gray-600 leading-relaxed">
+            ใส่ URL รูปภาพที่อัปโหลดแล้ว คั่นแต่ละรูปด้วย comma (,)
+          </p>
+        </div>
+      </section>
 
       {/* Action Buttons */}
-      <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+      <div className="flex flex-col sm:flex-row sm:justify-end gap-4 pt-8 border-t-2 border-gray-400">
         <button
           type="button"
           onClick={handleCancel}
           disabled={loading}
-          className="px-6 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 disabled:opacity-50 transition-colors font-medium shadow-sm"
+          className="w-full sm:w-auto px-6 py-3 min-h-[48px] border-2 border-gray-400 rounded-lg 
+                     text-base font-semibold text-gray-700 bg-white 
+                     hover:bg-gray-50 active:bg-gray-100 transition-all
+                     disabled:opacity-50 disabled:cursor-not-allowed"
         >
           ยกเลิก
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-colors font-medium shadow-md flex items-center"
+          className="w-full sm:w-auto px-6 py-3 min-h-[48px] bg-blue-600 text-white rounded-lg 
+                     text-base font-semibold shadow-md
+                     hover:bg-blue-700 active:bg-blue-800 transition-all
+                     disabled:opacity-50 disabled:cursor-not-allowed
+                     flex items-center justify-center gap-2"
         >
           {loading && (
             <svg
-              className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+              className="animate-spin h-5 w-5 text-white"
               fill="none"
               viewBox="0 0 24 24"
             >

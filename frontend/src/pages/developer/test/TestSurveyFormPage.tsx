@@ -1,8 +1,10 @@
 import { DashboardLayout } from '../../../components/layout/DashboardLayout';
+import { SurveyFormContent } from '../../../components/survey/SurveyFormContent';
 
 /**
  * Test: Survey Form Page
  * Developer shortcut to test the Survey Form with Leaflet Draw
+ * Uses SurveyFormContent component (without nested DashboardLayout)
  */
 export default function TestSurveyFormPage() {
     return (
@@ -20,40 +22,21 @@ export default function TestSurveyFormPage() {
                         🧪 Testing Mode: Survey Form
                     </h2>
                     <p style={{ margin: 0, opacity: 0.95 }}>
-                        นี่คือ Developer Shortcut - ทดสอบแผนที่สำรวจและ Leaflet Draw โดยตรง
+                        นี่คือ Developer Shortcut - ทดสอบแผนที่สำรวจและ Leaflet Geoman Draw โดยตรง
                     </p>
-                </div>
-
-                <div style={{
-                    background: 'white',
-                    padding: '3rem',
-                    borderRadius: '16px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                    textAlign: 'center'
-                }}>
-                    <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🗺️</div>
-                    <h3 style={{ fontSize: '1.5rem', color: '#1a202c', marginBottom: '1rem' }}>
-                        Survey Form Component
-                    </h3>
-                    <p style={{ color: '#718096', marginBottom: '2rem' }}>
-                        Survey Form component จะถูกเพิ่มที่นี่<br />
-                        สำหรับทดสอบการวาดแปลงที่ดินและบันทึกพิกัด GeoJSON
-                    </p>
-                    <div style={{
-                        background: '#f7fafc',
-                        padding: '1.5rem',
-                        borderRadius: '12px',
-                        border: '2px dashed #cbd5e0'
+                    <div style={{ 
+                        marginTop: '1rem', 
+                        padding: '0.75rem', 
+                        background: 'rgba(255,255,255,0.2)', 
+                        borderRadius: '8px',
+                        fontSize: '0.875rem'
                     }}>
-                        <p style={{ margin: 0, color: '#4a5568', fontSize: '0.875rem' }}>
-                            💡 <strong>Features to test:</strong><br />
-                            • Leaflet Draw tools (Polygon, Marker, etc.)<br />
-                            • GeoJSON export/import<br />
-                            • GPS location capture<br />
-                            • Form validation
-                        </p>
+                        ✅ <strong>Features:</strong> GPS Location • Geoman Drawing Tools • Village Boundaries • Area Calculation • Image Upload
                     </div>
                 </div>
+
+                {/* Render Survey Form Content (no nested DashboardLayout) */}
+                <SurveyFormContent />
             </div>
         </DashboardLayout>
     );

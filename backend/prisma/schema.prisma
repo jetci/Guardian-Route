@@ -9,51 +9,69 @@ datasource db {
 }
 
 model User {
-  id                 String           @id @default(uuid())
-  username           String           @unique
-  email              String           @unique
-  password           String
-  fullName           String           @map("full_name")
-  firstName          String?          @map("first_name")
-  lastName           String?          @map("last_name")
-  department         String?
-  phone              String?
-  profileImage       String?          @map("profile_image")
-  role               Role             @default(FIELD_OFFICER)
-  isActive           Boolean          @default(true) @map("is_active")
-  createdAt          DateTime         @default(now()) @map("created_at")
-  updatedAt          DateTime         @updatedAt @map("updated_at")
-  activityLogs       ActivityLog[]
-  assignedIncidents  Incident[]       @relation("AssignedIncidents")
-  createdIncidents   Incident[]       @relation("CreatedBy")
-  reviewedIncidents  Incident[]       @relation("ReviewedIncidents")
-  reports            Report[]         @relation("ReportAuthor")
-  reviewedReports    Report[]         @relation("ReviewedBy")
-  submittedResponses SurveyResponse[] @relation("SubmittedResponses")
-  createdSurveys     Survey[]         @relation("CreatedSurveys")
-  assignedTasks      Task[]           @relation("AssignedTo")
-  createdTasks       Task[]           @relation("TaskCreator")
-  userNotifications  UserNotification[]
+  id                      String             @id @default(uuid())
+  username                String             @unique
+  email                   String             @unique
+  password                String
+  fullName                String             @map("full_name")
+  firstName               String?            @map("first_name")
+  lastName                String?            @map("last_name")
+  department              String?
+  phone                   String?
+  role                    Role               @default(FIELD_OFFICER)
+  isActive                Boolean            @default(true) @map("is_active")
+  createdAt               DateTime           @default(now()) @map("created_at")
+  updatedAt               DateTime           @updatedAt @map("updated_at")
+  profileImage            String?            @map("profile_image")
+  password_reset_required Boolean            @default(false)
+  password_expires_at     DateTime?
+  password_last_changed   DateTime?
+  backup_codes            String[]           @default([])
+  mfa_enabled             Boolean            @default(false)
+  mfa_enabled_at          DateTime?
+  mfa_secret              String?
+  last_login_attempt      DateTime?
+  last_login_ip           String?
+  last_login_success      DateTime?
+  locked_until            DateTime?
+  login_attempts          Int                @default(0)
+  activityLogs            ActivityLog[]
+  assignedIncidents       Incident[]         @relation("AssignedIncidents")
+  createdIncidents        Incident[]         @relation("CreatedBy")
+  reviewedIncidents       Incident[]         @relation("ReviewedIncidents")
+  reports                 Report[]           @relation("ReportAuthor")
+  reviewedReports         Report[]           @relation("ReviewedBy")
+  sessions                sessions[]
+  submittedResponses      SurveyResponse[]   @relation("SubmittedResponses")
+  createdSurveys          Survey[]           @relation("CreatedSurveys")
+  assignedTasks           Task[]             @relation("AssignedTo")
+  createdTasks            Task[]             @relation("TaskCreator")
+  user_devices            user_devices[]
+  userNotifications       UserNotification[]
+  fieldSurveys            FieldSurvey[]      @relation("FieldSurveys")
 
   @@map("users")
 }
 
 model Village {
-  id             String     @id @default(uuid())
-  villageNo      Int        @unique @map("village_no")
-  name           String
-  alternateNames String[]   @map("alternate_names")
-  centerPoint    Json?      @map("center_point")
-  boundary       Json?
-  households     Int?
-  population     Int?
-  area           Decimal?   @db.Decimal(10, 2)
-  description    String?
-  createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
-  incidents      Incident[]
-  surveys        Survey[]
-  tasks          Task[]
+  id               String     @id @default(uuid())
+  villageNo        Int        @unique @map("village_no")
+  name             String
+  alternateNames   String[]   @map("alternate_names")
+  centerPoint      Json?      @map("center_point")
+  boundary         Json?
+  households       Int?
+  population       Int?
+  area             Decimal?   @db.Decimal(10, 2)
+  description      String?
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+  populationFemale Int?       @map("population_female")
+  populationMale   Int?       @map("population_male")
+  incidents        Incident[]
+  surveys          Survey[]
+  tasks            Task[]
+  fieldSurveys     FieldSurvey[]
 
   @@index([villageNo])
   @@map("villages")
@@ -87,6 +105,7 @@ model Incident {
   reports      Report[]
   surveys      Survey[]
   tasks        Task[]
+  fieldSurveys FieldSurvey[]
 
   @@index([status])
   @@index([priority])
@@ -119,6 +138,7 @@ model Task {
   createdBy      User         @relation("TaskCreator", fields: [createdById], references: [id])
   incident       Incident     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
   village        Village?     @relation(fields: [villageId], references: [id])
+  fieldSurveys   FieldSurvey[]
 
   @@index([status])
   @@index([priority])
@@ -296,6 +316,167 @@ model SystemConfig {
   @@map("system_config")
 }
 
+model Settings {
+  id                   String   @id @default(uuid())
+  systemName           String   @default("Guardian Route") @map("system_name")
+  timezone             String   @default("Asia/Bangkok")
+  maintenanceMode      Boolean  @default(false) @map("maintenance_mode")
+  maintenanceMessage   String?  @map("maintenance_message")
+  enforce2FA           Boolean  @default(false) @map("enforce_2fa")
+  minPasswordLength    Int      @default(8) @map("min_password_length")
+  sessionTimeout       Int      @default(30) @map("session_timeout")
+  ipAllowlist          String?  @map("ip_allowlist")
+  defaultLat           Float    @default(19.9167) @map("default_lat")
+  defaultLng           Float    @default(99.8833) @map("default_lng")
+  defaultZoom          Int      @default(13) @map("default_zoom")
+  defaultBaseLayer     String   @default("street") @map("default_base_layer")
+  customTileServer     String?  @map("custom_tile_server")
+  enableWeatherRadar   Boolean  @default(false) @map("enable_weather_radar")
+  emailOnNewIncident   Boolean  @default(true) @map("email_on_new_incident")
+  smsOnHighSeverity    Boolean  @default(false) @map("sms_on_high_severity")
+  dailyEmailSummary    Boolean  @default(true) @map("daily_email_summary")
+  enableLineNotify     Boolean  @default(false) @map("enable_line_notify")
+  lineNotifyToken      String?  @map("line_notify_token")
+  weatherApiKey        String?  @map("weather_api_key")
+  smsGatewayApiKey     String?  @map("sms_gateway_api_key")
+  maxRequestsPerMinute Int      @default(60) @map("max_requests_per_minute")
+  blockDuration        Int      @default(300) @map("block_duration")
+  dataRetentionDays    Int      @default(365) @map("data_retention_days")
+  backupFrequency      String   @default("daily") @map("backup_frequency")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  @@map("settings")
+}
+
+model Notification {
+  id                String               @id @default(uuid())
+  title             String
+  message           String
+  createdAt         DateTime             @default(now()) @map("created_at")
+  data              Json?
+  priority          NotificationPriority @default(NORMAL)
+  relatedEntityId   String?              @map("related_entity_id")
+  relatedEntityType String?              @map("related_entity_type")
+  type              NotificationType
+  userNotifications UserNotification[]
+
+  @@index([type])
+  @@index([priority])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model UserNotification {
+  id             String       @id @default(uuid())
+  userId         String       @map("user_id")
+  notificationId String       @map("notification_id")
+  isRead         Boolean      @default(false) @map("is_read")
+  readAt         DateTime?    @map("read_at")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, notificationId])
+  @@index([userId])
+  @@index([notificationId])
+  @@index([isRead])
+  @@map("user_notifications")
+}
+
+model audit_export_schedules {
+  id           String            @id
+  name         String
+  description  String?
+  frequency    ScheduleFrequency
+  day_of_week  Int?
+  day_of_month Int?
+  hour         Int               @default(9)
+  minute       Int               @default(0)
+  format       ExportFormat
+  filters      Json?
+  recipients   String[]
+  is_active    Boolean           @default(true)
+  created_by   String
+  created_at   DateTime          @default(now())
+  updated_at   DateTime
+  last_run_at  DateTime?
+  next_run_at  DateTime?
+}
+
+model sessions {
+  id               String   @id
+  user_id          String
+  token            String   @unique
+  device_id        String?
+  device_name      String?
+  ip_address       String?
+  user_agent       String?
+  last_activity_at DateTime @default(now())
+  expires_at       DateTime
+  is_active        Boolean  @default(true)
+  remember_device  Boolean  @default(false)
+  created_at       DateTime @default(now())
+  users            User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([device_id])
+  @@index([token])
+  @@index([user_id])
+}
+
+model user_devices {
+  id            String    @id
+  user_id       String
+  device_id     String
+  device_name   String?
+  user_agent    String
+  ip_address    String
+  is_trusted    Boolean   @default(false)
+  first_seen_at DateTime  @default(now())
+  last_seen_at  DateTime  @default(now())
+  last_location String?
+  notified_at   DateTime?
+  users         User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, device_id])
+  @@index([device_id])
+  @@index([user_id])
+}
+
+model FieldSurvey {
+  id                  String            @id @default(uuid())
+  fieldOfficerId      String            @map("field_officer_id")
+  taskId              String?           @map("task_id")
+  incidentId          String?           @map("incident_id")
+  villageId           String?           @map("village_id")
+  villageName         String            @map("village_name")
+  disasterType        String            @map("disaster_type")
+  severity            Int               // 1-5
+  estimatedHouseholds Int               @map("estimated_households")
+  notes               String            @db.Text
+  gpsLocation         Json              @map("gps_location")
+  polygon             Json?
+  areaSize            Decimal?          @map("area_size") @db.Decimal(10, 4)
+  photoUrls           String[]          @default([]) @map("photo_urls")
+  additionalData      Json?             @map("additional_data")
+  submittedAt         DateTime          @default(now()) @map("submitted_at")
+  updatedAt           DateTime          @updatedAt @map("updated_at")
+  status              FieldSurveyStatus @default(SUBMITTED)
+  
+  fieldOfficer User      @relation("FieldSurveys", fields: [fieldOfficerId], references: [id])
+  task         Task?     @relation(fields: [taskId], references: [id])
+  incident     Incident? @relation(fields: [incidentId], references: [id])
+  village      Village?  @relation(fields: [villageId], references: [id])
+  
+  @@index([fieldOfficerId])
+  @@index([taskId])
+  @@index([incidentId])
+  @@index([villageId])
+  @@index([submittedAt])
+  @@index([status])
+  @@map("field_surveys")
+}
+
 enum Role {
   FIELD_OFFICER
   SUPERVISOR
@@ -373,87 +554,12 @@ enum SurveyStatus {
   CANCELLED
 }
 
-model Settings {
-  id String @id @default(uuid())
-
-  // General (4)
-  systemName         String  @default("Guardian Route") @map("system_name")
-  timezone           String  @default("Asia/Bangkok")
-  maintenanceMode    Boolean @default(false) @map("maintenance_mode")
-  maintenanceMessage String? @map("maintenance_message")
-
-  // Security (4)
-  enforce2FA        Boolean @default(false) @map("enforce_2fa")
-  minPasswordLength Int     @default(8) @map("min_password_length")
-  sessionTimeout    Int     @default(30) @map("session_timeout")
-  ipAllowlist       String? @map("ip_allowlist")
-
-  // Map & GIS (6)
-  defaultLat          Float   @default(19.9167) @map("default_lat")
-  defaultLng          Float   @default(99.8833) @map("default_lng")
-  defaultZoom         Int     @default(13) @map("default_zoom")
-  defaultBaseLayer    String  @default("street") @map("default_base_layer")
-  customTileServer    String? @map("custom_tile_server")
-  enableWeatherRadar  Boolean @default(false) @map("enable_weather_radar")
-
-  // Notifications (5)
-  emailOnNewIncident Boolean @default(true) @map("email_on_new_incident")
-  smsOnHighSeverity  Boolean @default(false) @map("sms_on_high_severity")
-  dailyEmailSummary  Boolean @default(true) @map("daily_email_summary")
-  enableLineNotify   Boolean @default(false) @map("enable_line_notify")
-  lineNotifyToken    String? @map("line_notify_token")
-
-  // API (4)
-  weatherApiKey        String? @map("weather_api_key")
-  smsGatewayApiKey     String? @map("sms_gateway_api_key")
-  maxRequestsPerMinute Int     @default(60) @map("max_requests_per_minute")
-  blockDuration        Int     @default(300) @map("block_duration")
-
-  // Data (2)
-  dataRetentionDays Int    @default(365) @map("data_retention_days")
-  backupFrequency   String @default("daily") @map("backup_frequency")
-
-  updatedAt DateTime @updatedAt @map("updated_at")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("settings")
-}
-
-model Notification {
-  id                String               @id @default(uuid())
-  title             String
-  message           String
-  type              NotificationType
-  priority          NotificationPriority @default(NORMAL)
-  data              Json?
-  relatedEntityType String?              @map("related_entity_type")
-  relatedEntityId   String?              @map("related_entity_id")
-  createdAt         DateTime             @default(now()) @map("created_at")
-
-  userNotifications UserNotification[]
-
-  @@index([type])
-  @@index([priority])
-  @@index([createdAt])
-  @@map("notifications")
-}
-
-model UserNotification {
-  id             String        @id @default(uuid())
-  userId         String        @map("user_id")
-  notificationId String        @map("notification_id")
-  isRead         Boolean       @default(false) @map("is_read")
-  readAt         DateTime?     @map("read_at")
-  createdAt      DateTime      @default(now()) @map("created_at")
-
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, notificationId])
-  @@index([userId])
-  @@index([notificationId])
-  @@index([isRead])
-  @@map("user_notifications")
+enum FieldSurveyStatus {
+  DRAFT
+  SUBMITTED
+  REVIEWED
+  APPROVED
+  REJECTED
 }
 
 enum NotificationType {
@@ -476,4 +582,15 @@ enum NotificationPriority {
   NORMAL
   HIGH
   URGENT
+}
+
+enum ExportFormat {
+  CSV
+  PDF
+}
+
+enum ScheduleFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
 }
