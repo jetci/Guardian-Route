@@ -31,6 +31,7 @@ import { AssignIncidentDto } from './dto/assign-incident.dto';
 import { ReviewIncidentDto } from './dto/review-incident.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
+import { IdempotencyInterceptor } from '../common/interceptors/idempotency.interceptor';
 
 @ApiTags('incidents')
 @ApiBearerAuth()
@@ -51,6 +52,7 @@ export class IncidentsController {
 
   @Post()
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
+  @UseInterceptors(IdempotencyInterceptor) // ✅ Prevent duplicate submissions
   @ApiOperation({ summary: 'Create a new incident' })
   @ApiResponse({ status: 201, description: 'Incident created successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -63,24 +65,30 @@ export class IncidentsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all incidents with optional filters' })
+  @ApiOperation({ summary: 'Get all incidents with optional filters and pagination' })
   @ApiQuery({ name: 'status', enum: IncidentStatus, required: false })
   @ApiQuery({ name: 'priority', enum: Priority, required: false })
   @ApiQuery({ name: 'disasterType', enum: DisasterType, required: false })
   @ApiQuery({ name: 'villageId', type: String, required: false })
-  @ApiResponse({ status: 200, description: 'Return all incidents' })
+  @ApiQuery({ name: 'page', type: Number, required: false, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', type: Number, required: false, description: 'Items per page (default: 20, max: 100)' })
+  @ApiResponse({ status: 200, description: 'Return paginated incidents' })
   findAll(
     @Query('status') status?: IncidentStatus,
     @Query('priority') priority?: Priority,
     @Query('disasterType') disasterType?: DisasterType,
     @Query('villageId') villageId?: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
   ) {
     return this.incidentsService.findAll({
       status,
       priority,
       disasterType,
       villageId,
-    });
+      page: page ? Number(page) : undefined,
+      limit: limit ? Math.min(Number(limit), 100) : undefined,
+    } as any);
   }
 
   @Get('my')

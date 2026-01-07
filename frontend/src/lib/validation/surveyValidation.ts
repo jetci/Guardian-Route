@@ -22,6 +22,7 @@ export interface SurveyFormData {
     latitude?: number;
     longitude?: number;
     polygon?: any;
+    markers?: Array<{ id: string; lat: number; lng: number; label: string; note?: string }>; // Multi-marker support
 }
 
 export const validateSurveyForm = (data: SurveyFormData): ValidationErrors => {
@@ -54,9 +55,9 @@ export const validateSurveyForm = (data: SurveyFormData): ValidationErrors => {
         errors.notes = 'กรุณาระบุรายละเอียดอย่างน้อย 10 ตัวอักษร';
     }
 
-    // Location validation (GPS or Polygon required)
-    if (!data.latitude && !data.longitude && !data.polygon) {
-        errors.location = 'กรุณาระบุตำแหน่ง GPS หรือวาดพื้นที่บนแผนที่';
+    // Location validation - require GPS, polygon, OR markers
+    if (!data.latitude && !data.longitude && !data.polygon && (!data.markers || data.markers.length === 0)) {
+        errors.location = 'กรุณาระบุตำแหน่ง GPS, วาดพื้นที่บนแผนที่, หรือเพิ่มหมุดอย่างน้อย 1 จุด';
     }
 
     return errors;

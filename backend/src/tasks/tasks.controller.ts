@@ -21,7 +21,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 @UseGuards(JwtAuthGuard)
 @Controller('tasks')
 export class TasksController {
-  constructor(private readonly tasksService: TasksService) {}
+  constructor(private readonly tasksService: TasksService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create a new task' })
@@ -30,19 +30,23 @@ export class TasksController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all tasks with optional filters' })
+  @ApiOperation({ summary: 'Get all tasks with optional filters and pagination' })
   findAll(
     @Query('status') status?: TaskStatus,
     @Query('priority') priority?: string,
     @Query('incidentId') incidentId?: string,
     @Query('assignedToId') assignedToId?: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
   ) {
     return this.tasksService.findAll({
       status,
       priority,
       incidentId,
       assignedToId,
-    });
+      page: page ? Number(page) : undefined,
+      limit: limit ? Math.min(Number(limit), 100) : undefined,
+    } as any);
   }
 
   @Get('statistics')

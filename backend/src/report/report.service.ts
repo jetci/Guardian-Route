@@ -5,7 +5,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-// import { PdfGeneratorService } from './pdf-generator.service'; // TODO: Re-enable when PDF feature is needed
+import { PdfGeneratorService } from './pdf-generator.service'; // ✅ Enabled
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { CreateReportDto } from './dto/create-report.dto';
@@ -19,8 +19,8 @@ import { ReportStatus, ReportType, Role } from '@prisma/client';
 export class ReportService {
   constructor(
     private prisma: PrismaService,
-    // private pdfGeneratorService: PdfGeneratorService, // TODO: Re-enable when PDF feature is needed
-  ) {}
+    private pdfGeneratorService: PdfGeneratorService, // ✅ Enabled
+  ) { }
 
   /**
    * Create a new report
@@ -404,12 +404,10 @@ export class ReportService {
     });
   }
 
-  // TODO: Re-enable PDF generation when puppeteer is installed
   /**
    * Generate PDF for a report
    */
-  /*
-  async generatePdf(id: string, generatePdfDto: GeneratePdfDto) {
+  async generatePdf(id: string, generatePdfDto: GeneratePdfDto = {}) {
     const report = await this.findOne(id);
 
     // Check if PDF already exists and forceRegenerate is false
@@ -431,24 +429,17 @@ export class ReportService {
         data: { status: ReportStatus.GENERATING },
       });
 
-      // Generate HTML content
-      const html = this.pdfGeneratorService.generateReportHtml({
-        title: report.title,
-        summary: report.summary || undefined,
-        content: report.content || undefined,
-        createdAt: report.createdAt,
-        author: `${report.author.firstName || ''} ${report.author.lastName || ''}`.trim() || 'Unknown',
-      });
-
-      // Generate PDF
-      const pdfBuffer = await this.pdfGeneratorService.generatePdfFromHtml(html);
+      // Generate PDF using PdfGeneratorService
+      const pdfBuffer = await this.pdfGeneratorService.generateReportPdf(report);
 
       // Save PDF to file system
       const pdfDir = path.join(process.cwd(), 'uploads', 'reports');
       const filename = `report-${id}-${Date.now()}.pdf`;
       const filePath = path.join(pdfDir, filename);
-      
-      await this.pdfGeneratorService.savePdfToFile(pdfBuffer, filePath);
+
+      // Ensure directory exists
+      await fs.mkdir(pdfDir, { recursive: true });
+      await fs.writeFile(filePath, pdfBuffer);
 
       // Update report with PDF URL and status
       const pdfUrl = `/uploads/reports/${filename}`;
@@ -478,13 +469,12 @@ export class ReportService {
       );
     }
   }
-  */
 
   // TODO: Re-enable PDF download when puppeteer is installed
+
   /**
    * Download PDF of a report
    */
-  /*
   async downloadPdf(id: string): Promise<{ buffer: Buffer; filename: string }> {
     const report = await this.findOne(id);
 
@@ -504,7 +494,7 @@ export class ReportService {
       throw new NotFoundException('PDF file not found on server');
     }
   }
-  */
+
 
   /**
    * Get report statistics

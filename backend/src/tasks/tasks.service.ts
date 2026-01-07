@@ -14,7 +14,7 @@ export class TasksService {
     private notificationsService: NotificationsService,
     @Inject(forwardRef(() => NotificationsGateway))
     private notificationsGateway: NotificationsGateway,
-  ) {}
+  ) { }
 
   async create(createTaskDto: CreateTaskDto, createdById: string) {
     // Verify incident exists
@@ -54,7 +54,7 @@ export class TasksService {
           task.title,
           createTaskDto.assignedToId,
         );
-        
+
         // Send real-time notification via WebSocket
         if (notification) {
           this.notificationsGateway.sendToUser(createTaskDto.assignedToId, {
@@ -76,57 +76,84 @@ export class TasksService {
     priority?: string;
     incidentId?: string;
     assignedToId?: string;
+    page?: number;
+    limit?: number;
   }) {
+    const { page = 1, limit = 20, ...whereFilters } = filters || {};
+    const skip = (page - 1) * limit;
+
     const where: any = {};
 
-    if (filters.status) {
-      where.status = filters.status;
+    if (whereFilters.status) {
+      where.status = whereFilters.status;
     }
 
-    if (filters.priority) {
-      where.priority = filters.priority;
+    if (whereFilters.priority) {
+      where.priority = whereFilters.priority;
     }
 
-    if (filters.incidentId) {
-      where.incidentId = filters.incidentId;
+    if (whereFilters.incidentId) {
+      where.incidentId = whereFilters.incidentId;
     }
 
-    if (filters.assignedToId) {
-      where.assignedToId = filters.assignedToId;
+    if (whereFilters.assignedToId) {
+      where.assignedToId = whereFilters.assignedToId;
     }
 
-    const tasks = await this.prisma.task.findMany({
-      where,
-      orderBy: {
-        createdAt: 'desc',
+    // ✅ Fixed N+1 query: Use include instead of separate queries
+    const [data, total] = await Promise.all([
+      this.prisma.task.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          incident: {
+            select: {
+              id: true,
+              title: true,
+              status: true,
+              disasterType: true,
+            },
+          },
+          assignedTo: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              role: true,
+            },
+          },
+          createdBy: {
+            select: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              role: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      }),
+      this.prisma.task.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
       },
-    });
-
-    // Fetch related data separately
-    const tasksWithRelations = await Promise.all(
-      tasks.map(async (task) => {
-        const [incident, assignedTo, createdBy] = await Promise.all([
-          this.prisma.incident.findUnique({
-            where: { id: task.incidentId },
-            select: { id: true, title: true, status: true, disasterType: true },
-          }),
-          task.assignedToId
-            ? this.prisma.user.findUnique({
-                where: { id: task.assignedToId },
-                select: { id: true, email: true, firstName: true, lastName: true, role: true },
-              })
-            : null,
-          this.prisma.user.findUnique({
-            where: { id: task.createdById },
-            select: { id: true, email: true, firstName: true, lastName: true, role: true },
-          }),
-        ]);
-
-        return { ...task, incident, assignedTo, createdBy };
-      })
-    );
-
-    return tasksWithRelations;
+    };
   }
 
   async findOne(id: string) {
@@ -154,9 +181,9 @@ export class TasksService {
       }),
       task.assignedToId
         ? this.prisma.user.findUnique({
-            where: { id: task.assignedToId },
-            select: { id: true, email: true, firstName: true, lastName: true, role: true },
-          })
+          where: { id: task.assignedToId },
+          select: { id: true, email: true, firstName: true, lastName: true, role: true },
+        })
         : null,
       this.prisma.user.findUnique({
         where: { id: task.createdById },
@@ -169,7 +196,7 @@ export class TasksService {
 
   async update(id: string, updateTaskDto: UpdateTaskDto, userId: string, userRole: string) {
     const taskData = await this.prisma.task.findUnique({ where: { id } });
-    
+
     if (!taskData) {
       throw new NotFoundException('Task not found');
     }

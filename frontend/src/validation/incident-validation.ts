@@ -93,11 +93,11 @@ export function validateIncidentForm(data: IncidentFormData): IncidentValidation
   if (!data.polygonData) {
     errors.polygon = 'กรุณาวาดพื้นที่ที่ได้รับผลกระทบบนแผนที่';
   } else {
-    // Validate polygon has minimum points
+    // Validate polygon has minimum points (must be at least 4 points)
     try {
       const coords = data.polygonData?.geometry?.coordinates?.[0];
       if (!coords || coords.length < 4) {
-        errors.polygon = 'พื้นที่ต้องมีอย่างน้อย 3 จุด';
+        errors.polygon = 'พื้นที่ต้องมีอย่างน้อย 4 จุด';
       }
     } catch (e) {
       errors.polygon = 'ข้อมูลพื้นที่ไม่ถูกต้อง';

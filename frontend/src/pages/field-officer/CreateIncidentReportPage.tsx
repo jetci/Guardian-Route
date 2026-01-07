@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import 'leaflet-draw';
-import 'leaflet-draw/dist/leaflet.draw.css';
+import '@geoman-io/leaflet-geoman-free';
+import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { incidentService } from '../../services/incidentService';
 import ThaiDatePicker from '../../components/ThaiDatePicker';
 import { validateIncidentForm, hasValidationErrors, getFirstError, type IncidentValidationErrors } from '../../validation/incident-validation';
+import { VILLAGES } from '../../data/villages';
 import './InitialSurveyPage.css';
 
 // Fix Leaflet default marker icon issue
@@ -30,13 +31,14 @@ export function CreateIncidentReportPage() {
   const mapRef = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
   const currentMarkerRef = useRef<L.Marker | null>(null);
+  const villageRef = useRef<string>('');
 
   // Form state
   const [incidentDate, setIncidentDate] = useState<Date | null>(new Date());
-  const [disasterType, setDisasterType] = useState('น้ำท่วม');
+  const [disasterType, setDisasterType] = useState('');
   const [village, setVillage] = useState('');
   const [estimatedHouseholds, setEstimatedHouseholds] = useState('');
-  const [severity, setSeverity] = useState('3');
+  const [severity, setSeverity] = useState('');
   const [notes, setNotes] = useState('');
   const [photos, setPhotos] = useState<PhotoPreview[]>([]);
 
@@ -66,9 +68,9 @@ export function CreateIncidentReportPage() {
         polygonData,
         timestamp: Date.now()
       };
-      
+
       localStorage.setItem('incident-draft', JSON.stringify(draft));
-      toast.success('💾 บันทึกแบบร่างอัตโนมัติ', { 
+      toast.success('💾 บันทึกแบบร่างอัตโนมัติ', {
         duration: 2000,
         icon: '💾'
       });
@@ -76,9 +78,14 @@ export function CreateIncidentReportPage() {
 
     // Save every 30 seconds
     const interval = setInterval(saveDraft, 30000);
-    
+
     return () => clearInterval(interval);
   }, [incidentDate, disasterType, village, severity, estimatedHouseholds, notes, latitude, longitude, polygonData]);
+
+  // Sync village state to ref for event listeners
+  useEffect(() => {
+    villageRef.current = village;
+  }, [village]);
 
   // Load draft on mount
   useEffect(() => {
@@ -86,21 +93,21 @@ export function CreateIncidentReportPage() {
     if (draftStr) {
       try {
         const draft = JSON.parse(draftStr);
-        
+
         // Check if draft is not too old (24 hours)
         const age = Date.now() - draft.timestamp;
         if (age > 24 * 60 * 60 * 1000) {
           localStorage.removeItem('incident-draft');
           return;
         }
-        
+
         // Ask user if they want to restore
         const restore = window.confirm(
           'พบแบบร่างที่บันทึกไว้\n' +
           `บันทึกเมื่อ: ${new Date(draft.timestamp).toLocaleString('th-TH')}\n\n` +
           'ต้องการกู้คืนหรือไม่?'
         );
-        
+
         if (restore) {
           setIncidentDate(draft.incidentDate ? new Date(draft.incidentDate) : null);
           setDisasterType(draft.disasterType || 'น้ำท่วม');
@@ -111,7 +118,7 @@ export function CreateIncidentReportPage() {
           setLatitude(draft.latitude);
           setLongitude(draft.longitude);
           setPolygonData(draft.polygonData);
-          
+
           toast.success('✅ กู้คืนแบบร่างสำเร็จ');
         } else {
           localStorage.removeItem('incident-draft');
@@ -136,52 +143,112 @@ export function CreateIncidentReportPage() {
       map.addLayer(drawnItems);
       drawnItemsRef.current = drawnItems;
 
-      const drawControl = new L.Control.Draw({
-        draw: {
-          polygon: {
-            allowIntersection: false,
-            showArea: true,
-            drawError: {
-              color: '#e74c3c',
-              timeout: 1000
-            },
-            shapeOptions: {
-              color: '#667eea',
-              weight: 3,
-              fillOpacity: 0.2
-            },
-            repeatMode: false
-          },
-          polyline: false,
-          rectangle: false,
-          circle: false,
-          marker: false,
-          circlemarker: false
-        },
-        edit: {
-          featureGroup: drawnItems,
-          remove: true
+      // ✅ Add Leaflet-Geoman controls (modern drawing tools)
+      map.pm.addControls({
+        position: 'topleft',
+        drawMarker: true,
+        drawCircle: false,
+        drawCircleMarker: false,
+        drawPolyline: false,
+        drawRectangle: true,
+        drawPolygon: true,
+        editMode: true,
+        dragMode: true,
+        cutPolygon: false,
+        removalMode: true,
+        rotateMode: false,
+      });
+
+      // Set Geoman to work with our feature group
+      map.pm.setGlobalOptions({
+        layerGroup: drawnItems,
+      });
+
+      // ✅ Event: pm:drawstart - Check if village is selected
+      map.on('pm:drawstart', (e: any) => {
+        if (!villageRef.current) {
+          toast.error('กรุณาเลือกหมู่บ้านก่อนวาดพื้นที่', {
+            duration: 3000,
+            icon: '⚠️'
+          });
+
+          // Disable draw mode immediately
+          setTimeout(() => {
+            map.pm.disableDraw();
+          }, 10);
         }
       });
-      map.addControl(drawControl);
 
-      map.on(L.Draw.Event.CREATED, (e: any) => {
+      // ✅ Event: pm:create - FOR POLYGON/RECTANGLE ONLY
+      map.on('pm:create', (e: any) => {
         const layer = e.layer;
-        drawnItems.addLayer(layer);
-        const geoJSON = layer.toGeoJSON();
-        setPolygonData(geoJSON);
+        const shape = e.shape;
+
+        console.log('✅ pm:create fired:', shape);
+
+        // ✅ CRITICAL: Skip Marker
+        if (shape === 'Marker') {
+          console.log('ℹ️ Marker detected in pm:create - processing');
+          drawnItems.addLayer(layer);
+          return;
+        }
+
+        // ✅ Process Polygon/Rectangle here
+        if (shape === 'Polygon' || shape === 'Rectangle') {
+          console.log(`🔷 Processing ${shape} in pm:create`);
+
+          // Validate polygon points
+          const latlngs = (layer as any).getLatLngs();
+          const points = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
+
+          // ✅ ตรวจสอบว่ามีอย่างน้อย 4 จุด
+          if (!points || points.length < 4) {
+            console.warn('⚠️ Not enough points:', points?.length);
+            drawnItemsRef.current?.removeLayer(layer);
+            toast.error('❌ ต้องวาดอย่างน้อย 4 จุด\nปัจจุบันมี ' + (points?.length || 0) + ' จุด', {
+              duration: 3000,
+              icon: '⚠️'
+            });
+
+            // Disable draw mode
+            setTimeout(() => {
+              if (map.pm.globalDrawModeEnabled()) {
+                map.pm.disableDraw();
+              }
+            }, 100);
+            return;
+          }
+
+          console.log(`✅ Valid ${shape}:`, points.length, 'points');
+
+          // Convert to GeoJSON
+          const geojson = (layer as any).toGeoJSON();
+          setPolygonData(geojson);
+
+          toast.success(`✅ วาด${shape === 'Polygon' ? 'รูปหลายเหลี่ยม' : 'สี่เหลี่ยม'}สำเร็จ (${points.length} จุด)`, {
+            icon: '🎉'
+          });
+
+          console.log(`✅ ${shape} drawn successfully`);
+        }
       });
 
-      map.on(L.Draw.Event.EDITED, (e: any) => {
-        const layers = e.layers;
-        layers.eachLayer((layer: any) => {
+      // ✅ Handle shape edited (Geoman)
+      map.on('pm:edit', (e: any) => {
+        console.log('✏️ pm:edit event triggered');
+        const layer = e.layer;
+        if (layer) {
           const geoJSON = layer.toGeoJSON();
           setPolygonData(geoJSON);
-        });
+          toast.success('✏️ แก้ไขพื้นที่สำเร็จ');
+        }
       });
 
-      map.on(L.Draw.Event.DELETED, () => {
+      // ✅ Handle shape deleted (Geoman)
+      map.on('pm:remove', () => {
+        console.log('🗑️ pm:remove event triggered');
         setPolygonData(null);
+        toast('🗑️ ลบพื้นที่แล้ว', { icon: 'ℹ️' });
       });
 
       mapRef.current = map;
@@ -200,7 +267,7 @@ export function CreateIncidentReportPage() {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude: lat, longitude: lng, accuracy: acc } = position.coords;
-          
+
           setLatitude(lat);
           setLongitude(lng);
           setAccuracy(acc);
@@ -216,7 +283,7 @@ export function CreateIncidentReportPage() {
             toast(
               `⚠️ ความแม่นยำ GPS ปานกลาง (±${Math.round(acc)}m)\n` +
               'แนะนำให้ลองใหม่ที่โล่งกว่า หรือใช้ตำแหน่งนี้ได้',
-              { 
+              {
                 duration: 5000,
                 icon: '⚠️',
                 style: { background: '#fef3c7', color: '#92400e' }
@@ -254,12 +321,12 @@ export function CreateIncidentReportPage() {
             }).addTo(mapRef.current);
 
             // Update position when marker is dragged
-            marker.on('dragend', function() {
+            marker.on('dragend', function () {
               const position = marker.getLatLng();
               setLatitude(position.lat);
               setLongitude(position.lng);
             });
-            
+
             currentMarkerRef.current = marker;
             mapRef.current.setView([lat, lng], 15);
           }
@@ -288,13 +355,13 @@ export function CreateIncidentReportPage() {
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-      
+
       const newPhotos: PhotoPreview[] = files.map(file => ({
         file,
         preview: URL.createObjectURL(file),
         name: file.name
       }));
-      
+
       setPhotos(prev => [...prev, ...newPhotos]);
     }
   };
@@ -350,10 +417,10 @@ export function CreateIncidentReportPage() {
       };
 
       await incidentService.create(payload);
-      
+
       // Clear draft on success
       localStorage.removeItem('incident-draft');
-      
+
       toast.success('✅ รายงานเหตุการณ์ใหม่สำเร็จ!\nรายงานจะถูกส่งไปยังผู้บังคับบัญชา');
       navigate('/dashboard/officer');
     } catch (error) {
@@ -372,7 +439,7 @@ export function CreateIncidentReportPage() {
             <h2>➕ รายงานเหตุการณ์ใหม่</h2>
             <p className="task-title">สำหรับเหตุการณ์ที่พบในพื้นที่ (ไม่ผ่านการมอบหมาย)</p>
           </div>
-          <button 
+          <button
             className="cancel-btn"
             onClick={() => navigate('/dashboard/officer')}
           >
@@ -381,16 +448,13 @@ export function CreateIncidentReportPage() {
         </div>
 
         <div className="survey-content">
-          
+
           <div className="map-section">
             <div id="survey-map"></div>
-            
+
             <div className="map-controls">
               <button className="map-btn" onClick={getCurrentLocation} title="ระบุตำแหน่งปัจจุบัน">
                 📍 Get Location
-              </button>
-              <button className="map-btn" onClick={clearPolygon} title="ลบพื้นที่ที่วาด">
-                🗑️ Clear Area
               </button>
             </div>
 
@@ -402,7 +466,7 @@ export function CreateIncidentReportPage() {
           </div>
 
           <div className="form-section">
-            
+
             {latitude && longitude && (
               <div className="gps-info">
                 <h3>📍 พิกัดปัจจุบัน</h3>
@@ -415,7 +479,7 @@ export function CreateIncidentReportPage() {
             )}
 
             <form onSubmit={handleSubmit} className="survey-form">
-              
+
               <div className="form-group">
                 <label>วันที่เกิดเหตุ *</label>
                 <ThaiDatePicker
@@ -423,16 +487,18 @@ export function CreateIncidentReportPage() {
                   value={incidentDate}
                   onChange={setIncidentDate}
                   placeholder="เลือกวันที่เกิดเหตุ"
+                  maxDate={new Date()}
                 />
               </div>
 
               <div className="form-group">
                 <label>ประเภทภัย *</label>
-                <select 
+                <select
                   value={disasterType}
                   onChange={(e) => setDisasterType(e.target.value)}
                   required
                 >
+                  <option value="">-- เลือกประเภทภัย --</option>
                   <option>น้ำท่วม</option>
                   <option>ดินถลม</option>
                   <option>วาตภัย</option>
@@ -445,34 +511,40 @@ export function CreateIncidentReportPage() {
 
               <div className="form-group">
                 <label>หมู่บ้านที่ได้รับผลกระทบ *</label>
-                <input 
-                  type="text" 
-                  placeholder="เช่น บ้านหนองบัว หมู่ 3 ต.เวียง"
+                <select
                   value={village}
                   onChange={(e) => setVillage(e.target.value)}
-                  required 
-                />
+                  required
+                >
+                  <option value="">-- เลือกหมู่บ้าน --</option>
+                  {VILLAGES.map((v) => (
+                    <option key={v.id} value={`หมู่ ${v.moo} ${v.name}`}>
+                      หมู่ {v.moo} - {v.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="form-group">
                 <label>จำนวนครัวเรือน (ประมาณ) *</label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   min="0"
                   placeholder="0"
                   value={estimatedHouseholds}
                   onChange={(e) => setEstimatedHouseholds(e.target.value)}
-                  required 
+                  required
                 />
               </div>
 
               <div className="form-group">
                 <label>ความรุนแรง *</label>
-                <select 
+                <select
                   value={severity}
                   onChange={(e) => setSeverity(e.target.value)}
                   required
                 >
+                  <option value="">-- เลือกความรุนแรง --</option>
                   <option value="1">1 - เล็กน้อย</option>
                   <option value="2">2 - ปานกลาง</option>
                   <option value="3">3 - รุนแรง</option>
@@ -483,8 +555,8 @@ export function CreateIncidentReportPage() {
 
               <div className="form-group">
                 <label>หมายเหตุ</label>
-                <textarea 
-                  rows={3} 
+                <textarea
+                  rows={3}
                   placeholder="รายละเอียดเพิ่มเติม..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
@@ -493,24 +565,78 @@ export function CreateIncidentReportPage() {
 
               <div className="form-group">
                 <label>รูปถ่าย</label>
-                <input 
-                  type="file" 
-                  accept="image/*" 
-                  multiple 
+                <input
+                  id="camera-input"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
                   onChange={handlePhotoUpload}
-                  className="file-input"
+                  style={{ display: 'none' }}
                 />
-                <p className="help-text">อัปโหลดรูปภาพเหตุการณ์</p>
+                <input
+                  id="file-input"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handlePhotoUpload}
+                  style={{ display: 'none' }}
+                />
+
+                <div style={{ display: 'flex', gap: '10px', marginTop: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const input = document.getElementById('camera-input') as HTMLInputElement;
+                      if (input) input.click();
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      background: '#667eea',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '15px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    📷 ถ่ายรูป
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const input = document.getElementById('file-input') as HTMLInputElement;
+                      if (input) input.click();
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '12px',
+                      background: '#48bb78',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '15px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    📁 เลือกไฟล์
+                  </button>
+                </div>
+                <p className="help-text" style={{ marginTop: '8px', fontSize: '13px', color: '#718096' }}>
+                  รองรับไฟล์ภาพทุกประเภท
+                </p>
               </div>
 
               {photos.length > 0 && (
                 <div className="photo-preview">
                   {photos.map((photo, i) => (
                     <div key={i} className="photo-item">
-                      <img src={photo.preview} alt={`Photo ${i+1}`} />
-                      <button 
+                      <img src={photo.preview} alt={`Photo ${i + 1}`} />
+                      <button
                         type="button"
-                        className="remove-photo" 
+                        className="remove-photo"
                         onClick={() => removePhoto(i)}
                         title="ลบรูป"
                       >
@@ -525,8 +651,8 @@ export function CreateIncidentReportPage() {
                 ✅ ส่งรายงานเหตุการณ์
               </button>
 
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="cancel-btn"
                 onClick={() => navigate('/dashboard/officer')}
               >

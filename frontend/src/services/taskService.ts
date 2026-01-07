@@ -23,8 +23,10 @@ export const taskService = {
     try {
       // Get current user's tasks
       const response = await api.get('/tasks');
-      console.log('✅ Loaded my tasks from API:', response.data.length);
-      return response.data;
+      console.log('✅ Loaded my tasks from API:', response.data.length || response.data?.data?.length);
+      // Backend returns paginated response: { data: [], meta: {} }
+      // Extract data array for backward compatibility
+      return response.data?.data || response.data || [];
     } catch (error) {
       console.error('❌ Failed to load my tasks:', error);
       throw error;
@@ -36,7 +38,8 @@ export const taskService = {
    */
   getAll: async (params?: any) => {
     const response = await api.get('/tasks', { params });
-    return response.data;
+    // Backend returns paginated response: { data: [], meta: {} }
+    return response.data?.data || response.data || [];
   },
 
   /**

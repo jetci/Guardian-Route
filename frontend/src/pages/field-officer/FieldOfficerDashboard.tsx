@@ -39,14 +39,22 @@ export default function FieldOfficerDashboard() {
     try {
       setLoading(true);
 
+
       // Fetch my tasks from API
       const myTasks = await tasksApi.getMyTasks();
       console.log('✅ Loaded tasks from API:', myTasks.length);
 
-      // Sort by due date and take latest 10
-      const sortedTasks = myTasks
-        .sort((a, b) => new Date(a.dueDate || 0).getTime() - new Date(b.dueDate || 0).getTime())
-        .slice(0, 10);
+      // Filter only active tasks (exclude completed)
+      const activeTasks = myTasks.filter(t =>
+        t.status === 'PENDING' ||
+        t.status === 'IN_PROGRESS' ||
+        t.status === 'SURVEYED'
+      );
+
+      // Sort by created date (newest first) and take latest 6
+      const sortedTasks = activeTasks
+        .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+        .slice(0, 6);
 
       setTasks(sortedTasks);
 
@@ -151,7 +159,12 @@ export default function FieldOfficerDashboard() {
   );
 
   const inProgressTasks = useMemo(() =>
-    tasks.filter(t => t.status === 'IN_PROGRESS' || t.status === 'SURVEYED'),
+    tasks.filter(t => t.status === 'IN_PROGRESS'),
+    [tasks]
+  );
+
+  const surveyedTasks = useMemo(() =>
+    tasks.filter(t => t.status === 'SURVEYED'),
     [tasks]
   );
 
@@ -159,6 +172,23 @@ export default function FieldOfficerDashboard() {
     tasks.filter(t => t.status === 'COMPLETED'),
     [tasks]
   );
+
+  // Active tab state
+  const [activeTab, setActiveTab] = useState<'pending' | 'inProgress' | 'surveyed'>('pending');
+
+  // Get tasks for active tab
+  const getActiveTabTasks = () => {
+    switch (activeTab) {
+      case 'pending':
+        return pendingTasks;
+      case 'inProgress':
+        return inProgressTasks;
+      case 'surveyed':
+        return surveyedTasks;
+      default:
+        return pendingTasks;
+    }
+  };
 
   if (loading) {
     return (
@@ -179,8 +209,8 @@ export default function FieldOfficerDashboard() {
       <div className="field-officer-dashboard">
         {/* Header */}
         <div className="dashboard-header">
-          <h1>🎯 Field Officer Dashboard</h1>
-          <p className="subtitle">แดชบอร์ดเจ้าหน้าที่ภาคสนาม - ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่</p>
+          <h1>👨‍🚒 แดชบอร์ดเจ้าหน้าที่ภาคสนาม</h1>
+          <p className="subtitle">ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่</p>
         </div>
 
         {/* Weather Widget */}
@@ -227,67 +257,59 @@ export default function FieldOfficerDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="quick-actions-section">
-          <h2>⚡ Quick Actions</h2>
-          <div className="quick-actions-grid">
-            <button
-              className="action-btn primary"
-              onClick={() => navigate('/tasks/my-tasks')}
-            >
-              <span className="action-icon">📥</span>
-              <span className="action-text">รับงานใหม่</span>
-            </button>
 
-            <button
-              className="action-btn success"
-              onClick={() => navigate('/survey-area')}
-            >
-              <span className="action-icon">🔍</span>
-              <span className="action-text">สำรวจพื้นที่</span>
-            </button>
-
-            <button
-              className="action-btn info"
-              onClick={() => navigate('/survey-history')}
-            >
-              <span className="action-icon">📋</span>
-              <span className="action-text">ประวัติการสำรวจ</span>
-            </button>
-
-            <button
-              className="action-btn warning"
-              onClick={() => navigate('/field-officer/map')}
-            >
-              <span className="action-icon">🗺️</span>
-              <span className="action-text">แผนที่เหตุการณ์</span>
-            </button>
-          </div>
-        </div>
 
         {/* Main Content Grid */}
         <div className="content-grid">
-          {/* My Tasks List */}
-          <div className="content-card tasks-card">
+          {/* My Tasks List - Full Width with Tabs */}
+          <div className="content-card tasks-card full-width">
             <div className="card-header">
-              <h2>📋 งานของฉัน (My Tasks)</h2>
+              <h2>📋 งานของฉัน</h2>
               <button
                 className="btn-view-all"
                 onClick={() => navigate('/tasks/my-tasks')}
               >
-                ดูทั้งหมด →
+                ดูทั้งหมด ({stats.myTasks})
               </button>
             </div>
 
-            <div className="tasks-list">
-              {tasks.length === 0 ? (
+            {/* Task Status Tabs */}
+            <div className="task-tabs">
+              <button
+                className={`task-tab ${activeTab === 'pending' ? 'active' : ''}`}
+                onClick={() => setActiveTab('pending')}
+              >
+                <span className="tab-icon">⏳</span>
+                <span className="tab-label">รอดำเนินการ</span>
+                <span className="tab-count">{pendingTasks.length}</span>
+              </button>
+              <button
+                className={`task-tab ${activeTab === 'inProgress' ? 'active' : ''}`}
+                onClick={() => setActiveTab('inProgress')}
+              >
+                <span className="tab-icon">🔄</span>
+                <span className="tab-label">กำลังดำเนินการ</span>
+                <span className="tab-count">{inProgressTasks.length}</span>
+              </button>
+              <button
+                className={`task-tab ${activeTab === 'surveyed' ? 'active' : ''}`}
+                onClick={() => setActiveTab('surveyed')}
+              >
+                <span className="tab-icon">✅</span>
+                <span className="tab-label">สำรวจแล้ว</span>
+                <span className="tab-count">{surveyedTasks.length}</span>
+              </button>
+            </div>
+
+            <div className="tasks-grid">
+              {getActiveTabTasks().length === 0 ? (
                 <EmptyState
                   icon="clipboard"
-                  title="ไม่มีงานในขณะนี้"
-                  description="คุณไม่มีงานที่ต้องทำในขณะนี้ พักผ่อนหรือเตรียมพร้อมสำหรับงานถัดไป"
+                  title={`ไม่มีงาน${activeTab === 'pending' ? 'รอดำเนินการ' : activeTab === 'inProgress' ? 'กำลังดำเนินการ' : 'สำรวจแล้ว'}`}
+                  description="คุณไม่มีงานในสถานะนี้ในขณะนี้"
                 />
               ) : (
-                tasks.map(task => (
+                getActiveTabTasks().slice(0, 6).map(task => (
                   <div key={task.id} className="task-item">
                     <div className="task-header">
                       <span className="task-id">{task.id.substring(0, 8)}</span>
@@ -327,59 +349,7 @@ export default function FieldOfficerDashboard() {
             </div>
           </div>
 
-          {/* Completed Tasks */}
-          <div className="content-card reports-card">
-            <div className="card-header">
-              <h2>✅ งานที่เสร็จแล้ว (Completed Tasks)</h2>
-              <button
-                className="btn-view-all"
-                onClick={() => navigate('/tasks/my-tasks')}
-              >
-                ดูทั้งหมด →
-              </button>
-            </div>
 
-            <div className="reports-list">
-              {tasks.filter(t => t.status === 'COMPLETED').length === 0 ? (
-                <EmptyState
-                  icon="inbox"
-                  title="ยังไม่มีงานที่เสร็จ"
-                  description="เมื่อคุณทำงานเสร็จ งานที่เสร็จจะปรากฎที่นี่"
-                />
-              ) : (
-                tasks.filter(t => t.status === 'COMPLETED').slice(0, 5).map(task => (
-                  <div key={task.id} className="report-item">
-                    <div className="report-header">
-                      <span className="report-id">{task.id.substring(0, 8)}</span>
-                      <span className={`status-badge green`}>
-                        เสร็จสิ้น
-                      </span>
-                    </div>
-
-                    <h3 className="report-title">{task.title}</h3>
-
-                    <div className="report-meta">
-                      <span className="meta-item">
-                        📍 {task.village?.name || 'ไม่ระบุ'}
-                      </span>
-                      {task.completedAt && (
-                        <span className="meta-item">
-                          📅 {formatThaiDateShort(task.completedAt)}
-                        </span>
-                      )}
-                    </div>
-
-                    <button
-                      className="btn-view-report"
-                      onClick={() => navigate(`/tasks/${task.id}`)}
-                    >
-                      ดูรายละเอียด →
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Location Info */}

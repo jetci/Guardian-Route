@@ -348,6 +348,16 @@ export const VILLAGES: Village[] = [
       [19.8900, 99.2000],
       [19.9000, 99.2000]
     ]
+  },
+  {
+    id: 21,
+    name: 'แม่ใจเหนือ',
+    moo: 21,
+    lat: 19.9167,
+    lng: 99.2333,
+    population: 300,
+    households: 80,
+    boundary: []
   }
 ];
 

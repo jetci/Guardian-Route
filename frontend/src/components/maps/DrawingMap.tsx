@@ -4,6 +4,7 @@ import {
   TileLayer,
   Marker,
   Polygon,
+  Polyline,
   Popup,
   useMapEvents,
   useMap,
@@ -84,7 +85,7 @@ function DrawingControls({
             <Badge colorScheme="green">กำลังวาดพื้นที่</Badge>
             <Text fontSize="xs">จุดที่วาด: {polygonPoints}</Text>
             <HStack>
-              <Button size="xs" colorScheme="green" onClick={onComplete} isDisabled={polygonPoints < 3}>
+              <Button size="xs" colorScheme="green" onClick={onComplete} isDisabled={polygonPoints < 4}>
                 เสร็จสิ้น
               </Button>
               <Button size="xs" colorScheme="red" onClick={onClear}>
@@ -252,10 +253,10 @@ export const DrawingMap = ({
   };
 
   const handleCompletePolygon = () => {
-    if (polygonPoints.length < 3) {
+    if (polygonPoints.length < 4) {
       toast({
         title: 'จุดไม่เพียงพอ',
-        description: 'ต้องมีอย่างน้อย 3 จุดเพื่อสร้างพื้นที่',
+        description: 'ต้องมีอย่างน้อย 4 จุดเพื่อสร้างพื้นที่',
         status: 'warning',
         duration: 3000,
       });
@@ -353,8 +354,29 @@ export const DrawingMap = ({
           </Marker>
         )}
 
-        {/* Polygon */}
-        {polygonPoints.length > 0 && (
+        {/* Polygon or Polyline based on points count */}
+        {polygonPoints.length > 0 && polygonPoints.length < 4 && (
+          // Show as Polyline (open line) when less than 4 points
+          <Polyline
+            positions={polygonPoints}
+            pathOptions={{
+              color: '#f59e0b',
+              weight: 3,
+              dashArray: '10, 10',
+            }}
+          >
+            <Popup>
+              <VStack spacing={1} align="start">
+                <Text fontWeight="bold" color="orange.600">กำลังวาด (ยังไม่เสร็จ)</Text>
+                <Text fontSize="sm">จำนวนจุด: {polygonPoints.length}/4</Text>
+                <Text fontSize="xs" color="gray.600">ต้องการอย่างน้อย 4 จุด</Text>
+              </VStack>
+            </Popup>
+          </Polyline>
+        )}
+        
+        {polygonPoints.length >= 4 && (
+          // Show as Polygon (closed shape) when 5 or more points
           <Polygon
             positions={polygonPoints}
             pathOptions={{

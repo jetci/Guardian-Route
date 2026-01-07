@@ -72,9 +72,9 @@ export default function SurveyReviewPage() {
     setIsSaving(true);
     try {
       console.log('📋 Submitting survey to backend...', surveyData);
-      
+
       const response = await fieldSurveyApi.submitSurvey(surveyData);
-      
+
       console.log('✅ Survey saved successfully:', response);
 
       // Navigate to success page with saved data
@@ -92,9 +92,12 @@ export default function SurveyReviewPage() {
     }
   };
 
+
   const handleEdit = () => {
-    // Go back to form with data
-    navigate(-1);
+    // Pass survey data back to form via navigation state
+    navigate('/survey-area', {
+      state: { editData: surveyData }
+    });
   };
 
   return (
@@ -122,7 +125,7 @@ export default function SurveyReviewPage() {
         <div className="review-card">
           <div className="card-section">
             <h2 className="section-title">📍 ข้อมูลพื้นที่</h2>
-            
+
             {surveyData.additionalData?.surveyDate && (
               <div className="detail-row">
                 <div className="detail-label">วันที่สำรวจ</div>
@@ -135,18 +138,23 @@ export default function SurveyReviewPage() {
                 </div>
               </div>
             )}
-            
+
             <div className="detail-row">
               <div className="detail-label">หมู่บ้าน</div>
               <div className="detail-value highlight">{surveyData.villageName}</div>
             </div>
 
-            <div className="detail-row">
-              <div className="detail-label">พิกัด GPS</div>
-              <div className="detail-value">
-                {surveyData.gpsLocation.lat.toFixed(6)}, {surveyData.gpsLocation.lng.toFixed(6)}
-              </div>
-            </div>
+            {/* Only show GPS if coordinates are valid (not 0, 0) */}
+            {surveyData.gpsLocation &&
+              surveyData.gpsLocation.lat !== 0 &&
+              surveyData.gpsLocation.lng !== 0 && (
+                <div className="detail-row">
+                  <div className="detail-label">พิกัด GPS</div>
+                  <div className="detail-value">
+                    {surveyData.gpsLocation.lat.toFixed(6)}, {surveyData.gpsLocation.lng.toFixed(6)}
+                  </div>
+                </div>
+              )}
 
             {surveyData.additionalData?.locationName && (
               <div className="detail-row">
@@ -167,7 +175,7 @@ export default function SurveyReviewPage() {
 
           <div className="card-section">
             <h2 className="section-title">⚠️ ข้อมูลภัย</h2>
-            
+
             <div className="detail-row">
               <div className="detail-label">ประเภทภัย</div>
               <div className="detail-value">{getDisasterTypeLabel(surveyData.disasterType)}</div>
@@ -196,7 +204,7 @@ export default function SurveyReviewPage() {
               <div className="divider"></div>
               <div className="card-section">
                 <h2 className="section-title">💔 ผลกระทบ</h2>
-                
+
                 {surveyData.additionalData?.injured && surveyData.additionalData.injured > 0 && (
                   <div className="detail-row">
                     <div className="detail-label">ผู้บาดเจ็บ</div>

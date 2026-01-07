@@ -4,7 +4,8 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import ReactDOM from 'react-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { ThaiDateInput } from '../../components/field-officer/ThaiDateInput';
 import { MapInstructionsOverlay } from '../../components/field-officer/MapInstructionsOverlay';
@@ -21,11 +22,32 @@ import { fieldSurveyApi } from '../../api/fieldSurvey';
 
 export default function SurveyAreaPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const editData = location.state?.editData;
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
   const gpsMarkerRef = useRef<L.Marker | null>(null);
   const villageBoundariesRef = useRef<Map<number, L.GeoJSON>>(new Map());
+  const markersRef = useRef<Map<string, L.Marker>>(new Map()); // Store marker references
+  const dialogIsOpen = useRef<boolean>(false); // Prevent multiple pm:create events
+
+  // Multi-marker support
+  interface MarkerPoint {
+    id: string;
+    lat: number;
+    lng: number;
+    label: string;
+    note?: string;
+    createdAt: string;
+  }
+
+  const [markers, setMarkers] = useState<MarkerPoint[]>([]);
+  const [showMarkerDialog, setShowMarkerDialog] = useState(false);
+  const [tempMarkerPosition, setTempMarkerPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [editingMarker, setEditingMarker] = useState<MarkerPoint | null>(null);
+  const [markerLabel, setMarkerLabel] = useState('');
+  const [markerNote, setMarkerNote] = useState('');
 
   const [currentLocation, setCurrentLocation] = useState<{ lat: number, lng: number } | null>(null);
   const [drawnArea, setDrawnArea] = useState<any>(null);
@@ -39,13 +61,22 @@ export default function SurveyAreaPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
   const [surveyDate, setSurveyDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
+  // New fields to match review page expectations
+  const [incidentDate, setIncidentDate] = useState<string>('');
+  const [injured, setInjured] = useState<string>('');
+  const [deaths, setDeaths] = useState<string>('');
+  const [estimatedDamage, setEstimatedDamage] = useState<string>('');
+  const [locationName, setLocationName] = useState<string>('');
+  const [accuracy, setAccuracy] = useState<number | null>(null);
+
   const [formData, setFormData] = useState({
-    disasterType: '',
+    disasterType: '', // User must select
     otherDisasterType: '',
-    severity: '',
+    severity: '', // User must select
     village: '',
     description: '',
-    estimatedHouseholds: ''
+    estimatedHouseholds: '' // User must enter
   });
   const [showInstructions, setShowInstructions] = useState(false);
 
@@ -62,16 +93,62 @@ export default function SurveyAreaPage() {
     localStorage.setItem('survey-area-instructions-seen', 'true');
   };
 
-  // Auto-save draft every 30 seconds
+  // Auto-save draft every 10 seconds (faster than before)
   useEffect(() => {
     const autosaveInterval = setInterval(() => {
-      if (formData.village || formData.description) {
+      if (formData.village || formData.description || currentLocation || drawnArea) {
         saveDraft();
       }
-    }, 30000); // 30 seconds
+    }, 10000); // 10 seconds (was 30)
 
     return () => clearInterval(autosaveInterval);
   }, [formData, currentLocation, drawnArea, selectedImages]);
+
+  // Save draft when user leaves the page
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (formData.village || formData.description || currentLocation || drawnArea) {
+        saveDraft();
+        // Show warning if there's unsaved data
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [formData, currentLocation, drawnArea]);
+
+  // Debounced save on form changes (save 2 seconds after user stops typing)
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      if (formData.village || formData.description) {
+        saveDraft();
+      }
+    }, 2000); // 2 seconds after last change
+
+    return () => clearTimeout(debounceTimer);
+  }, [formData]);
+
+  // Debug: Log when showMarkerDialog changes
+  useEffect(() => {
+    console.log('🔔 showMarkerDialog changed:', showMarkerDialog);
+    if (showMarkerDialog) {
+      console.log('📍 Dialog should be visible now');
+      console.log('📍 tempMarkerPosition:', tempMarkerPosition);
+    } else {
+      console.log('❌ Dialog closed');
+      console.trace('Stack trace for dialog close:');
+    }
+  }, [showMarkerDialog]);
+
+  // Debug: Log when markerLabel changes
+  useEffect(() => {
+    console.log('✏️ markerLabel changed:', markerLabel);
+    if (markerLabel === '') {
+      console.trace('Stack trace for markerLabel clear:');
+    }
+  }, [markerLabel]);
 
   // Load draft on mount
   useEffect(() => {
@@ -86,14 +163,22 @@ export default function SurveyAreaPage() {
         drawnArea,
         areaSize,
         surveyDate,
+        selectedVillage: selectedVillage ? {
+          id: selectedVillage.id,
+          name: selectedVillage.name,
+          moo: selectedVillage.moo
+        } : null,
         // Don't save images to localStorage (too large)
         imageCount: selectedImages.length,
         savedAt: new Date().toISOString()
       };
       localStorage.setItem('survey-area-draft', JSON.stringify(draft));
-      console.log('💾 Draft saved automatically');
+      console.log('💾 Draft saved automatically at', new Date().toLocaleTimeString('th-TH'));
+
+      // Silent auto-save - no notification to avoid spam
     } catch (error) {
       console.error('Failed to save draft:', error);
+      toast.error('ไม่สามารถบันทึกแบบร่างได้');
     }
   };
 
@@ -122,6 +207,15 @@ export default function SurveyAreaPage() {
                       setDrawnArea(draft.drawnArea);
                       setAreaSize(draft.areaSize);
                       setSurveyDate(draft.surveyDate);
+
+                      // Restore village selection
+                      if (draft.selectedVillage) {
+                        const village = villages.find(v => v.id === draft.selectedVillage.id);
+                        if (village) {
+                          setSelectedVillage(village);
+                        }
+                      }
+
                       toast.dismiss(t.id);
                       toast.success('โหลดแบบร่างสำเร็จ');
                     }}
@@ -171,6 +265,73 @@ export default function SurveyAreaPage() {
       console.error('Failed to load draft:', error);
     }
   };
+
+  // Populate form when returning from review page with edit data
+  useEffect(() => {
+    if (editData && villages.length > 0) {
+      console.log('📝 Populating form with edit data:', editData);
+
+      // Set form data
+      setFormData({
+        disasterType: editData.disasterType || '',
+        otherDisasterType: editData.otherDisasterType || '',
+        severity: editData.severity?.toString() || '',
+        village: editData.villageName || '',
+        description: editData.notes || '',
+        estimatedHouseholds: editData.estimatedHouseholds?.toString() || ''
+      });
+
+      // Set GPS location
+      if (editData.gpsLocation && editData.gpsLocation.lat !== 0 && editData.gpsLocation.lng !== 0) {
+        setCurrentLocation({
+          lat: editData.gpsLocation.lat,
+          lng: editData.gpsLocation.lng
+        });
+      }
+
+      // Set other fields
+      if (editData.polygon) {
+        setDrawnArea(editData.polygon);
+      }
+      if (editData.areaSize) {
+        setAreaSize(editData.areaSize);
+      }
+      if (editData.additionalData?.surveyDate) {
+        setSurveyDate(editData.additionalData.surveyDate);
+      }
+      if (editData.additionalData?.incidentDate) {
+        setIncidentDate(editData.additionalData.incidentDate);
+      }
+      if (editData.additionalData?.injured !== undefined) {
+        setInjured(editData.additionalData.injured.toString());
+      }
+      if (editData.additionalData?.deaths !== undefined) {
+        setDeaths(editData.additionalData.deaths.toString());
+      }
+      if (editData.additionalData?.estimatedDamage !== undefined) {
+        setEstimatedDamage(editData.additionalData.estimatedDamage.toString());
+      }
+      if (editData.additionalData?.locationName) {
+        setLocationName(editData.additionalData.locationName);
+      }
+      if (editData.additionalData?.accuracy) {
+        setAccuracy(editData.additionalData.accuracy);
+      }
+
+      // Set village
+      const village = villages.find(v => v.id === editData.villageId || v.name === editData.villageName);
+      if (village) {
+        setSelectedVillage(village);
+      }
+
+      // Restore photos if available
+      // Note: Photo URLs are already in editData.photoUrls, but we can't restore File objects
+      // The user will see the existing photos in the review, but would need to re-upload if editing
+
+      toast.success('✅ โหลดข้อมูลเพื่อแก้ไขแล้ว');
+    }
+  }, [editData, villages]);
+
 
   // Initialize map
   useEffect(() => {
@@ -222,11 +383,18 @@ export default function SurveyAreaPage() {
       removalMode: true,
     });
 
-    // Tools are now controlled by village selection
-    // When a village is selected, tools are enabled in useEffect (line 220+)
-    // This provides better UX - tools are ready when user needs them
-    // No need to disable upfront since they start disabled by default
-    console.log('✅ Geoman controls added - tools will be enabled on village selection');
+    // ✅ DISABLE all tools by default - will be enabled when village is selected
+    setTimeout(() => {
+      if (map.pm && map.pm.Toolbar) {
+        map.pm.Toolbar.setButtonDisabled('drawPolygon', true);
+        map.pm.Toolbar.setButtonDisabled('drawRectangle', true);
+        map.pm.Toolbar.setButtonDisabled('drawMarker', true);
+        map.pm.Toolbar.setButtonDisabled('editMode', true);
+        map.pm.Toolbar.setButtonDisabled('dragMode', true);
+        map.pm.Toolbar.setButtonDisabled('removalMode', true);
+        console.log('🔒 All Geoman tools DISABLED by default - select village to enable');
+      }
+    }, 100);
 
 
     // Add Fullscreen Control
@@ -332,15 +500,27 @@ export default function SurveyAreaPage() {
 
   // Enable Geoman tools when a village is selected
   useEffect(() => {
-    if (!selectedVillage || !mapInstanceRef.current) {
-      console.log('⏭️ Skipping tool enable - no village or map:', { village: !!selectedVillage, map: !!mapInstanceRef.current });
+    const map = mapInstanceRef.current as any;
+
+    if (!selectedVillage || !map) {
+      console.log('⏭️ No village selected - disabling tools');
+
+      // ✅ DISABLE tools when no village is selected
+      if (map && map.pm && map.pm.Toolbar) {
+        map.pm.Toolbar.setButtonDisabled('drawPolygon', true);
+        map.pm.Toolbar.setButtonDisabled('drawRectangle', true);
+        map.pm.Toolbar.setButtonDisabled('drawMarker', true);
+        map.pm.Toolbar.setButtonDisabled('editMode', true);
+        map.pm.Toolbar.setButtonDisabled('dragMode', true);
+        map.pm.Toolbar.setButtonDisabled('removalMode', true);
+        console.log('🔒 All Geoman tools DISABLED');
+      }
       return;
     }
 
-    const map = mapInstanceRef.current as any;
     console.log('🔧 useEffect: Enabling Geoman tools for village:', selectedVillage.moo);
 
-    // Enable tools immediately without setTimeout
+    // ✅ ENABLE tools when village is selected
     if (map.pm && map.pm.Toolbar) {
       map.pm.Toolbar.setButtonDisabled('drawPolygon', false);
       map.pm.Toolbar.setButtonDisabled('drawRectangle', false);
@@ -348,7 +528,7 @@ export default function SurveyAreaPage() {
       map.pm.Toolbar.setButtonDisabled('editMode', false);
       map.pm.Toolbar.setButtonDisabled('dragMode', false);
       map.pm.Toolbar.setButtonDisabled('removalMode', false);
-      console.log('✅ All Geoman tools enabled');
+      console.log('🔓 All Geoman tools ENABLED');
 
       // Setup event listeners AFTER tools are enabled
       // Remove any existing listeners first to prevent duplicates
@@ -359,6 +539,35 @@ export default function SurveyAreaPage() {
       map.on('pm:create', (e: any) => {
         console.log('🎨 pm:create event fired!', e);
         const layer = e.layer;
+
+
+        // ✅ If it's a Marker, show dialog to add label
+        if (layer instanceof L.Marker) {
+          const latlng = layer.getLatLng();
+
+          // Remove the temporary marker from map
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.removeLayer(layer);
+          }
+
+          // ⚠️ CRITICAL: Prevent opening new dialog if one is already open
+          if (dialogIsOpen.current) {
+            console.log('⚠️ Dialog already open - ignoring pm:create event');
+            return;
+          }
+
+          // Store position and show dialog
+          setTempMarkerPosition({ lat: latlng.lat, lng: latlng.lng });
+          setMarkerLabel('');
+          setMarkerNote('');
+          setEditingMarker(null);
+          setShowMarkerDialog(true);
+          dialogIsOpen.current = true; // Mark as open
+
+          return; // Don't process as polygon
+        }
+
+        // For Polygon/Rectangle, set drawn area
         if (layer && typeof layer.toGeoJSON === 'function') {
           const geojson = layer.toGeoJSON();
           console.log('📍 Setting drawnArea:', geojson);
@@ -668,6 +877,187 @@ export default function SurveyAreaPage() {
     }
   };
 
+  // ========== MARKER MANAGEMENT FUNCTIONS ==========
+
+  // Save new marker or update existing
+  const handleSaveMarker = () => {
+    console.log('🔵 handleSaveMarker called');
+    console.log('📝 markerLabel:', markerLabel);
+    console.log('📍 tempMarkerPosition:', tempMarkerPosition);
+    console.log('🗺️ mapInstanceRef.current:', mapInstanceRef.current);
+
+    if (!markerLabel.trim()) {
+      toast.error('กรุณาใส่ชื่อจุด');
+      return;
+    }
+
+    if (!tempMarkerPosition) return;
+
+    if (editingMarker) {
+      // Update existing marker
+      const updatedMarkers = markers.map(m =>
+        m.id === editingMarker.id
+          ? { ...m, label: markerLabel, note: markerNote }
+          : m
+      );
+      setMarkers(updatedMarkers);
+
+      // Update marker on map
+      const leafletMarker = markersRef.current.get(editingMarker.id);
+      if (leafletMarker) {
+        leafletMarker.getPopup()?.setContent(`
+          <div style="min-width: 150px;">
+            <strong>${markerLabel}</strong><br/>
+            ${markerNote ? `<span style="font-size: 12px;">${markerNote}</span><br/>` : ''}
+            <small style="color: #666;">${tempMarkerPosition.lat.toFixed(6)}, ${tempMarkerPosition.lng.toFixed(6)}</small>
+          </div>
+        `);
+      }
+
+      toast.success('แก้ไขหมุดสำเร็จ');
+    } else {
+      // Add new marker
+      const newMarker: MarkerPoint = {
+        id: `marker-${Date.now()}`,
+        lat: tempMarkerPosition.lat,
+        lng: tempMarkerPosition.lng,
+        label: markerLabel,
+        note: markerNote,
+        createdAt: new Date().toISOString()
+      };
+
+      const updatedMarkers = [...markers, newMarker];
+      setMarkers(updatedMarkers);
+
+      // Add marker to map
+      addMarkerToMap(newMarker, updatedMarkers.length - 1);
+
+      toast.success(`เพิ่มหมุดที่ ${updatedMarkers.length}: ${markerLabel}`);
+    }
+
+    // Close dialog
+    console.log('🚪 Closing dialog');
+    setShowMarkerDialog(false);
+    setMarkerLabel('');
+    setMarkerNote('');
+    setTempMarkerPosition(null);
+    setEditingMarker(null);
+    dialogIsOpen.current = false; // Reset dialog state
+    console.log('✅ handleSaveMarker completed');
+  };
+
+  // Add marker to map with numbered pin
+  const addMarkerToMap = (marker: MarkerPoint, index: number) => {
+    console.log('🗺️ addMarkerToMap called');
+    console.log('📍 marker:', marker);
+    console.log('🔢 index:', index);
+    console.log('🗺️ mapInstanceRef.current:', mapInstanceRef.current);
+
+    if (!mapInstanceRef.current) {
+      console.error('❌ mapInstanceRef.current is null!');
+      return;
+    }
+
+    const markerIcon = L.divIcon({
+      className: 'custom-marker',
+      html: `
+        <div style="position: relative; width: 40px; height: 50px;">
+          <div style="
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 12px solid #3b82f6;
+          "></div>
+          <div style="
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
+            height: 32px;
+            background: #3b82f6;
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+          ">${index + 1}</div>
+        </div>
+      `,
+      iconSize: [40, 50],
+      iconAnchor: [20, 50]
+    });
+
+    console.log('🎨 Created marker icon');
+
+    const leafletMarker = L.marker([marker.lat, marker.lng], {
+      icon: markerIcon,
+      draggable: true
+    }).addTo(mapInstanceRef.current);
+
+    console.log('✅ Added marker to map');
+
+    // Bind popup
+    leafletMarker.bindPopup(`
+      <div style="min-width: 150px;">
+        <strong>${marker.label}</strong><br/>
+        ${marker.note ? `<span style="font-size: 12px;">${marker.note}</span><br/>` : ''}
+        <small style="color: #666;">${marker.lat.toFixed(6)}, ${marker.lng.toFixed(6)}</small>
+      </div>
+    `);
+
+    // Handle drag
+    leafletMarker.on('dragend', () => {
+      const pos = leafletMarker.getLatLng();
+      const updatedMarkers = markers.map(m =>
+        m.id === marker.id
+          ? { ...m, lat: pos.lat, lng: pos.lng }
+          : m
+      );
+      setMarkers(updatedMarkers);
+      toast.success('ปรับตำแหน่งหมุดแล้ว');
+    });
+
+    // Store reference
+    markersRef.current.set(marker.id, leafletMarker);
+    console.log('💾 Stored marker reference');
+  };
+
+  // Delete marker
+  const handleDeleteMarker = (markerId: string) => {
+    const updatedMarkers = markers.filter(m => m.id !== markerId);
+    setMarkers(updatedMarkers);
+
+    // Remove from map
+    const leafletMarker = markersRef.current.get(markerId);
+    if (leafletMarker && mapInstanceRef.current) {
+      mapInstanceRef.current.removeLayer(leafletMarker);
+      markersRef.current.delete(markerId);
+    }
+
+    toast.success('ลบหมุดแล้ว');
+  };
+
+  // Edit marker
+  const handleEditMarker = (marker: MarkerPoint) => {
+    setEditingMarker(marker);
+    setMarkerLabel(marker.label);
+    setMarkerNote(marker.note || '');
+    setTempMarkerPosition({ lat: marker.lat, lng: marker.lng });
+    setShowMarkerDialog(true);
+  };
+
+  // ========== END MARKER MANAGEMENT ==========
+
   // Get current location
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
@@ -679,8 +1069,10 @@ export default function SurveyAreaPage() {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const { latitude, longitude } = position.coords;
+        const { latitude, longitude, accuracy: gpsAccuracy } = position.coords;
         setCurrentLocation({ lat: latitude, lng: longitude });
+        setAccuracy(gpsAccuracy); // Capture GPS accuracy
+
 
         if (mapInstanceRef.current) {
           mapInstanceRef.current.setView([latitude, longitude], 15);
@@ -690,15 +1082,53 @@ export default function SurveyAreaPage() {
             mapInstanceRef.current.removeLayer(gpsMarkerRef.current);
           }
 
-          // Add new marker
+          // Add new draggable marker with clear pin icon
           const newMarker = L.marker([latitude, longitude], {
+            draggable: true,
             icon: L.divIcon({
               className: 'custom-marker',
-              html: '<div style="background: #3b82f6; color: white; padding: 8px 12px; border-radius: 20px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">📍 ตำแหน่งปัจจุบัน</div>',
-              iconSize: [150, 40],
-              iconAnchor: [75, 40]
+              html: `
+                <div style="position: relative; width: 40px; height: 50px;">
+                  <div style="
+                    position: absolute;
+                    bottom: 0;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 0;
+                    height: 0;
+                    border-left: 8px solid transparent;
+                    border-right: 8px solid transparent;
+                    border-top: 12px solid #ef4444;
+                  "></div>
+                  <div style="
+                    position: absolute;
+                    bottom: 10px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 32px;
+                    height: 32px;
+                    background: #ef4444;
+                    border: 3px solid white;
+                    border-radius: 50%;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 18px;
+                  ">📍</div>
+                </div>
+              `,
+              iconSize: [40, 50],
+              iconAnchor: [20, 50]
             })
           }).addTo(mapInstanceRef.current);
+
+          // Update location when marker is dragged
+          newMarker.on('dragend', () => {
+            const pos = newMarker.getLatLng();
+            setCurrentLocation({ lat: pos.lat, lng: pos.lng });
+            toast.success(`📍 ปรับตำแหน่ง: ${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)}`);
+          });
 
           gpsMarkerRef.current = newMarker;
         }
@@ -736,14 +1166,44 @@ export default function SurveyAreaPage() {
         mapInstanceRef.current.removeLayer(gpsMarkerRef.current);
       }
 
-      // Add new draggable marker
+      // Add new draggable marker with clear pin icon
       const newMarker = L.marker([lat, lng], {
         draggable: true,
         icon: L.divIcon({
           className: 'custom-marker',
-          html: '<div style="background: #3b82f6; color: white; padding: 8px 12px; border-radius: 20px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.3);">📍 ตำแหน่งปัจจุบัน</div>',
-          iconSize: [150, 40],
-          iconAnchor: [75, 40]
+          html: `
+            <div style="position: relative; width: 40px; height: 50px;">
+              <div style="
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 0;
+                height: 0;
+                border-left: 8px solid transparent;
+                border-right: 8px solid transparent;
+                border-top: 12px solid #ef4444;
+              "></div>
+              <div style="
+                position: absolute;
+                bottom: 10px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 32px;
+                height: 32px;
+                background: #ef4444;
+                border: 3px solid white;
+                border-radius: 50%;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+              ">📍</div>
+            </div>
+          `,
+          iconSize: [40, 50],
+          iconAnchor: [20, 50]
         })
       }).addTo(mapInstanceRef.current!);
 
@@ -780,7 +1240,8 @@ export default function SurveyAreaPage() {
       notes: formData.description,
       latitude: currentLocation?.lat,
       longitude: currentLocation?.lng,
-      polygon: drawnArea
+      polygon: drawnArea,
+      markers: markers // ✅ Include markers for validation
     });
 
     if (Object.keys(errors).length > 0) {
@@ -917,6 +1378,12 @@ export default function SurveyAreaPage() {
         photoUrls: photoUrls,
         additionalData: {
           surveyDate: surveyDate, // วันที่สำรวจ
+          incidentDate: incidentDate, // วันที่เกิดเหตุ
+          injured: injured ? parseInt(injured) : 0, // ผู้บาดเจ็บ
+          deaths: deaths ? parseInt(deaths) : 0, // ผู้เสียชีวิต
+          estimatedDamage: estimatedDamage ? parseFloat(estimatedDamage) : 0, // ความเสียหาย
+          locationName: locationName, // ชื่อตำแหน่ง
+          accuracy: accuracy, // ความแม่นยำ GPS
         }
       };
 
@@ -1008,6 +1475,7 @@ export default function SurveyAreaPage() {
               <button
                 onClick={handleGetLocation}
                 disabled={!selectedVillage}
+                title={!selectedVillage ? 'กรุณาเลือกหมู่บ้านก่อนใช้งาน' : 'คลิกเพื่อค้นหาตำแหน่งปัจจุบัน'}
                 style={{
                   padding: '10px 20px',
                   background: !selectedVillage ? '#94a3b8' : '#10b981',
@@ -1016,7 +1484,8 @@ export default function SurveyAreaPage() {
                   borderRadius: '8px',
                   fontWeight: '600',
                   cursor: !selectedVillage ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)',
+                  transition: 'all 0.3s ease'
                 }}
               >
                 📍 Get Location
@@ -1024,6 +1493,7 @@ export default function SurveyAreaPage() {
               <button
                 onClick={handleManualPin}
                 disabled={!selectedVillage || isManualPinMode}
+                title={!selectedVillage ? 'กรุณาเลือกหมู่บ้านก่อนใช้งาน' : 'คลิกเพื่อปักหมุดบนแผนที่'}
                 style={{
                   padding: '10px 16px',
                   background: (!selectedVillage || isManualPinMode) ? '#94a3b8' : '#0ea5e9',
@@ -1033,7 +1503,8 @@ export default function SurveyAreaPage() {
                   fontWeight: '600',
                   cursor: (!selectedVillage || isManualPinMode) ? 'not-allowed' : 'pointer',
                   fontSize: '13px',
-                  boxShadow: '0 2px 8px rgba(14, 165, 233, 0.3)'
+                  boxShadow: '0 2px 8px rgba(14, 165, 233, 0.3)',
+                  transition: 'all 0.3s ease'
                 }}
               >
                 📌 ปักหมุดเอง
@@ -1041,32 +1512,70 @@ export default function SurveyAreaPage() {
             </div>
           </div>
 
-          {/* Village Selector */}
-          <div style={{ marginBottom: '16px', padding: '16px', background: '#f0f9ff', borderRadius: '8px', border: '2px solid #bfdbfe' }}>
-            <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px', color: '#1e40af' }}>
-              🏘️ เลือกหมู่บ้าน *
-            </label>
-            <select
-              value={selectedVillage?.id || ''}
-              onChange={(e) => handleVillageSelect(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '2px solid #3b82f6',
-                borderRadius: '8px',
+          {/* Village Selector with Alert */}
+          <div style={{ marginBottom: '16px' }}>
+            {!selectedVillage && (
+              <div style={{
+                padding: '16px',
+                background: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+                borderRadius: '12px',
+                border: '2px solid #f59e0b',
+                marginBottom: '16px',
+                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.2)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '32px' }}>⚠️</span>
+                  <div>
+                    <div style={{ fontWeight: '700', fontSize: '16px', color: '#92400e', marginBottom: '4px' }}>
+                      กรุณาเลือกหมู่บ้านก่อนเริ่มสำรวจ
+                    </div>
+                    <div style={{ fontSize: '14px', color: '#78350f' }}>
+                      เครื่องมือวาดขอบเขตและปักหมุดจะใช้งานได้หลังจากเลือกหมู่บ้านแล้ว
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div style={{
+              padding: '16px',
+              background: selectedVillage ? '#f0fdf4' : '#f0f9ff',
+              borderRadius: '8px',
+              border: selectedVillage ? '2px solid #86efac' : '2px solid #bfdbfe',
+              transition: 'all 0.3s ease'
+            }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                fontWeight: '600',
                 fontSize: '14px',
-                fontWeight: '500',
-                background: 'white'
-              }}
-              required
-            >
-              <option value="">-- เลือกหมู่บ้าน หรือคลิกบนแผนที่ --</option>
-              {villages.map(v => (
-                <option key={v.id} value={v.id}>
-                  หมู่ {v.moo} - {v.name} {v.households ? `(${v.households} ครัวเรือน)` : ''}
-                </option>
-              ))}
-            </select>
+                color: selectedVillage ? '#16a34a' : '#1e40af'
+              }}>
+                🏘️ เลือกหมู่บ้าน * {selectedVillage && '✅'}
+              </label>
+              <select
+                value={selectedVillage?.id || ''}
+                onChange={(e) => handleVillageSelect(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  border: selectedVillage ? '2px solid #10b981' : '2px solid #3b82f6',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  background: 'white',
+                  transition: 'all 0.3s ease'
+                }}
+                required
+              >
+                <option value="">-- เลือกหมู่บ้าน หรือคลิกบนแผนที่ --</option>
+                {villages.map(v => (
+                  <option key={v.id} value={v.id}>
+                    หมู่ {v.moo} - {v.name} {v.households ? `(${v.households} ครัวเรือน)` : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {currentLocation && (
@@ -1106,6 +1615,245 @@ export default function SurveyAreaPage() {
             </ul>
           </div>
         </div>
+
+        {/* Marker Dialog - Using Portal to render outside component tree */}
+        {showMarkerDialog && ReactDOM.createPortal(
+          <div
+            onClick={(e) => {
+              // Only close if clicking on the backdrop, not the dialog content
+              if (e.target === e.currentTarget) {
+                console.log('🚫 Backdrop clicked - closing dialog');
+                setShowMarkerDialog(false);
+                setMarkerLabel('');
+                setMarkerNote('');
+                setTempMarkerPosition(null);
+                setEditingMarker(null);
+              }
+            }}
+            style={{
+              position: 'fixed',
+              top: '0',
+              left: '0',
+              right: '0',
+              bottom: '0',
+              background: 'rgba(0,0,0,0.5)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: '2147483647' // Maximum z-index value
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: 'white',
+                borderRadius: '16px',
+                padding: '24px',
+                maxWidth: '500px',
+                width: '90%',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
+              }}>
+              <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', color: '#1a202c' }}>
+                {editingMarker ? '✏️ แก้ไขหมุด' : '📍 เพิ่มหมุดใหม่'}
+              </h3>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>
+                  ชื่อจุด *
+                </label>
+                <input
+                  type="text"
+                  value={markerLabel}
+                  onChange={(e) => setMarkerLabel(e.target.value)}
+                  placeholder="เช่น บ้านนายสมชาย, ถนนสายหลัก"
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '2px solid #e2e8f0',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    outline: 'none'
+                  }}
+                  autoFocus
+                />
+              </div>
+
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>
+                  รายละเอียดเพิ่มเติม (ถ้ามี)
+                </label>
+                <textarea
+                  value={markerNote}
+                  onChange={(e) => setMarkerNote(e.target.value)}
+                  placeholder="เช่น ได้รับผลกระทบหนัก, น้ำท่วมสูง 50 ซม."
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '2px solid #e2e8f0',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    outline: 'none',
+                    resize: 'vertical',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+
+              {tempMarkerPosition && (
+                <div style={{
+                  padding: '12px',
+                  background: '#f7fafc',
+                  borderRadius: '8px',
+                  marginBottom: '16px',
+                  fontSize: '13px',
+                  color: '#4a5568'
+                }}>
+                  <strong>พิกัด:</strong> {tempMarkerPosition.lat.toFixed(6)}, {tempMarkerPosition.lng.toFixed(6)}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setShowMarkerDialog(false);
+                    setMarkerLabel('');
+                    setMarkerNote('');
+                    setTempMarkerPosition(null);
+                    setEditingMarker(null);
+                    dialogIsOpen.current = false; // Reset dialog state
+                  }}
+                  style={{
+                    padding: '10px 20px',
+                    background: '#e2e8f0',
+                    color: '#4a5568',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSaveMarker();
+                  }}
+                  style={{
+                    padding: '10px 20px',
+                    background: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)'
+                  }}
+                >
+                  {editingMarker ? 'บันทึกการแก้ไข' : 'เพิ่มหมุด'}
+                </button>
+              </div>
+            </div>
+          </div>,
+          // Render to fullscreen element if in fullscreen, otherwise to body
+          document.fullscreenElement || document.body
+        )}
+
+        {/* Marker List Panel */}
+        {markers.length > 0 && (
+          <div style={{ background: 'white', borderRadius: '16px', padding: '24px', marginBottom: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '16px' }}>
+              📍 จุดที่ทำเครื่องหมาย ({markers.length})
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {markers.map((marker, index) => (
+                <div
+                  key={marker.id}
+                  style={{
+                    padding: '16px',
+                    background: '#f7fafc',
+                    borderRadius: '12px',
+                    border: '2px solid #e2e8f0'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '24px',
+                          height: '24px',
+                          background: '#3b82f6',
+                          color: 'white',
+                          borderRadius: '50%',
+                          fontSize: '12px',
+                          fontWeight: 'bold'
+                        }}>
+                          {index + 1}
+                        </span>
+                        <strong style={{ fontSize: '16px', color: '#1a202c' }}>{marker.label}</strong>
+                      </div>
+                      {marker.note && (
+                        <p style={{ fontSize: '14px', color: '#4a5568', margin: '0 0 8px 32px' }}>
+                          {marker.note}
+                        </p>
+                      )}
+                      <div style={{ fontSize: '13px', color: '#718096', marginLeft: '32px' }}>
+                        📍 {marker.lat.toFixed(6)}, {marker.lng.toFixed(6)}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => handleEditMarker(marker)}
+                        style={{
+                          padding: '6px 12px',
+                          background: '#eff6ff',
+                          color: '#2563eb',
+                          border: '1px solid #bfdbfe',
+                          borderRadius: '6px',
+                          fontSize: '13px',
+                          cursor: 'pointer',
+                          fontWeight: '500'
+                        }}
+                      >
+                        ✏️ แก้ไข
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm(`ต้องการลบหมุด "${marker.label}" หรือไม่?`)) {
+                            handleDeleteMarker(marker.id);
+                          }
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          background: '#fef2f2',
+                          color: '#dc2626',
+                          border: '1px solid #fecaca',
+                          borderRadius: '6px',
+                          fontSize: '13px',
+                          cursor: 'pointer',
+                          fontWeight: '500'
+                        }}
+                      >
+                        🗑️ ลบ
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Form Section */}
         <div style={{ background: 'white', borderRadius: '16px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
@@ -1236,6 +1984,104 @@ export default function SurveyAreaPage() {
                   }}
                 />
               </div>
+
+              {/* New Fields - Added to match review page expectations */}
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>วันที่เกิดเหตุ</label>
+                <ThaiDateInput
+                  value={incidentDate}
+                  onChange={setIncidentDate}
+                  disabled={!selectedVillage}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>ชื่อตำแหน่ง</label>
+                <input
+                  type="text"
+                  value={locationName}
+                  onChange={(e) => setLocationName(e.target.value)}
+                  placeholder="เช่น บ้านเลขที่ 15, หน้าโรงเรียน"
+                  disabled={!selectedVillage}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #e2e8f0',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    background: !selectedVillage ? '#f3f4f6' : 'white',
+                    cursor: !selectedVillage ? 'not-allowed' : 'default',
+                    color: !selectedVillage ? '#9ca3af' : 'inherit'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>ผู้บาดเจ็บ</label>
+                <input
+                  type="number"
+                  value={injured}
+                  onChange={(e) => setInjured(e.target.value)}
+                  placeholder="0"
+                  min="0"
+                  disabled={!selectedVillage}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #e2e8f0',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    background: !selectedVillage ? '#f3f4f6' : 'white',
+                    cursor: !selectedVillage ? 'not-allowed' : 'default',
+                    color: !selectedVillage ? '#9ca3af' : 'inherit'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>ผู้เสียชีวิต</label>
+                <input
+                  type="number"
+                  value={deaths}
+                  onChange={(e) => setDeaths(e.target.value)}
+                  placeholder="0"
+                  min="0"
+                  disabled={!selectedVillage}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #e2e8f0',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    background: !selectedVillage ? '#f3f4f6' : 'white',
+                    cursor: !selectedVillage ? 'not-allowed' : 'default',
+                    color: !selectedVillage ? '#9ca3af' : 'inherit'
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>ความเสียหายโดยประมาณ (บาท)</label>
+                <input
+                  type="number"
+                  value={estimatedDamage}
+                  onChange={(e) => setEstimatedDamage(e.target.value)}
+                  placeholder="0"
+                  min="0"
+                  step="1000"
+                  disabled={!selectedVillage}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #e2e8f0',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    background: !selectedVillage ? '#f3f4f6' : 'white',
+                    cursor: !selectedVillage ? 'not-allowed' : 'default',
+                    color: !selectedVillage ? '#9ca3af' : 'inherit'
+                  }}
+                />
+              </div>
             </div>
 
             <div style={{ marginBottom: '20px' }}>
@@ -1261,7 +2107,9 @@ export default function SurveyAreaPage() {
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>อัปโหลดรูปภาพ</label>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', fontSize: '14px' }}>
+                📷 รูปภาพประกอบ (ถ่ายจากกล้องหรือเลือกจากเครื่อง)
+              </label>
               <input
                 type="file"
                 accept="image/*"
@@ -1283,7 +2131,7 @@ export default function SurveyAreaPage() {
                 style={{
                   width: '100%',
                   padding: '10px',
-                  border: '2px solid #e2e8f0',
+                  border: '2px dashed #cbd5e1',
                   borderRadius: '8px',
                   fontSize: '14px',
                   background: !selectedVillage ? '#f3f4f6' : 'white',

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { EmptyState } from '../../components/common';
@@ -66,8 +67,10 @@ export function ReportHistoryPage() {
     }
   };
 
+  const navigate = useNavigate();
+
   const handleViewReport = (id: number) => {
-    alert(`ดูรายงาน ID: ${id}\n(จะเปิดหน้ารายละเอียดรายงาน)`);
+    navigate(`/reports/${id}`);
   };
 
   const handleDownloadPDF = (id: number) => {

@@ -61,24 +61,33 @@ export function InitialSurveyPage() {
   useEffect(() => {
     if (task) {
       console.log('📋 Populating form from task:', task);
-      
+
       // Set disaster type from incident if available
       if (task.incident?.disasterType) {
-        setDisasterType(task.incident.disasterType);
+        const disasterMap: Record<string, string> = {
+          'FLOOD': 'น้ำท่วม',
+          'LANDSLIDE': 'ดินถลม',
+          'STORM': 'วาตภัย',
+          'FIRE': 'อัคคีภัย',
+          'EARTHQUAKE': 'แผ่นดินไหว',
+          'DROUGHT': 'ภัยแล้ง',
+          'OTHER': 'อื่นๆ'
+        };
+        setDisasterType(disasterMap[task.incident.disasterType] || task.incident.disasterType);
       }
-      
+
       // Set notes/description if available
       if (task.description) {
         setNotes(task.description);
       } else if (task.incident?.description) {
         setNotes(task.incident.description);
       }
-      
+
       // Set location from incident address if available
       if (task.incident?.address) {
         setLocationName(task.incident.address);
       }
-      
+
       // Set severity from incident priority if available
       if (task.incident?.priority) {
         // Map priority to severity number (1-5)
@@ -91,7 +100,19 @@ export function InitialSurveyPage() {
         };
         setSeverity(severityMap[task.incident.priority] || '3');
       }
-      
+
+      // Set incident date
+      if (task.incident?.reportedAt) {
+        setIncidentDate(new Date(task.incident.reportedAt));
+      } else if (task.createdAt) {
+        setIncidentDate(new Date(task.createdAt));
+      }
+
+      // Set estimated households from village data if available
+      if (task.village?.households) {
+        setEstimatedHouseholds(task.village.households.toString());
+      }
+
       console.log('✅ Form populated from task');
     }
   }, [task]);
@@ -137,26 +158,37 @@ export function InitialSurveyPage() {
   useEffect(() => {
     if (task && task.village && villages.length > 0) {
       console.log('🏘️ Populating village from task:', task.village);
-      
-      // Find matching village by ID
-      const matchingVillage = villages.find(v => v.id === task.village?.id);
-      
+
+      // Strategy 1: Match by ID (String/Number safe)
+      let matchingVillage = villages.find(v => v.id.toString() === task.village?.id?.toString());
+
+      // Strategy 2: Match by Name (Exact)
+      if (!matchingVillage && task.village?.name) {
+        matchingVillage = villages.find(v => v.name === task.village?.name);
+      }
+
+      // Strategy 3: Match by Name (Partial/Trimmed)
+      if (!matchingVillage && task.village?.name) {
+        const taskVillageName = task.village.name.trim();
+        matchingVillage = villages.find(v => v.name.includes(taskVillageName) || taskVillageName.includes(v.name));
+      }
+
+      // Strategy 4: Fallback - Parse from Task Title (e.g. "สำรวจพื้นที่ - แม่ใจเหนือ")
+      if (!matchingVillage && task.title) {
+        console.log('⚠️ No village relation found, trying to parse from title:', task.title);
+        const titleParts = task.title.split('-');
+        if (titleParts.length > 1) {
+          const potentialName = titleParts[titleParts.length - 1].trim(); // Get last part
+          console.log('🔍 Potential village name from title:', potentialName);
+          matchingVillage = villages.find(v => v.name.includes(potentialName) || potentialName.includes(v.name));
+        }
+      }
+
       if (matchingVillage) {
         setVillage(matchingVillage);
         console.log('✅ Village populated:', matchingVillage.name);
       } else {
-        // Try to find by name if ID doesn't match
-        const villageByName = villages.find(v => 
-          v.name === task.village?.name || 
-          v.name.includes(task.village?.name || '')
-        );
-        
-        if (villageByName) {
-          setVillage(villageByName);
-          console.log('✅ Village populated by name:', villageByName.name);
-        } else {
-          console.warn('⚠️ Village not found in list:', task.village);
-        }
+        console.warn('⚠️ Village not found in list:', task.village);
       }
     }
   }, [task, villages]);
@@ -176,180 +208,180 @@ export function InitialSurveyPage() {
       return;
     }
 
-      try {
-        console.log('🗺️ Initializing map...');
-        // Create map centered on Tambon Wiang, Fang District
-        const map = L.map('survey-map').setView([TAMBON_INFO.centerLat, TAMBON_INFO.centerLng], 13);
+    try {
+      console.log('🗺️ Initializing map...');
+      // Create map centered on Tambon Wiang, Fang District
+      const map = L.map('survey-map').setView([TAMBON_INFO.centerLat, TAMBON_INFO.centerLng], 13);
 
-        // Create tile layers
-        const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors',
-          maxZoom: 19
+      // Create tile layers
+      const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19
+      });
+
+      const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles © Esri',
+        maxZoom: 19
+      });
+
+      const hybridLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Labels © Esri',
+        maxZoom: 19
+      });
+
+      // Add default street layer
+      streetLayer.addTo(map);
+
+      // Store layer references
+      streetLayerRef.current = streetLayer;
+      satelliteLayerRef.current = satelliteLayer;
+      hybridLayerRef.current = hybridLayer;
+
+      // Add layer control
+      const baseMaps = {
+        "🗺️ แผนที่ถนน": streetLayer,
+        "🛰️ ดาวเทียม": satelliteLayer
+      };
+
+      const overlays = {
+        "🏷️ ชื่อสถานที่": hybridLayer
+      };
+
+      L.control.layers(baseMaps, overlays, { position: 'topright' }).addTo(map);
+
+      // Initialize Geoman controls - Create all tools first, then disable
+      (map as any).pm.addControls({
+        position: 'topleft',
+        drawCircle: true,
+        drawCircleMarker: false,
+        drawPolyline: true,
+        drawRectangle: true,
+        drawMarker: true,
+        drawPolygon: true,
+        drawText: true,
+        editMode: true,
+        dragMode: true,
+        cutPolygon: true,
+        removalMode: true,
+        rotateMode: true,
+      });
+
+      // Disable all Geoman tools initially using proper event
+      map.on('pm:globalremovalmodetoggled', () => {
+        console.log('Geoman removal mode toggled');
+      });
+
+      // Disable tools after Geoman is ready
+      requestAnimationFrame(() => {
+        Object.keys((map as any).pm.Toolbar.buttons).forEach(key => {
+          const button = (map as any).pm.Toolbar.buttons[key];
+          if (button && button.disable) {
+            button.disable();
+          }
         });
+      });
 
-        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-          attribution: 'Tiles © Esri',
-          maxZoom: 19
-        });
-
-        const hybridLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-          attribution: 'Labels © Esri',
-          maxZoom: 19
-        });
-
-        // Add default street layer
-        streetLayer.addTo(map);
-
-        // Store layer references
-        streetLayerRef.current = streetLayer;
-        satelliteLayerRef.current = satelliteLayer;
-        hybridLayerRef.current = hybridLayer;
-
-        // Add layer control
-        const baseMaps = {
-          "🗺️ แผนที่ถนน": streetLayer,
-          "🛰️ ดาวเทียม": satelliteLayer
-        };
-
-        const overlays = {
-          "🏷️ ชื่อสถานที่": hybridLayer
-        };
-
-        L.control.layers(baseMaps, overlays, { position: 'topright' }).addTo(map);
-
-        // Initialize Geoman controls - Create all tools first, then disable
-        (map as any).pm.addControls({
-          position: 'topleft',
-          drawCircle: true,
-          drawCircleMarker: false,
-          drawPolyline: true,
-          drawRectangle: true,
-          drawMarker: true,
-          drawPolygon: true,
-          drawText: true,
-          editMode: true,
-          dragMode: true,
-          cutPolygon: true,
-          removalMode: true,
-          rotateMode: true,
-        });
-
-        // Disable all Geoman tools initially using proper event
-        map.on('pm:globalremovalmodetoggled', () => {
-          console.log('Geoman removal mode toggled');
-        });
-        
-        // Disable tools after Geoman is ready
-        requestAnimationFrame(() => {
-          Object.keys((map as any).pm.Toolbar.buttons).forEach(key => {
-            const button = (map as any).pm.Toolbar.buttons[key];
-            if (button && button.disable) {
-              button.disable();
-            }
-          });
-        });
-
-        // Add Fullscreen control
-        const fullscreenControl = L.control({ position: 'topleft' } as any);
-        (fullscreenControl as any).onAdd = function () {
-          const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-          div.innerHTML = `
+      // Add Fullscreen control
+      const fullscreenControl = L.control({ position: 'topleft' } as any);
+      (fullscreenControl as any).onAdd = function () {
+        const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+        div.innerHTML = `
             <a href="#" class="leaflet-control-fullscreen" title="Toggle Fullscreen" role="button" aria-label="Toggle Fullscreen">
               <span style="font-size: 18px;">⛶</span>
             </a>
           `;
 
-          div.onclick = function (e) {
-            e.preventDefault();
-            const mapContainer = document.getElementById('survey-map');
-            if (mapContainer) {
-              if (!document.fullscreenElement) {
-                mapContainer.requestFullscreen().then(() => {
-                  requestAnimationFrame(() => map.invalidateSize());
-                });
-              } else {
-                document.exitFullscreen().then(() => {
-                  requestAnimationFrame(() => map.invalidateSize());
-                });
-              }
+        div.onclick = function (e) {
+          e.preventDefault();
+          const mapContainer = document.getElementById('survey-map');
+          if (mapContainer) {
+            if (!document.fullscreenElement) {
+              mapContainer.requestFullscreen().then(() => {
+                requestAnimationFrame(() => map.invalidateSize());
+              });
+            } else {
+              document.exitFullscreen().then(() => {
+                requestAnimationFrame(() => map.invalidateSize());
+              });
             }
-          };
-
-          return div;
-        };
-        fullscreenControl.addTo(map);
-
-        // Set global options with minimum vertex requirement
-        (map as any).pm.setGlobalOptions({
-          finishOn: 'dblclick', // ต้องดับเบิลคลิกเพื่อปิด polygon
-          allowSelfIntersection: false,
-          minRadiusCircle: 0,
-          minRadiusCircleMarker: 0,
-          editable: true,
-          draggable: true,
-          snapDistance: 20,
-          requireSnapToFinish: false,
-          continueDrawing: false,
-          templineStyle: {
-            color: '#667eea',
-          },
-          hintlineStyle: {
-            color: '#667eea',
-            dashArray: '5,5',
-          },
-        });
-
-        // Set polygon style
-        (map as any).pm.setPathOptions({
-          color: '#667eea',
-          fillColor: '#667eea',
-          fillOpacity: 0.2,
-          weight: 3,
-        });
-
-        // Handle polygon creation
-        map.on('pm:create', (e: any) => {
-          const layer = e.layer;
-          const geoJSON = layer.toGeoJSON();
-
-          // ตรวจสอบจำนวนจุดขั้นต่ำ (ต้องมีอย่างน้อย 4 จุด)
-          const coordinates = geoJSON.geometry.coordinates[0];
-          if (coordinates.length < 5) { // 5 เพราะจุดแรกและจุดสุดท้ายซ้ำกัน (closed polygon)
-            alert('⚠️ กรุณาวาดพื้นที่ให้มีอย่างน้อย 4 จุด');
-            map.removeLayer(layer);
-            return;
           }
+        };
 
-          setPolygonData(geoJSON);
+        return div;
+      };
+      fullscreenControl.addTo(map);
 
-          // Store reference for later removal
-          drawnItemsRef.current = layer;
-        });
+      // Set global options with minimum vertex requirement
+      (map as any).pm.setGlobalOptions({
+        finishOn: 'dblclick', // ต้องดับเบิลคลิกเพื่อปิด polygon
+        allowSelfIntersection: false,
+        minRadiusCircle: 0,
+        minRadiusCircleMarker: 0,
+        editable: true,
+        draggable: true,
+        snapDistance: 20,
+        requireSnapToFinish: false,
+        continueDrawing: false,
+        templineStyle: {
+          color: '#667eea',
+        },
+        hintlineStyle: {
+          color: '#667eea',
+          dashArray: '5,5',
+        },
+      });
 
-        // Handle polygon edit
-        map.on('pm:edit', (e: any) => {
-          const layer = e.layer;
-          const geoJSON = layer.toGeoJSON();
-          setPolygonData(geoJSON);
-        });
+      // Set polygon style
+      (map as any).pm.setPathOptions({
+        color: '#667eea',
+        fillColor: '#667eea',
+        fillOpacity: 0.2,
+        weight: 3,
+      });
 
-        // Handle polygon removal
-        map.on('pm:remove', () => {
-          setPolygonData(null);
-          drawnItemsRef.current = null;
-        });
+      // Handle polygon creation
+      map.on('pm:create', (e: any) => {
+        const layer = e.layer;
+        const geoJSON = layer.toGeoJSON();
 
-        mapRef.current = map;
+        // ตรวจสอบจำนวนจุดขั้นต่ำ (ต้องมีอย่างน้อย 4 จุด)
+        const coordinates = geoJSON.geometry.coordinates[0];
+        if (coordinates.length < 5) { // 5 เพราะจุดแรกและจุดสุดท้ายซ้ำกัน (closed polygon)
+          alert('⚠️ กรุณาวาดพื้นที่ให้มีอย่างน้อย 4 จุด');
+          map.removeLayer(layer);
+          return;
+        }
 
-        // Force map to resize after layout is ready
-        requestAnimationFrame(() => {
-          map.invalidateSize();
-        });
+        setPolygonData(geoJSON);
 
-        console.log('✅ Map initialized successfully');
-      } catch (error) {
-        console.error('❌ Error initializing map:', error);
-      }
+        // Store reference for later removal
+        drawnItemsRef.current = layer;
+      });
+
+      // Handle polygon edit
+      map.on('pm:edit', (e: any) => {
+        const layer = e.layer;
+        const geoJSON = layer.toGeoJSON();
+        setPolygonData(geoJSON);
+      });
+
+      // Handle polygon removal
+      map.on('pm:remove', () => {
+        setPolygonData(null);
+        drawnItemsRef.current = null;
+      });
+
+      mapRef.current = map;
+
+      // Force map to resize after layout is ready
+      requestAnimationFrame(() => {
+        map.invalidateSize();
+      });
+
+      console.log('✅ Map initialized successfully');
+    } catch (error) {
+      console.error('❌ Error initializing map:', error);
+    }
 
     return () => {
       if (mapRef.current) {

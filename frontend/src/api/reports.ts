@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { apiClient } from './client';
 import {
   type Report,
   type CreateReportDto,
@@ -11,21 +11,11 @@ import {
   type ReportListResponse,
 } from '../types/Report';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-
-// Get auth token from localStorage
-const getAuthHeader = () => {
-  const token = localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
 /**
  * Create a new report
  */
 export const createReport = async (data: CreateReportDto): Promise<Report> => {
-  const response = await axios.post(`${API_URL}/reports`, data, {
-    headers: getAuthHeader(),
-  });
+  const response = await apiClient.post('/reports', data);
   return response.data;
 };
 
@@ -35,8 +25,7 @@ export const createReport = async (data: CreateReportDto): Promise<Report> => {
 export const getReports = async (
   filters?: FilterReportDto
 ): Promise<ReportListResponse> => {
-  const response = await axios.get(`${API_URL}/reports`, {
-    headers: getAuthHeader(),
+  const response = await apiClient.get('/reports', {
     params: filters,
   });
   return response.data;
@@ -46,9 +35,7 @@ export const getReports = async (
  * Get a single report by ID
  */
 export const getReportById = async (id: string): Promise<Report> => {
-  const response = await axios.get(`${API_URL}/reports/${id}`, {
-    headers: getAuthHeader(),
-  });
+  const response = await apiClient.get(`/reports/${id}`);
   return response.data;
 };
 
@@ -59,9 +46,7 @@ export const updateReport = async (
   id: string,
   data: UpdateReportDto
 ): Promise<Report> => {
-  const response = await axios.patch(`${API_URL}/reports/${id}`, data, {
-    headers: getAuthHeader(),
-  });
+  const response = await apiClient.patch(`/reports/${id}`, data);
   return response.data;
 };
 
@@ -69,9 +54,7 @@ export const updateReport = async (
  * Delete a report
  */
 export const deleteReport = async (id: string): Promise<{ message: string }> => {
-  const response = await axios.delete(`${API_URL}/reports/${id}`, {
-    headers: getAuthHeader(),
-  });
+  const response = await apiClient.delete(`/reports/${id}`);
   return response.data;
 };
 
@@ -82,9 +65,7 @@ export const submitReport = async (
   id: string,
   data?: SubmitReportDto
 ): Promise<Report> => {
-  const response = await axios.post(`${API_URL}/reports/${id}/submit`, data || {}, {
-    headers: getAuthHeader(),
-  });
+  const response = await apiClient.post(`/reports/${id}/submit`, data || {});
   return response.data;
 };
 
@@ -95,9 +76,7 @@ export const reviewReport = async (
   id: string,
   data: ReviewReportDto
 ): Promise<Report> => {
-  const response = await axios.post(`${API_URL}/reports/${id}/review`, data, {
-    headers: getAuthHeader(),
-  });
+  const response = await apiClient.post(`/reports/${id}/review`, data);
   return response.data;
 };
 
@@ -108,12 +87,9 @@ export const generateReportPdf = async (
   id: string,
   data?: GeneratePdfDto
 ): Promise<{ message: string; pdfUrl: string; generatedAt: string }> => {
-  const response = await axios.post(
-    `${API_URL}/reports/${id}/generate-pdf`,
-    data || {},
-    {
-      headers: getAuthHeader(),
-    }
+  const response = await apiClient.post(
+    `/reports/${id}/generate-pdf`,
+    data || {}
   );
   return response.data;
 };
@@ -126,8 +102,7 @@ export const getReportStatistics = async (filters?: {
   periodEnd?: string;
   type?: string;
 }): Promise<ReportStatistics> => {
-  const response = await axios.get(`${API_URL}/reports/statistics`, {
-    headers: getAuthHeader(),
+  const response = await apiClient.get('/reports/statistics', {
     params: filters,
   });
   return response.data;
@@ -137,10 +112,10 @@ export const getReportStatistics = async (filters?: {
  * Download PDF file
  */
 export const downloadReportPdf = async (pdfUrl: string, filename: string) => {
-  const response = await axios.get(pdfUrl, {
+  const response = await apiClient.get(pdfUrl, {
     responseType: 'blob',
   });
-  
+
   const url = window.URL.createObjectURL(new Blob([response.data]));
   const link = document.createElement('a');
   link.href = url;

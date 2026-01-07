@@ -64,12 +64,13 @@ export function Sidebar() {
         ];
       case 'FIELD_OFFICER':
         return [
-          { icon: '📋', label: 'งานของฉัน (My Tasks)', path: '/dashboard/officer' },
-          { icon: '📝', label: 'สร้างรายงานเหตุการณ์', path: '/create-incident' },
-          { icon: '🗺️', label: 'แผนที่และรายงานเหตุการณ์', path: '/map-incidents' },
-          { icon: '🔍', label: 'สำรวจพื้นที่ (Survey Area)', path: '/survey-area' },
-          { icon: '📜', label: 'ประวัติการรายงาน (Report History)', path: '/report-history' },
-          { icon: '🌊', label: 'ขั้นตอนการทำงาน (Workflow)', path: '/workflow-guide' },
+          { icon: '👨‍🚒', label: 'แดชบอร์ดเจ้าหน้าที่', path: '/field-officer/dashboard' },
+          { icon: '📋', label: 'งานของฉัน', path: '/dashboard/officer' },
+          { icon: '🔍', label: 'สำรวจพื้นที่', path: '/survey-area' },
+          { icon: '📝', label: 'รายงานเหตุการณ์ใหม่', path: '/create-incident' },
+          { icon: '📜', label: 'ประวัติการรายงาน', path: '/report-history' },
+          { icon: '🗺️', label: 'แผนที่เหตุการณ์', path: '/map-incidents' },
+          { icon: '🌊', label: 'คู่มือการทำงาน', path: '/workflow-guide' },
         ];
       default:
         return [];

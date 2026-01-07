@@ -20,7 +20,8 @@ export const tasksApi = {
     if (filters.assignedToId) params.append('assignedToId', filters.assignedToId);
 
     const response = await apiClient.get(`/tasks?${params.toString()}`);
-    return response.data;
+    // Backend returns paginated response: { data: [], meta: {} }
+    return response.data?.data || response.data || [];
   },
 
   async getById(id: string): Promise<Task> {
@@ -48,7 +49,9 @@ export const tasksApi = {
   async getMyTasks(status?: TaskStatus): Promise<Task[]> {
     const params = status ? `?status=${status}` : '';
     const response = await apiClient.get(`/tasks/my-tasks${params}`);
-    return response.data;
+    // Backend returns paginated response: { data: [], meta: {} }
+    // Extract data array for backward compatibility
+    return response.data?.data || response.data || [];
   },
 
   async acceptTask(id: string): Promise<Task> {
