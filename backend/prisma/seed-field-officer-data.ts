@@ -39,7 +39,7 @@ async function seedFieldOfficerData() {
 
   // Get Villages
   const villages = await prisma.village.findMany({ take: 5 });
-  
+
   if (villages.length === 0) {
     console.log('⚠️  No villages found. Please run main seed first.');
     return;
@@ -47,6 +47,7 @@ async function seedFieldOfficerData() {
 
   console.log(`📍 Found ${villages.length} villages\n`);
 
+  /*
   // Create 5 test incidents
   console.log('📝 Creating test incidents...');
   const incidents: any[] = [];
@@ -189,6 +190,8 @@ async function seedFieldOfficerData() {
   console.log(`   Field Surveys: ${surveys.length}`);
   console.log('='.repeat(60));
   console.log('\n✅ Field Officer test data seeded successfully!\n');
+  */
+  console.log('⚠️ Mock data generation is disabled.');
 }
 
 seedFieldOfficerData()

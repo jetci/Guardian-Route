@@ -191,15 +191,7 @@
 /* Responsive */
 @media (max-width: 768px) {
   .sidebar {
-    width: 200px;
-  }
-
-  .sidebar-title {
-    font-size: 16px;
-  }
-
-  .nav-label {
-    font-size: 13px;
+    display: none;
   }
 }
 

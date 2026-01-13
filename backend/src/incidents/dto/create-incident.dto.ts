@@ -13,14 +13,14 @@ export class CreateIncidentDto {
   @IsOptional()
   description?: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     enum: DisasterType,
-    example: DisasterType.FLOOD 
+    example: DisasterType.FLOOD
   })
   @IsEnum(DisasterType)
   disasterType: DisasterType;
 
-  @ApiProperty({ 
+  @ApiProperty({
     enum: Priority,
     example: Priority.HIGH,
     default: Priority.MEDIUM
@@ -52,44 +52,44 @@ export class CreateIncidentDto {
   @IsOptional()
   villageId?: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: ['/uploads/image1.webp', '/uploads/image2.webp'],
     description: 'Array of image URLs',
-    required: false 
+    required: false
   })
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
   images?: string[];
 
-  @ApiProperty({ 
-    example: { 
-      type: 'Polygon', 
-      coordinates: [[[99.2333, 19.9167], [99.2343, 19.9167], [99.2343, 19.9157], [99.2333, 19.9157], [99.2333, 19.9167]]] 
+  @ApiProperty({
+    example: {
+      type: 'Polygon',
+      coordinates: [[[99.2333, 19.9167], [99.2343, 19.9167], [99.2343, 19.9157], [99.2333, 19.9157], [99.2333, 19.9167]]]
     },
     description: 'GeoJSON Polygon of affected area',
-    required: false 
+    required: false
   })
   @IsObject()
   @IsOptional()
-  polygon?: any;
+  affectedArea?: any;
 
-  @ApiProperty({ 
-    example: 25, 
+  @ApiProperty({
+    example: 25,
     description: 'Estimated number of affected households',
-    required: false 
+    required: false
   })
   @IsNumber()
   @Min(0)
   @IsOptional()
   estimatedHouseholds?: number;
 
-  @ApiProperty({ 
-    example: 3, 
-    minimum: 1, 
-    maximum: 5, 
+  @ApiProperty({
+    example: 3,
+    minimum: 1,
+    maximum: 5,
     description: 'Severity level (1=Low, 5=Critical)',
-    required: false 
+    required: false
   })
   @IsNumber()
   @Min(1)

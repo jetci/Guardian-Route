@@ -24,8 +24,10 @@
 /* Responsive */
 @media (max-width: 768px) {
   .dashboard-main {
-    margin-left: 200px;
-    padding: 20px;
+    margin-left: 0;
+    padding: 16px;
+    padding-bottom: 80px;
+    /* Space for BottomNav */
   }
 }
 

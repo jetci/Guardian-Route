@@ -102,8 +102,8 @@ export function InitialSurveyPage() {
       }
 
       // Set incident date
-      if (task.incident?.reportedAt) {
-        setIncidentDate(new Date(task.incident.reportedAt));
+      if ((task.incident as any)?.reportedAt) {
+        setIncidentDate(new Date((task.incident as any).reportedAt));
       } else if (task.createdAt) {
         setIncidentDate(new Date(task.createdAt));
       }
@@ -249,50 +249,19 @@ export function InitialSurveyPage() {
 
       L.control.layers(baseMaps, overlays, { position: 'topright' }).addTo(map);
 
-      // Initialize Geoman controls - Create all tools first, then disable
-      (map as any).pm.addControls({
-        position: 'topleft',
-        drawCircle: true,
-        drawCircleMarker: false,
-        drawPolyline: true,
-        drawRectangle: true,
-        drawMarker: true,
-        drawPolygon: true,
-        drawText: true,
-        editMode: true,
-        dragMode: true,
-        cutPolygon: true,
-        removalMode: true,
-        rotateMode: true,
-      });
-
-      // Disable all Geoman tools initially using proper event
-      map.on('pm:globalremovalmodetoggled', () => {
-        console.log('Geoman removal mode toggled');
-      });
-
-      // Disable tools after Geoman is ready
-      requestAnimationFrame(() => {
-        Object.keys((map as any).pm.Toolbar.buttons).forEach(key => {
-          const button = (map as any).pm.Toolbar.buttons[key];
-          if (button && button.disable) {
-            button.disable();
-          }
-        });
-      });
-
-      // Add Fullscreen control
-      const fullscreenControl = L.control({ position: 'topleft' } as any);
+      // ✅ Add Fullscreen control
+      const fullscreenControl = new L.Control({ position: 'topleft' });
       (fullscreenControl as any).onAdd = function () {
         const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
         div.innerHTML = `
-            <a href="#" class="leaflet-control-fullscreen" title="Toggle Fullscreen" role="button" aria-label="Toggle Fullscreen">
-              <span style="font-size: 18px;">⛶</span>
+            <a href="#" class="leaflet-control-fullscreen" title="Toggle Fullscreen" role="button" aria-label="Toggle Fullscreen" style="display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: white; cursor: pointer;">
+              <span style="font-size: 18px; line-height: 1;">⛶</span>
             </a>
           `;
 
-        div.onclick = function (e) {
+        div.onclick = function (e: any) {
           e.preventDefault();
+          e.stopPropagation();
           const mapContainer = document.getElementById('survey-map');
           if (mapContainer) {
             if (!document.fullscreenElement) {
@@ -310,6 +279,80 @@ export function InitialSurveyPage() {
         return div;
       };
       fullscreenControl.addTo(map);
+
+      // ✅ Add Cancel Draw Mode Button
+      const CancelDrawControl = L.Control.extend({
+        onAdd: function () {
+          const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control cancel-draw-control');
+
+          const button = L.DomUtil.create('button', 'cancel-draw-btn', container);
+          button.innerHTML = `
+            <span style="font-size: 20px;">❌</span>
+            <span style="font-size: 14px; font-weight: 500;">ยกเลิก</span>
+          `;
+          button.title = 'ยกเลิกการวาด (กด ESC)';
+          button.style.cssText = `
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            font-family: 'Sarabun', sans-serif;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+          `;
+
+          L.DomEvent.on(button, 'click', function (e) {
+            L.DomEvent.preventDefault(e);
+            L.DomEvent.stopPropagation(e);
+
+            console.log('🔴 Cancel button clicked');
+            (map as any).pm.disableDraw();
+            button.style.display = 'none';
+          });
+
+          // Show/hide button based on draw mode
+          map.on('pm:drawstart', () => {
+            button.style.display = 'flex';
+          });
+
+          map.on('pm:drawend', () => {
+            button.style.display = 'none';
+          });
+
+          // Also hide when draw mode is disabled
+          map.on('pm:globaldrawmodetoggled', (e: any) => {
+            if (!e.enabled) {
+              button.style.display = 'none';
+            }
+          });
+
+          return container;
+        }
+      });
+
+      map.addControl(new CancelDrawControl({ position: 'topright' }));
+
+      // Initialize Geoman controls - Standard Set
+      (map as any).pm.addControls({
+        position: 'topleft',
+        drawMarker: true,
+        drawCircle: false,
+        drawCircleMarker: false,
+        drawPolyline: false,
+        drawRectangle: true,
+        drawPolygon: true,
+        drawText: false,
+        editMode: true,
+        dragMode: true,
+        cutPolygon: true,
+        removalMode: true,
+        rotateMode: true,
+      });
 
       // Set global options with minimum vertex requirement
       (map as any).pm.setGlobalOptions({
@@ -445,9 +488,10 @@ export function InitialSurveyPage() {
         console.error('Error details:', error.message, error.response?.data);
         // Fallback to VILLAGE_NAMES if API fails
         const fallbackVillages = VILLAGE_NAMES.map((name, index) => ({
-          id: index + 1,
+          id: (index + 1).toString(),
           name: name,
           moo: index + 1,
+          villageNo: index + 1,
           lat: TAMBON_INFO.centerLat,
           lng: TAMBON_INFO.centerLng
         }));

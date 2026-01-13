@@ -79,28 +79,34 @@ export function validateIncidentForm(data: IncidentFormData): IncidentValidation
     // Validate Thailand bounds (approximately)
     const lat = data.latitude;
     const lng = data.longitude;
-    
+
     if (lat < 5.0 || lat > 21.0) {
       errors.location = 'ตำแหน่ง GPS อยู่นอกประเทศไทย (ละติจูดผิดปกติ)';
     }
-    
+
     if (lng < 97.0 || lng > 106.0) {
       errors.location = 'ตำแหน่ง GPS อยู่นอกประเทศไทย (ลองจิจูดผิดปกติ)';
     }
   }
 
-  // Polygon validation
+  // Polygon/Area validation
   if (!data.polygonData) {
-    errors.polygon = 'กรุณาวาดพื้นที่ที่ได้รับผลกระทบบนแผนที่';
+    errors.polygon = 'กรุณาวาดพื้นที่ที่ได้รับผลกระทบ หรือปักหมุดบนแผนที่';
   } else {
-    // Validate polygon has minimum points (must be at least 4 points)
-    try {
-      const coords = data.polygonData?.geometry?.coordinates?.[0];
-      if (!coords || coords.length < 4) {
-        errors.polygon = 'พื้นที่ต้องมีอย่างน้อย 4 จุด';
-      }
-    } catch (e) {
-      errors.polygon = 'ข้อมูลพื้นที่ไม่ถูกต้อง';
+    // Check if it's a FeatureCollection (multiple shapes/markers) or a single Feature
+    const isFeatureCollection = data.polygonData.type === 'FeatureCollection';
+    const features = isFeatureCollection ? data.polygonData.features : [data.polygonData];
+
+    if (!features || features.length === 0) {
+      errors.polygon = 'กรุณาวาดพื้นที่หรือปักหมุดอย่างน้อย 1 จุด';
+    } else {
+      // If there are features, we generally accept it.
+      // If specifically checking for polygon validity (min 3 points), we can iterate.
+      // But for now, if there's any valid feature (Point or Polygon), it's fine.
+
+      // Optional: Check specifically if a Polygon has < 3 points (invalid geometry)
+      // But Leaflet usually handles drawing validity.
+      // We just ensure there is SOME data.
     }
   }
 
@@ -110,16 +116,16 @@ export function validateIncidentForm(data: IncidentFormData): IncidentValidation
   } else {
     const now = new Date();
     const incidentDate = new Date(data.incidentDate);
-    
+
     // Check if date is in the future
     if (incidentDate > now) {
       errors.incidentDate = 'วันที่เกิดเหตุต้องไม่เกินวันปัจจุบัน';
     }
-    
+
     // Check if date is too far in the past (more than 1 year)
     const oneYearAgo = new Date();
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-    
+
     if (incidentDate < oneYearAgo) {
       errors.incidentDate = 'วันที่เกิดเหตุต้องไม่เกิน 1 ปีที่ผ่านมา';
     }
@@ -171,7 +177,7 @@ export function validateField(
     ...allData,
     [fieldName]: value
   };
-  
+
   const errors = validateIncidentForm(tempData);
   return errors[fieldName as keyof IncidentValidationErrors];
 }

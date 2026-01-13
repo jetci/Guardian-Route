@@ -35,7 +35,7 @@ export default function HeatmapVisualization({ height = '400px' }: HeatmapVisual
       [19.952, 99.282, 0.85],
       [19.948, 99.278, 0.8],
       
-      // เต๋าดิน/เวียงสุทโธ (medium-high density)
+      // หนองอึ่ง/เวียงสุทโธ (medium-high density)
       [19.92, 99.30, 0.75],
       [19.922, 99.302, 0.7],
       
@@ -59,12 +59,12 @@ export default function HeatmapVisualization({ height = '400px' }: HeatmapVisual
       [19.98, 99.18, 0.6],
       [19.982, 99.182, 0.55],
       
-      // ริมฝาง/สันป่าไหน่ (high density - western)
+      // สันป่าไหน (high density - western)
       [19.96, 99.12, 0.85],
       [19.962, 99.122, 0.8],
       [19.958, 99.118, 0.75],
       
-      // ห้วยเฮี่ยน/สันป่ายางยาง (medium density)
+      // สันป่ายาง (medium density)
       [19.87, 99.15, 0.6],
       [19.872, 99.152, 0.55],
       
@@ -137,7 +137,7 @@ export default function HeatmapVisualization({ height = '400px' }: HeatmapVisual
     const majorAreas = [
       { name: 'หนองตุ้ม', lat: 20.02, lng: 99.25, count: 3 },
       { name: 'ป่าบง', lat: 19.95, lng: 99.28, count: 3 },
-      { name: 'ริมฝาง (สันป่าไหน่)', lat: 19.96, lng: 99.12, count: 3 },
+      { name: 'สันป่าไหน', lat: 19.96, lng: 99.12, count: 3 },
       { name: 'โป่งถืบ', lat: 19.94, lng: 99.25, count: 2 },
       { name: 'แม่ใจใต้', lat: 19.93, lng: 99.20, count: 2 },
     ];

@@ -32,14 +32,7 @@ export const VILLAGES: Village[] = [
     lng: 99.2145,
     population: 450,
     households: 120,
-    boundary: [
-      [19.9350, 99.2080],
-      [19.9350, 99.2180],
-      [19.9280, 99.2180],
-      [19.9250, 99.2120],
-      [19.9280, 99.2080],
-      [19.9350, 99.2080]
-    ]
+    boundary: undefined
   },
   {
     id: 2,
@@ -49,31 +42,17 @@ export const VILLAGES: Village[] = [
     lng: 99.2400,
     population: 380,
     households: 95,
-    boundary: [
-      [19.9250, 99.2150],
-      [19.9250, 99.2250],
-      [19.9180, 99.2250],
-      [19.9150, 99.2200],
-      [19.9180, 99.2150],
-      [19.9250, 99.2150]
-    ]
+    boundary: undefined
   },
   {
     id: 3,
-    name: 'เต๋าดิน',
+    name: 'หนองอึ่ง',
     moo: 3,
     lat: 19.9167,
     lng: 99.2500,
     population: 520,
     households: 150,
-    boundary: [
-      [19.9220, 99.2240],
-      [19.9220, 99.2360],
-      [19.9140, 99.2360],
-      [19.9110, 99.2300],
-      [19.9140, 99.2240],
-      [19.9220, 99.2240]
-    ]
+    boundary: undefined
   },
   {
     id: 4,
@@ -83,14 +62,7 @@ export const VILLAGES: Village[] = [
     lng: 99.2250,
     population: 420,
     households: 110,
-    boundary: [
-      [19.9150, 99.2000],
-      [19.9150, 99.2100],
-      [19.9080, 99.2100],
-      [19.9050, 99.2050],
-      [19.9080, 99.2000],
-      [19.9150, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 5,
@@ -100,14 +72,7 @@ export const VILLAGES: Village[] = [
     lng: 99.2150,
     population: 340,
     households: 85,
-    boundary: [
-      [19.9240, 99.1900],
-      [19.9240, 99.2000],
-      [19.9180, 99.2000],
-      [19.9160, 99.1950],
-      [19.9180, 99.1900],
-      [19.9240, 99.1900]
-    ]
+    boundary: undefined
   },
   {
     id: 6,
@@ -117,13 +82,7 @@ export const VILLAGES: Village[] = [
     lng: 99.2600,
     population: 480,
     households: 130,
-    boundary: [
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 7,
@@ -133,13 +92,7 @@ export const VILLAGES: Village[] = [
     lng: 99.2200,
     population: 510,
     households: 140,
-    boundary: [
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.8950, 99.2000],
-      [19.8950, 99.2000],
-      [19.9000, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 8,
@@ -149,45 +102,27 @@ export const VILLAGES: Village[] = [
     lng: 99.2300,
     population: 465,
     households: 125,
-    boundary: [
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 9,
-    name: 'ริมฝาง',
+    name: 'สันป่าไหน่',
     moo: 9,
     lat: 19.9300,
     lng: 99.2450,
     population: 580,
     households: 160,
-    boundary: [
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 10,
-    name: 'ห้วยเฮี่ยน',
+    name: 'สันป่ายาง',
     moo: 10,
     lat: 19.9300,
     lng: 99.2100,
     population: 410,
     households: 105,
-    boundary: [
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 11,
@@ -197,13 +132,7 @@ export const VILLAGES: Village[] = [
     lng: 99.2350,
     population: 440,
     households: 115,
-    boundary: [
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.8900, 99.2000],
-      [19.8900, 99.2000],
-      [19.9000, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 12,
@@ -213,13 +142,7 @@ export const VILLAGES: Village[] = [
     lng: 99.2550,
     population: 495,
     households: 135,
-    boundary: [
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 13,
@@ -229,13 +152,7 @@ export const VILLAGES: Village[] = [
     lng: 99.2050,
     population: 360,
     households: 90,
-    boundary: [
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 14,
@@ -245,13 +162,7 @@ export const VILLAGES: Village[] = [
     lng: 99.2400,
     population: 390,
     households: 100,
-    boundary: [
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.8960, 99.2000],
-      [19.8960, 99.2000],
-      [19.9000, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 15,
@@ -261,13 +172,7 @@ export const VILLAGES: Village[] = [
     lng: 99.2650,
     population: 320,
     households: 80,
-    boundary: [
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 16,
@@ -277,13 +182,7 @@ export const VILLAGES: Village[] = [
     lng: 99.2500,
     population: 375,
     households: 95,
-    boundary: [
-      [19.8940, 99.2450],
-      [19.8940, 99.2000],
-      [19.8860, 99.2000],
-      [19.8860, 99.2000],
-      [19.8940, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 17,
@@ -293,13 +192,7 @@ export const VILLAGES: Village[] = [
     lng: 99.2700,
     population: 425,
     households: 110,
-    boundary: [
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.9000, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 18,
@@ -309,13 +202,7 @@ export const VILLAGES: Village[] = [
     lng: 99.2150,
     population: 455,
     households: 120,
-    boundary: [
-      [19.8950, 99.2100],
-      [19.8950, 99.2000],
-      [19.8850, 99.2000],
-      [19.8850, 99.2000],
-      [19.8950, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 19,
@@ -325,13 +212,7 @@ export const VILLAGES: Village[] = [
     lng: 99.2250,
     population: 405,
     households: 105,
-    boundary: [
-      [19.8890, 99.2200],
-      [19.8890, 99.2000],
-      [19.8810, 99.2000],
-      [19.8810, 99.2000],
-      [19.8890, 99.2000]
-    ]
+    boundary: undefined
   },
   {
     id: 20,
@@ -341,30 +222,14 @@ export const VILLAGES: Village[] = [
     lng: 99.2600,
     population: 470,
     households: 125,
-    boundary: [
-      [19.9000, 99.2000],
-      [19.9000, 99.2000],
-      [19.8900, 99.2000],
-      [19.8900, 99.2000],
-      [19.9000, 99.2000]
-    ]
-  },
-  {
-    id: 21,
-    name: 'แม่ใจเหนือ',
-    moo: 21,
-    lat: 19.9167,
-    lng: 99.2333,
-    population: 300,
-    households: 80,
-    boundary: []
+    boundary: undefined
   }
 ];
 
 /**
- * รายชื่อหมู่บ้าน (รวมหมู่ที่)
+ * รายชื่อหมู่บ้าน (ชื่ออย่างเดียว)
  */
-export const VILLAGE_NAMES = VILLAGES.map(v => `หมู่ ${v.moo} ${v.name}`);
+export const VILLAGE_NAMES = VILLAGES.map(v => v.name);
 
 /**
  * ข้อมูลตำบล

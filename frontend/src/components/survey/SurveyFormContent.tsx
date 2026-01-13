@@ -10,6 +10,7 @@ import '@geoman-io/leaflet-geoman-free';
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
 import 'leaflet/dist/leaflet.css';
 import toast from 'react-hot-toast';
+import * as turf from '@turf/turf';
 import { TAMBON_INFO } from '../../data/villages';
 import { villagesApi, type LeafletVillage } from '../../api/villages';
 
@@ -53,19 +54,111 @@ export function SurveyFormContent() {
     map.addLayer(drawnItems);
     drawnItemsRef.current = drawnItems;
 
+    // ✅ Add Fullscreen control
+    const fullscreenControl = new L.Control({ position: 'topleft' });
+    (fullscreenControl as any).onAdd = function () {
+      const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+      div.innerHTML = `
+            <a href="#" class="leaflet-control-fullscreen" title="Toggle Fullscreen" role="button" aria-label="Toggle Fullscreen" style="display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; background: white; cursor: pointer;">
+              <span style="font-size: 18px; line-height: 1;">⛶</span>
+            </a>
+          `;
+
+      div.onclick = function (e: any) {
+        e.preventDefault();
+        e.stopPropagation();
+        const mapContainer = mapRef.current;
+        if (mapContainer) {
+          if (!document.fullscreenElement) {
+            mapContainer.requestFullscreen().then(() => {
+              setTimeout(() => map.invalidateSize(), 100);
+            }).catch(err => {
+              console.error('Error attempting to enable fullscreen:', err);
+            });
+          } else {
+            document.exitFullscreen().then(() => {
+              setTimeout(() => map.invalidateSize(), 100);
+            });
+          }
+        }
+      };
+
+      return div;
+    };
+    fullscreenControl.addTo(map);
+
+    // ✅ Add Cancel Draw Mode Button
+    const CancelDrawControl = L.Control.extend({
+      onAdd: function () {
+        const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control cancel-draw-control');
+
+        const button = L.DomUtil.create('button', 'cancel-draw-btn', container);
+        button.innerHTML = `
+            <span style="font-size: 20px;">❌</span>
+            <span style="font-size: 14px; font-weight: 500;">ยกเลิก</span>
+          `;
+        button.title = 'ยกเลิกการวาด (กด ESC)';
+        button.style.cssText = `
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            font-family: 'Sarabun', sans-serif;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+          `;
+
+        L.DomEvent.on(button, 'click', function (e) {
+          L.DomEvent.preventDefault(e);
+          L.DomEvent.stopPropagation(e);
+
+          console.log('🔴 Cancel button clicked');
+          map.pm.disableDraw();
+          button.style.display = 'none';
+          toast('ยกเลิกการวาด', { icon: 'ℹ️' });
+        });
+
+        // Show/hide button based on draw mode
+        map.on('pm:drawstart', () => {
+          button.style.display = 'flex';
+        });
+
+        map.on('pm:drawend', () => {
+          button.style.display = 'none';
+        });
+
+        // Also hide when draw mode is disabled
+        map.on('pm:globaldrawmodetoggled', (e: any) => {
+          if (!e.enabled) {
+            button.style.display = 'none';
+          }
+        });
+
+        return container;
+      }
+    });
+
+    map.addControl(new CancelDrawControl({ position: 'topright' }));
+
     // Add Geoman controls
     map.pm.addControls({
       position: 'topleft',
+      drawMarker: true,
       drawCircle: false,
       drawCircleMarker: false,
       drawPolyline: false,
       drawRectangle: true,
       drawPolygon: true,
-      drawMarker: false,
       editMode: true,
-      dragMode: false,
-      cutPolygon: false,
+      dragMode: true,
+      cutPolygon: true,
       removalMode: true,
+      rotateMode: true,
     });
 
     // Listen to draw events
@@ -75,10 +168,11 @@ export function SurveyFormContent() {
 
       // Calculate area
       if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
-        const area = L.GeometryUtil.geodesicArea(layer.getLatLngs()[0]);
+        const geoJson = layer.toGeoJSON();
+        const area = turf.area(geoJson);
         const areaInRai = area / 1600; // Convert to rai (1 rai = 1600 m²)
         setAreaSize(areaInRai);
-        setDrawnArea(layer.toGeoJSON());
+        setDrawnArea(geoJson);
         toast.success(`วาดพื้นที่สำเร็จ: ${areaInRai.toFixed(2)} ไร่`);
       }
     });
@@ -88,11 +182,11 @@ export function SurveyFormContent() {
       const layers = drawnItems.getLayers();
       if (layers.length > 0) {
         const layer = layers[0] as L.Polygon;
-        const latLngs = layer.getLatLngs()[0] as L.LatLng[];
-        const area = L.GeometryUtil.geodesicArea(latLngs);
+        const geoJson = layer.toGeoJSON();
+        const area = turf.area(geoJson);
         const areaInRai = area / 1600;
         setAreaSize(areaInRai);
-        setDrawnArea(layer.toGeoJSON());
+        setDrawnArea(geoJson);
       }
     });
 
@@ -144,7 +238,14 @@ export function SurveyFormContent() {
     // Add new boundaries
     villagesData.forEach(village => {
       if (village.boundary) {
-        const geoJsonLayer = L.geoJSON(village.boundary, {
+        const geoJsonLayer = L.geoJSON({
+          type: 'Feature',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [village.boundary]
+          },
+          properties: {}
+        } as any, {
           style: {
             color: village.color || '#3b82f6',
             weight: 2,

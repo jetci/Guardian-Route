@@ -25,7 +25,7 @@ import { type Incident, IncidentStatus, Role } from '../../types';
 import { apiClient } from '../../api/client';
 import { useAuthStore } from '../../stores/authStore';
 import { ImageGallery } from '../upload/ImageGallery';
-import { type Survey, type SurveyTemplate } from '../../types/Survey';
+import { type Survey, type SurveyTemplate } from '../../types/survey';
 import { useNavigate } from 'react-router-dom';
 
 interface IncidentDetailsModalProps {
@@ -263,7 +263,7 @@ const IncidentDetailsModal: React.FC<IncidentDetailsModalProps> = ({ incidentId,
 
               <Box>
                 <Heading size="lg" mb={4} color="blue.600" borderBottom="2px" borderColor="blue.100" pb={2}>แบบสำรวจ ({surveys.length})</Heading>
-                
+
                 {(user?.role === Role.SUPERVISOR || user?.role === Role.ADMIN) && (
                   <VStack align="stretch" spacing={3} p={6} bg="gray.50" borderRadius="xl" border="1px" borderColor="gray.200" mb={6}>
                     <Heading size="md" color="gray.700">สร้างแบบสำรวจใหม่</Heading>

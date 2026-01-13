@@ -11,17 +11,18 @@ async function restore7Villages() {
 
   for (const villageNo of REAL_BOUNDARY_VILLAGES) {
     const villageData = villagesWithGeoJSONData.find(v => v.villageNo === villageNo);
-    
+
     if (!villageData) {
       console.log(`  ⚠️  Village ${villageNo} not found in seed data`);
       continue;
     }
 
     // Check if boundary is placeholder
-    if (villageData.boundary && villageData.boundary.coordinates && villageData.boundary.coordinates[0]) {
-      const coords = villageData.boundary.coordinates[0];
+    const boundary = villageData.boundary as any;
+    if (boundary && boundary.coordinates && boundary.coordinates[0]) {
+      const coords = boundary.coordinates[0];
       const firstCoord = coords[0];
-      const isPlaceholder = coords.every((coord: number[]) => 
+      const isPlaceholder = coords.every((coord: number[]) =>
         coord[0] === firstCoord[0] && coord[1] === firstCoord[1]
       );
 
@@ -34,8 +35,8 @@ async function restore7Villages() {
     await prisma.village.update({
       where: { villageNo: villageData.villageNo },
       data: {
-        boundary: villageData.boundary,
-        centerPoint: villageData.centerPoint,
+        boundary: villageData.boundary as any,
+        centerPoint: villageData.centerPoint as any,
       },
     });
 

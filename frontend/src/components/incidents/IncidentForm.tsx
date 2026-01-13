@@ -4,7 +4,7 @@ import { incidentsApi } from '../../api/incidents';
 import { ImageUpload } from '../upload/ImageUpload';
 import { ImageGallery } from '../upload/ImageGallery';
 import { apiClient } from '../../api/client';
-import type { SurveyTemplate } from '../../types/Survey';
+import type { SurveyTemplate } from '../../types/survey';
 import toast from 'react-hot-toast';
 import type { DisasterType, Priority } from '../../types';
 
@@ -73,7 +73,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
         });
         toast.success('สร้างแบบสำรวจเริ่มต้นสำเร็จ!');
       }
-      
+
       toast.success('สร้างเหตุการณ์สำเร็จ!');
       onSuccess?.();
     } catch (error: any) {
@@ -156,37 +156,37 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
         </div>
       </div>
 
-	      {/* Village */}
-	      <div>
-	        <label className="block text-sm font-medium text-gray-700 mb-1">
-	          หมู่บ้าน
-	        </label>
-	        <select
-	          {...register('villageId')}
-	          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-	        >
-	          <option value="">เลือกหมู่บ้าน (ถ้ามี)</option>
-	          {/* VillageSelector will be integrated later */}
-	        </select>
-	      </div>
+      {/* Village */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          หมู่บ้าน
+        </label>
+        <select
+          {...register('villageId')}
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+        >
+          <option value="">เลือกหมู่บ้าน (ถ้ามี)</option>
+          {/* VillageSelector will be integrated later */}
+        </select>
+      </div>
 
-	      {/* Initial Survey Template */}
-	      <div>
-	        <label className="block text-sm font-medium text-gray-700 mb-1">
-	          แบบสำรวจเริ่มต้น (ไม่บังคับ)
-	        </label>
-	        <select
-	          {...register('surveyTemplateId')}
-	          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-	        >
-	          <option value="">ไม่สร้างแบบสำรวจ</option>
-	          {surveyTemplates.map(template => (
-	            <option key={template.id} value={template.id}>
-	              {template.name}
-	            </option>
-	          ))}
-	        </select>
-	      </div>
+      {/* Initial Survey Template */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          แบบสำรวจเริ่มต้น (ไม่บังคับ)
+        </label>
+        <select
+          {...register('surveyTemplateId')}
+          className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+        >
+          <option value="">ไม่สร้างแบบสำรวจ</option>
+          {surveyTemplates.map(template => (
+            <option key={template.id} value={template.id}>
+              {template.name}
+            </option>
+          ))}
+        </select>
+      </div>
 
       {/* Location */}
       <div className="grid grid-cols-2 gap-4">
@@ -197,7 +197,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
           <input
             type="number"
             step="0.000001"
-            {...register('latitude', { 
+            {...register('latitude', {
               required: 'กรุณากรอกละติจูด',
               min: { value: -90, message: 'ละติจูดต้องอยู่ระหว่าง -90 ถึง 90' },
               max: { value: 90, message: 'ละติจูดต้องอยู่ระหว่าง -90 ถึง 90' },
@@ -217,7 +217,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
           <input
             type="number"
             step="0.000001"
-            {...register('longitude', { 
+            {...register('longitude', {
               required: 'กรุณากรอกลองจิจูด',
               min: { value: -180, message: 'ลองจิจูดต้องอยู่ระหว่าง -180 ถึง 180' },
               max: { value: 180, message: 'ลองจิจูดต้องอยู่ระหว่าง -180 ถึง 180' },
@@ -247,17 +247,17 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
       {/* Image Upload */}
       <div className="pt-6 border-t border-gray-200">
         <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">รูปภาพประกอบ</h3>
-        
-        <ImageUpload 
+
+        <ImageUpload
           onUploadSuccess={(url) => setUploadedImages(prev => [...prev, url])}
         />
-        
+
         {uploadedImages.length > 0 && (
           <div className="mt-4">
             <p className="text-base text-gray-600 mb-2 font-medium">
               รูปภาพที่อัปโหลดแล้ว ({uploadedImages.length})
             </p>
-            <ImageGallery 
+            <ImageGallery
               images={uploadedImages}
               onRemove={(url) => setUploadedImages(prev => prev.filter(img => img !== url))}
             />

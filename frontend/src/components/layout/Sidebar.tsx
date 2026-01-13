@@ -65,11 +65,11 @@ export function Sidebar() {
       case 'FIELD_OFFICER':
         return [
           { icon: '👨‍🚒', label: 'แดชบอร์ดเจ้าหน้าที่', path: '/field-officer/dashboard' },
-          { icon: '📋', label: 'งานของฉัน', path: '/dashboard/officer' },
-          { icon: '🔍', label: 'สำรวจพื้นที่', path: '/survey-area' },
-          { icon: '📝', label: 'รายงานเหตุการณ์ใหม่', path: '/create-incident' },
-          { icon: '📜', label: 'ประวัติการรายงาน', path: '/report-history' },
           { icon: '🗺️', label: 'แผนที่เหตุการณ์', path: '/map-incidents' },
+          { icon: '📋', label: 'งานของฉัน', path: '/dashboard/officer' },
+          { icon: '📝', label: 'รายงานเหตุการณ์ใหม่', path: '/create-incident' },
+          { icon: '🔍', label: 'สำรวจพื้นที่', path: '/survey-area' },
+          { icon: '📜', label: 'ประวัติการรายงาน', path: '/report-history' },
           { icon: '🌊', label: 'คู่มือการทำงาน', path: '/workflow-guide' },
         ];
       default:

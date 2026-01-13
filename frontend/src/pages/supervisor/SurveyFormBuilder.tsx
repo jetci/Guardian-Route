@@ -17,7 +17,7 @@ import {
 } from '@chakra-ui/react';
 import { AddIcon, DeleteIcon, EditIcon, CheckIcon, CloseIcon, ArrowUpIcon, ArrowDownIcon } from '@chakra-ui/icons';
 import { apiClient } from "../../api/client";
-import type { SurveyTemplate } from '../../types/Survey';
+import type { SurveyTemplate } from '../../types/survey';
 import type { FormField, FieldType } from '../../types/FormBuilder';
 
 // --- Field Components ---

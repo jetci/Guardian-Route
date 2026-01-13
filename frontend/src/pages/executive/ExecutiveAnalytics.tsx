@@ -18,7 +18,7 @@ export default function ExecutiveAnalytics() {
   const detailedData = [
     { id: 'INC-001', type: 'อุทกภัย', date: '2025-11-12', severity: 'สูง', area: 'หนองตุ้ม', responseTime: '2.5 ชม.' },
     { id: 'INC-002', type: 'ดินถล่ม', date: '2025-11-11', severity: 'สูง', area: 'ป่าบง', responseTime: '3.2 ชม.' },
-    { id: 'INC-003', type: 'วาตภัย', date: '2025-11-10', severity: 'ปานกลาง', area: 'ริมฝาง (สันป่าไหน่)', responseTime: '1.8 ชม.' },
+    { id: 'INC-003', type: 'วาตภัย', date: '2025-11-10', severity: 'ปานกลาง', area: 'สันป่าไหน', responseTime: '1.8 ชม.' },
     { id: 'INC-004', type: 'อุทกภัย', date: '2025-11-09', severity: 'สูง', area: 'โป่งถืบ', responseTime: '2.1 ชม.' },
     { id: 'INC-005', type: 'วาตภัย', date: '2025-11-08', severity: 'ปานกลาง', area: 'แม่ใจใต้', responseTime: '2.8 ชม.' },
   ];
@@ -37,7 +37,7 @@ export default function ExecutiveAnalytics() {
   const areaComparison = [
     { area: 'หนองตุ้ม', avgTime: 2.5, incidents: 8 },
     { area: 'ป่าบง', avgTime: 3.2, incidents: 7 },
-    { area: 'ริมฝาง (สันป่าไหน่)', avgTime: 1.8, incidents: 6 },
+    { area: 'สันป่าไหน', avgTime: 1.8, incidents: 6 },
     { area: 'โป่งถืบ', avgTime: 2.1, incidents: 5 },
     { area: 'แม่ใจใต้', avgTime: 2.8, incidents: 5 },
   ];

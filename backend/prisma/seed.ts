@@ -16,8 +16,9 @@ async function main() {
     const village = await prisma.village.upsert({
       where: { villageNo: villageData.villageNo },
       update: {
+        name: villageData.name,
         centerPoint: villageData.centerPoint,
-        boundary: villageData.boundary,
+        boundary: villageData.boundary as any,
       },
       create: {
         villageNo: villageData.villageNo,
@@ -28,7 +29,7 @@ async function main() {
         area: villageData.area,
         description: villageData.description,
         centerPoint: villageData.centerPoint,
-        boundary: villageData.boundary,
+        boundary: villageData.boundary as any,
       },
     });
     console.log(`  ✅ หมู่ ${village.villageNo}: ${village.name} (📍 ${villageData.centerPoint ? 'มีพิกัด' : 'ไม่มีพิกัด'})`);

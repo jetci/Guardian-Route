@@ -90,7 +90,7 @@ DATABASE_URL="postgresql://guardian_admin:guardian_password_2024@localhost:5432/
 
 ### Villages (20 หมู่บ้าน)
 - หมู่ 1-20 in ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
-- Includes: หนองตุ้ม, ป่าบง, เต๋าดิน/เวียงสุทโธ, สวนดอก, etc.
+- Includes: หนองตุ้ม, ป่าบง, หนองอึ่ง/เวียงสุทโธ, สวนดอก, etc.
 
 ---
 

@@ -14,19 +14,7 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2145, 19.9300], // [lng, lat] - Fang District
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2080, 19.9350],
-          [99.2180, 19.9350],
-          [99.2180, 19.9280],
-          [99.2120, 19.9250],
-          [99.2080, 19.9280],
-          [99.2080, 19.9350],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 2,
@@ -40,45 +28,21 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2400, 19.9200],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2150, 19.9250],
-          [99.2250, 19.9250],
-          [99.2250, 19.9180],
-          [99.2200, 19.9150],
-          [99.2150, 19.9180],
-          [99.2150, 19.9250],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 3,
-    name: 'เต๋าดิน',
+    name: 'หนองอึ่ง',
     alternateNames: ['เวียงสุทโธ'],
     households: 150,
     population: 520,
     area: 6.5,
-    description: 'หมู่บ้านเต๋าดิน มีชื่อเรียกอีกชื่อว่า เวียงสุทโธ',
+    description: 'หมู่บ้านหนองอึ่ง มีชื่อเรียกอีกชื่อว่า เวียงสุทโธ',
     centerPoint: {
       type: 'Point',
       coordinates: [99.2500, 19.9167],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2240, 19.9220],
-          [99.2360, 19.9220],
-          [99.2360, 19.9140],
-          [99.2300, 19.9110],
-          [99.2240, 19.9140],
-          [99.2240, 19.9220],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 4,
@@ -92,19 +56,7 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2250, 19.9100],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2000, 19.9150],
-          [99.2100, 19.9150],
-          [99.2100, 19.9080],
-          [99.2050, 19.9050],
-          [99.2000, 19.9080],
-          [99.2000, 19.9150],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 5,
@@ -118,19 +70,7 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2150, 19.9200],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.1900, 19.9240],
-          [99.2000, 19.9240],
-          [99.2000, 19.9180],
-          [99.1950, 19.9160],
-          [99.1900, 19.9180],
-          [99.1900, 19.9240],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 6,
@@ -144,18 +84,7 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2600, 19.9250],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 7,
@@ -169,18 +98,7 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2200, 19.9000],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.8950],
-          [99.2, 19.8950],
-          [99.2, 19.9],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 8,
@@ -194,68 +112,35 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2300, 19.9050],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 9,
-    name: 'ริมฝาง',
-    alternateNames: ['สันป่าไหน่'],
+    name: 'สันป่าไหน่',
+    alternateNames: [],
     households: 160,
     population: 580,
     area: 7.0,
-    description: 'หมู่บ้านริมฝาง มีชื่อเรียกอีกชื่อว่า สันป่าไหน่',
+    description: 'หมู่บ้านสันป่าไหน',
     centerPoint: {
       type: 'Point',
       coordinates: [99.2450, 19.9300],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 10,
-    name: 'ห้วยเฮี่ยน',
-    alternateNames: ['สันป่ายางยาง'],
+    name: 'สันป่ายาง',
+    alternateNames: [],
     households: 105,
     population: 410,
     area: 4.9,
-    description: 'หมู่บ้านห้วยเฮี่ยน มีชื่อเรียกอีกชื่อว่า สันป่ายางยาง',
+    description: 'หมู่บ้านสันป่ายาง',
     centerPoint: {
       type: 'Point',
       coordinates: [99.2100, 19.9300],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 11,
@@ -269,18 +154,7 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2350, 19.8950],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.8900],
-          [99.2, 19.8900],
-          [99.2, 19.9],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 12,
@@ -294,18 +168,7 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2550, 19.9100],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 13,
@@ -319,18 +182,7 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2050, 19.9100],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 14,
@@ -344,18 +196,7 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2400, 19.9000],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.8960],
-          [99.2, 19.8960],
-          [99.2, 19.9],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 15,
@@ -369,18 +210,7 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2650, 19.9050],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 16,
@@ -394,18 +224,7 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2500, 19.8900],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2450, 19.8940],
-          [99.2, 19.8940],
-          [99.2, 19.8860],
-          [99.2, 19.8860],
-          [99.2, 19.8940],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 17,
@@ -419,18 +238,7 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2700, 19.9200],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.9],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 18,
@@ -444,18 +252,7 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2150, 19.8900],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2100, 19.8950],
-          [99.2, 19.8950],
-          [99.2, 19.8850],
-          [99.2, 19.8850],
-          [99.2, 19.8950],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 19,
@@ -469,18 +266,7 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2250, 19.8850],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2200, 19.8890],
-          [99.2, 19.8890],
-          [99.2, 19.8810],
-          [99.2, 19.8810],
-          [99.2, 19.8890],
-        ],
-      ],
-    },
+    boundary: null,
   },
   {
     villageNo: 20,
@@ -494,17 +280,6 @@ export const villagesWithGeoJSONData = [
       type: 'Point',
       coordinates: [99.2600, 19.8950],
     },
-    boundary: {
-      type: 'Polygon',
-      coordinates: [
-        [
-          [99.2, 19.9],
-          [99.2, 19.9],
-          [99.2, 19.8900],
-          [99.2, 19.8900],
-          [99.2, 19.9],
-        ],
-      ],
-    },
+    boundary: null,
   },
 ];

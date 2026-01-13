@@ -25,7 +25,7 @@ import {
 } from '@chakra-ui/react';
 import { AddIcon, EditIcon, DeleteIcon, CheckCircleIcon, CloseIcon } from '@chakra-ui/icons';
 import { apiClient } from "../../api/client";
-import type { SurveyTemplate } from '../../types/Survey';
+import type { SurveyTemplate } from '../../types/survey';
 
 const SurveyTemplateList: React.FC = () => {
   const navigate = useNavigate();

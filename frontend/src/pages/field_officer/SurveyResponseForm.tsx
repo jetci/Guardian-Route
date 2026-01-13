@@ -22,7 +22,7 @@ import {
   FormErrorMessage,
 } from '@chakra-ui/react';
 import { apiClient } from "../../api/client";
-import type { Survey, SurveyTemplate } from '../../types/Survey';
+import type { Survey, SurveyTemplate } from '../../types/survey';
 import type { FormField } from '../../types/FormBuilder';
 import ThaiDatePicker from '../../components/ThaiDatePicker';
 
@@ -145,7 +145,7 @@ const SurveyResponseForm: React.FC = () => {
   const { surveyId } = useParams<{ surveyId: string }>();
   const navigate = useNavigate();
   const toast = useToast();
-  
+
   const [survey, setSurvey] = useState<Survey | null>(null);
   const [template, setTemplate] = useState<SurveyTemplate | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});

@@ -148,6 +148,7 @@ export enum TaskStatus {
   SURVEYED = 'SURVEYED',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
+  REVISION_REQUIRED = 'REVISION_REQUIRED',
 }
 
 export enum TaskPriority {
@@ -182,6 +183,9 @@ export interface Task {
   assignedTo?: User;
   createdBy?: User;
   village?: Village;
+  supervisorComment?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
 }
 
 export interface CreateTaskDto {

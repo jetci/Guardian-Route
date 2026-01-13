@@ -82,7 +82,8 @@ import ProfilePage from './pages/ProfilePage';
 import ManageDataPage from './pages/admin/ManageDataPage';
 import ManageVillagesPage from './pages/admin/ManageVillagesPage';
 import VillageBoundariesPage from './pages/admin/VillageBoundariesPage';
-import SurveyAreaPage from './pages/field-officer/SurveyAreaPage';
+import SurveyLandingPage from './pages/field-officer/survey/SurveyLandingPage';
+import SurveyWizardPage from './pages/field-officer/survey/SurveyWizardPage';
 import SurveyHistoryPage from './pages/field-officer/SurveyHistoryPage';
 import SurveyReviewPage from './pages/field-officer/SurveyReviewPage';
 import SurveySuccessPage from './pages/field-officer/SurveySuccessPage';
@@ -658,7 +659,15 @@ function App() {
                   path="/survey-area"
                   element={
                     <ProtectedRoute allowedRoles={['DEVELOPER', 'FIELD_OFFICER']}>
-                      <SurveyAreaPage />
+                      <SurveyLandingPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/survey-area/:taskId"
+                  element={
+                    <ProtectedRoute allowedRoles={['DEVELOPER', 'FIELD_OFFICER']}>
+                      <SurveyWizardPage />
                     </ProtectedRoute>
                   }
                 />

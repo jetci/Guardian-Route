@@ -38,6 +38,7 @@ export interface FieldSurveyResponse {
   estimatedHouseholds: number;
   notes: string;
   gpsLocation: GPSCoordinates;
+  polygon?: any; // GeoJSON polygon
   photoUrls: string[];
   additionalData?: Record<string, any>;
   submittedAt: string;

@@ -9,7 +9,7 @@ import { UpdateSurveyDataDto } from './dto/update-survey-data.dto';
  */
 
 export class TasksServiceExtension {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   /**
    * Accept a task (Field Officer accepts assigned task)
@@ -86,23 +86,17 @@ export class TasksServiceExtension {
 
     // Handle geometry data (Point and Polygon)
     if (surveyData.surveyLocation) {
-      // Convert GeoJSON to PostGIS format
+      // Convert GeoJSON to WKT format (POINT)
       const { coordinates } = surveyData.surveyLocation;
-      updateData.surveyLocation = this.prisma.$queryRawUnsafe(
-        `ST_SetSRID(ST_MakePoint($1, $2), 4326)`,
-        coordinates[0],
-        coordinates[1],
-      );
+      // Format: POINT(lng lat)
+      updateData.surveyLocation = `POINT(${coordinates[0]} ${coordinates[1]})`;
     }
 
     if (surveyData.surveyArea) {
-      // Convert GeoJSON Polygon to PostGIS format
+      // Convert GeoJSON Polygon to WKT format (POLYGON)
       const { coordinates } = surveyData.surveyArea;
       const wkt = this.polygonToWKT(coordinates);
-      updateData.surveyArea = this.prisma.$queryRawUnsafe(
-        `ST_GeomFromText($1, 4326)`,
-        wkt,
-      );
+      updateData.surveyArea = wkt;
     }
 
     // Update task
@@ -168,15 +162,15 @@ export class TasksServiceExtension {
       }),
       task.assignedToId
         ? this.prisma.user.findUnique({
-            where: { id: task.assignedToId },
-            select: {
-              id: true,
-              email: true,
-              firstName: true,
-              lastName: true,
-              role: true,
-            },
-          })
+          where: { id: task.assignedToId },
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+          },
+        })
         : null,
       this.prisma.user.findUnique({
         where: { id: task.createdById },
@@ -190,14 +184,14 @@ export class TasksServiceExtension {
       }),
       task.villageId
         ? this.prisma.village.findUnique({
-            where: { id: task.villageId },
-            select: {
-              id: true,
-              villageNo: true,
-              name: true,
-              centerPoint: true,
-            },
-          })
+          where: { id: task.villageId },
+          select: {
+            id: true,
+            villageNo: true,
+            name: true,
+            centerPoint: true,
+          },
+        })
         : null,
     ]);
 
