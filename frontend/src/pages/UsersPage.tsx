@@ -1,6 +1,21 @@
 import { DashboardLayout } from '../components/layout/DashboardLayout';
-import { mockUsers } from '../mocks/dashboardData';
+
 import '../pages/dashboards/AdminDashboard.css';
+
+interface MockUser {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  lastLogin: string;
+}
+
+const mockUsers: MockUser[] = [
+  { id: 1, name: 'Admin User', email: 'admin@example.com', role: 'ADMIN', status: 'Active', lastLogin: '2023-10-01' },
+  { id: 2, name: 'Supervisor User', email: 'supervisor@example.com', role: 'SUPERVISOR', status: 'Active', lastLogin: '2023-10-02' },
+];
+
 
 export function UsersPage() {
   return (

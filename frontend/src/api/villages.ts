@@ -44,14 +44,12 @@ function transformToLeaflet(village: Village): LeafletVillage {
   const lat = village.centerPoint?.coordinates?.[1] || 19.9167;
   const lng = village.centerPoint?.coordinates?.[0] || 99.2333;
 
-  console.log(`Transforming village ${village.name}:`, {
-    rawBoundary: village.boundary,
-    boundaryType: typeof village.boundary,
-    hasCoordinates: village.boundary?.coordinates ? 'yes' : 'no'
-  });
-
   const boundary = convertBoundaryToLeaflet(village.boundary);
-  console.log(`Converted boundary for ${village.name}:`, boundary);
+
+  // Only log if boundary is missing (for debugging)
+  if (!boundary && village.boundary) {
+    console.warn(`⚠️ Village ${village.name} has boundary data but failed to convert`);
+  }
 
   return {
     id: village.id, // UUID
@@ -84,9 +82,12 @@ export const villagesApi = {
    */
   getAllForMap: async (): Promise<LeafletVillage[]> => {
     const response = await apiClient.get<Village[]>('/villages');
-    console.log('Raw villages from backend:', response.data);
     const transformed = response.data.map(transformToLeaflet);
-    console.log('Transformed villages:', transformed);
+
+    // Log summary instead of full data
+    const withBoundary = transformed.filter(v => v.boundary).length;
+    console.log(`📍 Loaded ${transformed.length} villages (${withBoundary} with boundaries)`);
+
     return transformed;
   },
 

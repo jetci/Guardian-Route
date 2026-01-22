@@ -4,6 +4,7 @@ import { DashboardLayout } from '../../../components/layout/DashboardLayout';
 import { tasksApi } from '../../../api/tasks';
 import { SurveyProvider, useSurvey } from '../../../context/SurveyContext';
 import toast from 'react-hot-toast';
+import './SurveyWizardPage.css';
 
 import Step1_IncidentInfo from '../../../components/field-officer/survey/steps/Step1_IncidentInfo';
 import Step2_AffectedPeople from '../../../components/field-officer/survey/steps/Step2_AffectedPeople';
@@ -53,28 +54,8 @@ function SurveyWizardContent() {
 
             } catch (error) {
                 console.error('Failed to load task:', error);
-                toast.error('ไม่สามารถโหลดข้อมูลงานได้ (ใช้ข้อมูลจำลอง)');
-
-                // Mock Data
-                const mockTask = {
-                    id: taskId,
-                    title: 'งานสำรวจจำลอง (Offline Mode)',
-                    description: 'นี่คือข้อมูลจำลองสำหรับทดสอบระบบขณะ Offline',
-                    status: 'PENDING',
-                    createdAt: new Date().toISOString(),
-                    village: { name: 'หมู่บ้านตัวอย่าง' },
-                    incident: { disasterType: 'FLOOD' },
-                    villageId: '1'
-                };
-                setTask(mockTask);
-
-                updateData({
-                    taskId: mockTask.id,
-                    villageId: mockTask.villageId,
-                    villageName: mockTask.village.name,
-                    disasterType: mockTask.incident.disasterType,
-                    surveyDate: new Date().toISOString()
-                });
+                toast.error('ไม่สามารถโหลดข้อมูลงานได้');
+                navigate('/survey-area');
             } finally {
                 setLoading(false);
             }

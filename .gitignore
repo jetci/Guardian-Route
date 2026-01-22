@@ -19,6 +19,11 @@ backend/uploads/
 backend/dist/
 backend/.env
 backend/prisma/.env
+# Sensitive tokens (do not commit)
+backend/admin_token.txt
+backend/field_token.txt
+backend/.env
+backend/prisma/.env
 
 # Frontend
 frontend/dist/

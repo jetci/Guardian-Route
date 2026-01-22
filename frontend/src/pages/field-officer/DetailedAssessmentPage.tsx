@@ -5,6 +5,9 @@ import { tasksApi } from '../../api/tasks';
 import type { Task } from '../../types';
 import { AssessmentSteps } from './AssessmentSteps';
 import './DetailedAssessmentPage.css';
+import { createReport } from '../../api/reports';
+import { ReportType, ReportStatus } from '../../types/Report';
+import toast from 'react-hot-toast';
 
 export interface AssessmentData {
   affectedHouseholds: string;
@@ -112,10 +115,65 @@ export function DetailedAssessmentPage() {
     }
   };
 
-  const handleSubmit = () => {
-    console.log('📋 Detailed Assessment Data:', formData);
-    alert('✅ ส่งรายงานฉบับเต็มสำเร็จ!');
-    navigate('/dashboard/officer');
+
+
+  // ... existing imports
+
+  const handleSubmit = async () => {
+    try {
+      if (!task) return;
+
+      // Show loading toast
+      const toastId = toast.loading('กำลังส่งรายงาน...');
+
+      // Map form data to CreateReportDto
+      const reportData = {
+        type: ReportType.TASK,
+        title: `รายงานความเสียหาย: ${task.title}`,
+        summary: `รายงานการประเมินความเสียหายสำหรับงาน ${task.title}`,
+        incidentId: task.incidentId,
+        status: ReportStatus.SUBMITTED,
+
+        // Top-level fields
+        affectedHouseholds: parseInt(formData.affectedHouseholds) || 0,
+        affectedPersons: (parseInt(formData.peopleMale) || 0) +
+          (parseInt(formData.peopleFemale) || 0) +
+          (parseInt(formData.peopleChildren) || 0),
+        totalDamageEstimate: parseFloat(formData.agricultureValue) || 0, // Initial estimate from agriculture
+
+        // Detailed data in JSON
+        details: {
+          ...formData,
+          taskId: task.id,
+          villageId: task.villageId,
+          submittedAt: new Date().toISOString()
+        },
+
+        // Metadata
+        metadata: {
+          taskId: task.id,
+          villageId: task.villageId,
+          source: 'DETAILED_ASSESSMENT'
+        }
+      };
+
+      console.log('🚀 Sending report data:', reportData);
+
+      // Call API
+      await createReport(reportData);
+
+      // Success
+      toast.success('✅ ส่งรายงานฉบับเต็มสำเร็จ!', { id: toastId });
+
+      // Navigate back to dashboard after short delay
+      setTimeout(() => {
+        navigate('/dashboard/officer');
+      }, 1500);
+
+    } catch (error) {
+      console.error('❌ Failed to submit report:', error);
+      toast.error('เกิดข้อผิดพลาดในการส่งรายงาน กรุณาลองใหม่อีกครั้ง');
+    }
   };
 
   if (taskLoading) {

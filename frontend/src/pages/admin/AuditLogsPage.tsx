@@ -52,36 +52,124 @@ export default function AuditLogsPage() {
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="stats-grid">
-          <StatCard
-            title="กิจกรรมทั้งหมด"
-            value={stats.total}
-            icon="📋"
-            color="blue"
-            loading={loading}
-          />
-          <StatCard
-            title="วันนี้"
-            value={stats.today}
-            icon="📅"
-            color="purple"
-            loading={loading}
-          />
-          <StatCard
-            title="สำเร็จ"
-            value={stats.success}
-            icon="✅"
-            color="green"
-            loading={loading}
-          />
-          <StatCard
-            title="ล้มเหลว"
-            value={stats.failed}
-            icon="❌"
-            color="red"
-            loading={loading}
-          />
+        {/* Stats - Modern Design */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: window.innerWidth < 768
+            ? '1fr'
+            : window.innerWidth < 1024
+              ? 'repeat(2, 1fr)'
+              : 'repeat(4, 1fr)',
+          gap: '20px',
+          marginBottom: '32px'
+        }}>
+          {/* Total Activities */}
+          <div style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            padding: '24px',
+            borderRadius: '16px',
+            boxShadow: '0 8px 24px rgba(102, 126, 234, 0.25)',
+            color: 'white',
+            position: 'relative',
+            overflow: 'hidden',
+            transition: 'transform 0.2s, box-shadow 0.2s'
+          }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 12px 32px rgba(102, 126, 234, 0.35)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(102, 126, 234, 0.25)';
+            }}>
+            <div style={{ position: 'absolute', top: '-20px', right: '-20px', fontSize: '80px', opacity: 0.15 }}>📋</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', opacity: 0.9 }}>กิจกรรมทั้งหมด</div>
+            <div style={{ fontSize: '36px', fontWeight: '800', marginBottom: '4px' }}>
+              {loading ? '...' : stats.total}
+            </div>
+            <div style={{ fontSize: '12px', opacity: 0.8 }}>รายการ</div>
+          </div>
+
+          {/* Today */}
+          <div style={{
+            background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+            padding: '24px',
+            borderRadius: '16px',
+            boxShadow: '0 8px 24px rgba(240, 147, 251, 0.25)',
+            color: 'white',
+            position: 'relative',
+            overflow: 'hidden',
+            transition: 'transform 0.2s, box-shadow 0.2s'
+          }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 12px 32px rgba(240, 147, 251, 0.35)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(240, 147, 251, 0.25)';
+            }}>
+            <div style={{ position: 'absolute', top: '-20px', right: '-20px', fontSize: '80px', opacity: 0.15 }}>📅</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', opacity: 0.9 }}>วันนี้</div>
+            <div style={{ fontSize: '36px', fontWeight: '800', marginBottom: '4px' }}>
+              {loading ? '...' : stats.today}
+            </div>
+            <div style={{ fontSize: '12px', opacity: 0.8 }}>รายการ</div>
+          </div>
+
+          {/* Success */}
+          <div style={{
+            background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+            padding: '24px',
+            borderRadius: '16px',
+            boxShadow: '0 8px 24px rgba(67, 233, 123, 0.25)',
+            color: 'white',
+            position: 'relative',
+            overflow: 'hidden',
+            transition: 'transform 0.2s, box-shadow 0.2s'
+          }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 12px 32px rgba(67, 233, 123, 0.35)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(67, 233, 123, 0.25)';
+            }}>
+            <div style={{ position: 'absolute', top: '-20px', right: '-20px', fontSize: '80px', opacity: 0.15 }}>✅</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', opacity: 0.9 }}>สำเร็จ</div>
+            <div style={{ fontSize: '36px', fontWeight: '800', marginBottom: '4px' }}>
+              {loading ? '...' : stats.success}
+            </div>
+            <div style={{ fontSize: '12px', opacity: 0.8 }}>รายการ</div>
+          </div>
+
+          {/* Failed */}
+          <div style={{
+            background: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+            padding: '24px',
+            borderRadius: '16px',
+            boxShadow: '0 8px 24px rgba(250, 112, 154, 0.25)',
+            color: 'white',
+            position: 'relative',
+            overflow: 'hidden',
+            transition: 'transform 0.2s, box-shadow 0.2s'
+          }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 12px 32px rgba(250, 112, 154, 0.35)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(250, 112, 154, 0.25)';
+            }}>
+            <div style={{ position: 'absolute', top: '-20px', right: '-20px', fontSize: '80px', opacity: 0.15 }}>❌</div>
+            <div style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px', opacity: 0.9 }}>ล้มเหลว</div>
+            <div style={{ fontSize: '36px', fontWeight: '800', marginBottom: '4px' }}>
+              {loading ? '...' : stats.failed}
+            </div>
+            <div style={{ fontSize: '12px', opacity: 0.8 }}>รายการ</div>
+          </div>
         </div>
 
         {/* Real Audit Log Table Component */}

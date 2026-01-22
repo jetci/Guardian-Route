@@ -9,15 +9,15 @@ import { apiClient as api } from './client';
 export interface IncidentPayload {
   title: string;
   description: string;
-  type: string;
-  severity: string;
+  disasterType: string; // FLOOD, LANDSLIDE, FIRE, STORM, EARTHQUAKE, OTHER
+  severity: number; // 1-5
   location: {
-    lat: number;
-    lng: number;
-    address?: string;
+    type: 'Point';
+    coordinates: [number, number]; // [longitude, latitude]
   };
+  address?: string;
   affectedArea?: any;
-  photos?: string[];
+  // photos field removed - backend doesn't expect it
 }
 
 export const incidentService = {
@@ -65,7 +65,26 @@ export const incidentService = {
    * Get my incidents
    */
   getMyIncidents: async () => {
-    const response = await api.get('/incidents/my');
+    try {
+      const response = await api.get('/incidents/my');
+      const incidents = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+
+      if (!Array.isArray(incidents)) {
+        console.warn('⚠️ /incidents/my response is not an array:', response.data);
+        return [];
+      }
+      return incidents;
+    } catch (error) {
+      console.error('❌ Failed to load my incidents:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Get incident statistics
+   */
+  getStatistics: async () => {
+    const response = await api.get('/incidents/statistics');
     return response.data;
   },
 };

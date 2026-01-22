@@ -109,6 +109,7 @@ export interface Incident {
   address?: string;
   images?: string[];
   villageId?: string;
+  affectedArea?: any;
   disasterType: DisasterType;
   reportedAt: string;
   resolvedAt?: string;
@@ -132,7 +133,7 @@ export interface CreateIncidentDto {
   address?: string;
   images?: string[];
   villageId?: string;
-  polygon?: any; // GeoJSON Polygon
+  affectedArea?: any; // GeoJSON FeatureCollection
   estimatedHouseholds?: number;
   severity?: number;
 }
@@ -184,8 +185,10 @@ export interface Task {
   createdBy?: User;
   village?: Village;
   supervisorComment?: string;
+  revisionNote?: string; // Added revisionNote
   reviewedBy?: string;
   reviewedAt?: string;
+  assigner?: User;
 }
 
 export interface CreateTaskDto {
@@ -200,3 +203,9 @@ export interface CreateTaskDto {
 export interface UpdateTaskDto extends Partial<CreateTaskDto> {
   status?: TaskStatus;
 }
+
+export * from './Report';
+export * from './survey';
+export * from './analytics';
+export * from './notification';
+export * from './FormBuilder';

@@ -12,7 +12,7 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 @UseGuards(JwtAuthGuard)
 @Controller('analytics')
 export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) {}
+  constructor(private readonly analyticsService: AnalyticsService) { }
 
   @Get('tasks/status')
   @ApiOperation({ summary: 'Get task status overview' })
@@ -40,5 +40,35 @@ export class AnalyticsController {
     @CurrentUser() user: any,
   ): Promise<TaskTrendResponseDto> {
     return this.analyticsService.getTaskTrend(query, user.sub, user.role);
+  }
+
+  @Get('incidents/overview')
+  @ApiOperation({ summary: 'Get incident overview statistics' })
+  async getIncidentOverview(@Query() query: AnalyticsQueryDto) {
+    return this.analyticsService.getIncidentOverview(query);
+  }
+
+  @Get('incidents/trend')
+  @ApiOperation({ summary: 'Get incident trend over time' })
+  async getIncidentTrend() {
+    return this.analyticsService.getIncidentTrend();
+  }
+
+  @Get('incidents/by-type')
+  @ApiOperation({ summary: 'Get incidents by type' })
+  async getIncidentsByType() {
+    return this.analyticsService.getIncidentsByType();
+  }
+
+  @Get('incidents/by-severity')
+  @ApiOperation({ summary: 'Get incidents by severity' })
+  async getIncidentsBySeverity() {
+    return this.analyticsService.getIncidentsBySeverity();
+  }
+
+  @Get('performers/top')
+  @ApiOperation({ summary: 'Get top performers' })
+  async getTopPerformers() {
+    return this.analyticsService.getTopPerformers();
   }
 }

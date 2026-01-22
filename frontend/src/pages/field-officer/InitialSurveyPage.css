@@ -3,11 +3,19 @@
 .initial-survey-page {
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: 100%;
+  /* Changed from 100vh to fit within dashboard */
+  min-height: calc(100vh - 64px);
+  /* Ensure full height minus header/nav if needed */
   display: flex;
   flex-direction: column;
   background: #f7fafc;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 .survey-header {
@@ -52,13 +60,16 @@
   display: flex;
   flex: 1;
   overflow: hidden;
-  min-height: calc(100vh - 70px);
-  height: calc(100vh - 70px);
+  height: 100%;
+  /* Let flex handle height */
+  width: 100%;
+  position: relative;
 }
 
 /* Map Section */
 .map-section {
   flex: 1;
+  min-width: 0;
   position: relative;
   background: #e2e8f0;
   height: 100%;
@@ -646,6 +657,42 @@
   color: #2563eb;
 }
 
+/* Card Style (Copied from CreateIncidentReportPage pattern) */
+.incident-form-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+/* GPS Toggle */
+.gps-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border: none;
+  border-bottom: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  color: #475569;
+}
+
+.gps-toggle-btn:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.gps-info-panel {
+  padding: 16px;
+  background: white;
+}
+
 /* Responsive */
 @media (max-width: 1024px) {
   .form-section {
@@ -675,7 +722,10 @@
     min-width: 100%;
     height: auto;
     min-height: 60vh;
-    padding: 24px 16px;
+    padding: 16px;
+    /* Reduced padding for mobile */
+    padding-bottom: 80px;
+    /* Space for bottom nav */
   }
 
   .survey-header {

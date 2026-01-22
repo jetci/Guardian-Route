@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import toast from 'react-hot-toast';
 import L from 'leaflet';
@@ -11,7 +11,8 @@ import { incidentService } from '../../services/incidentService';
 import ThaiDatePicker from '../../components/ThaiDatePicker';
 import { validateIncidentForm, hasValidationErrors, getFirstError, type IncidentValidationErrors } from '../../validation/incident-validation';
 import { villagesApi, type LeafletVillage } from '../../api/villages';
-import { MOCK_VILLAGES } from '../../data/mockVillages';
+import { fieldSurveyApi } from '../../api/fieldSurvey';
+
 import './InitialSurveyPage.css';
 import './CreateIncidentReportPage.css';
 
@@ -31,6 +32,7 @@ interface PhotoPreview {
 
 export function CreateIncidentReportPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const mapRef = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
   const currentMarkerRef = useRef<L.Marker | null>(null);
@@ -44,6 +46,7 @@ export function CreateIncidentReportPage() {
   // Form state
   const [incidentDate, setIncidentDate] = useState<Date | null>(new Date());
   const [disasterType, setDisasterType] = useState('');
+  const [disasterTypeOther, setDisasterTypeOther] = useState('');
   const [village, setVillage] = useState('');
   const [estimatedHouseholds, setEstimatedHouseholds] = useState('');
   const [severity, setSeverity] = useState('');
@@ -81,7 +84,6 @@ export function CreateIncidentReportPage() {
       } catch (error) {
         console.error('Failed to fetch villages:', error);
         toast.error('ไม่สามารถโหลดข้อมูลหมู่บ้านได้');
-        // Fallback to empty list or handle error appropriately
         setVillages([]);
       } finally {
         setIsLoadingVillages(false);
@@ -96,6 +98,7 @@ export function CreateIncidentReportPage() {
       const draft = {
         incidentDate: incidentDate?.toISOString(),
         disasterType,
+        disasterTypeOther,
         village,
         severity,
         estimatedHouseholds,
@@ -107,17 +110,14 @@ export function CreateIncidentReportPage() {
       };
 
       localStorage.setItem('incident-draft', JSON.stringify(draft));
-      toast.success('💾 บันทึกแบบร่างอัตโนมัติ', {
-        duration: 2000,
-        icon: '💾'
-      });
+      // Silent save or minimal notification
     };
 
-    // Save every 30 seconds
-    const interval = setInterval(saveDraft, 30000);
+    // Save every 60 seconds (reduced frequency)
+    const interval = setInterval(saveDraft, 60000);
 
     return () => clearInterval(interval);
-  }, [incidentDate, disasterType, village, severity, estimatedHouseholds, notes, latitude, longitude, polygonData]);
+  }, [incidentDate, disasterType, disasterTypeOther, village, severity, estimatedHouseholds, notes, latitude, longitude, polygonData]);
 
   // Sync village state to ref for event listeners
   useEffect(() => {
@@ -172,10 +172,18 @@ export function CreateIncidentReportPage() {
           weight: 3,
           fillColor: '#F59E0B',
           fillOpacity: 0.1,
-          dashArray: '10, 10'
-        }).addTo(map);
+          dashArray: '10, 10',
+          pmIgnore: true // ✅ Prevent Geoman from editing this layer
+        } as any).addTo(map);
 
         villageBoundaryLayerRef.current = polygon;
+
+        // Automatically set latitude and longitude if not already set
+        if (!latitude || !longitude) {
+          setLatitude(selectedVillage.lat);
+          setLongitude(selectedVillage.lng);
+          setAccuracy(5); // Default accuracy for village center
+        }
 
         // Zoom to village
         map.fitBounds(polygon.getBounds(), {
@@ -210,39 +218,83 @@ export function CreateIncidentReportPage() {
     }
   }, [village, villages]);
 
-  // Load draft on mount
+  // Restore from Edit Data or Draft
   useEffect(() => {
-    const draftStr = localStorage.getItem('incident-draft');
-    if (draftStr) {
-      try {
-        const draft = JSON.parse(draftStr);
+    const editData = location.state?.editData;
 
-        // Check if draft is not too old (24 hours)
-        const age = Date.now() - draft.timestamp;
-        if (age > 24 * 60 * 60 * 1000) {
-          localStorage.removeItem('incident-draft');
-          return;
-        }
+    if (editData && villages.length > 0) {
+      setIncidentDate(editData.additionalData?.incidentDate ? new Date(editData.additionalData.incidentDate) : new Date());
+      setDisasterType(editData.disasterType || '');
+      setDisasterTypeOther(editData.additionalData?.disasterTypeOther || '');
+      setEstimatedHouseholds(editData.estimatedHouseholds?.toString() || '');
+      setSeverity(editData.severity?.toString() || '');
+      setNotes(editData.notes || '');
+      setLatitude(editData.gpsLocation?.lat);
+      setLongitude(editData.gpsLocation?.lng);
+      setPolygonData(editData.polygon);
 
-        // Ask user if they want to restore
-        const restore = window.confirm(
-          'พบแบบร่างที่บันทึกไว้\n' +
-          `บันทึกเมื่อ: ${new Date(draft.timestamp).toLocaleString('th-TH')}\n\n` +
-          'ต้องการกู้คืนหรือไม่?'
+      if (editData.villageName) {
+        const matchingVillage = villages.find(v =>
+          v.name === editData.villageName ||
+          `หมู่ ${v.moo} ${v.name}` === editData.villageName
         );
+        if (matchingVillage) {
+          setVillage(`หมู่ ${matchingVillage.moo} ${matchingVillage.name}`);
+        } else {
+          setVillage(editData.villageName);
+        }
+      }
 
-        if (restore) {
-          setIncidentDate(draft.incidentDate ? new Date(draft.incidentDate) : null);
-          setDisasterType(draft.disasterType || 'น้ำท่วม');
-          setVillage(draft.village || '');
-          setSeverity(draft.severity || '3');
-          setEstimatedHouseholds(draft.estimatedHouseholds || '');
-          setNotes(draft.notes || '');
-          setLatitude(draft.latitude);
-          setLongitude(draft.longitude);
-          setPolygonData(draft.polygonData);
+      // Restore photos
+      if (editData.photoUrls && Array.isArray(editData.photoUrls)) {
+        const restoredPhotos: PhotoPreview[] = editData.photoUrls.map((url: string, i: number) => ({
+          preview: url,
+          name: `Existing Photo ${i + 1}`,
+          file: null as any // Mark as existing
+        }));
+        setPhotos(restoredPhotos);
+      }
 
-          toast.success('✅ กู้คืนแบบร่างสำเร็จ');
+      toast.success('✅ กู้คืนข้อมูลเดิมสำเร็จ');
+      return;
+    }
+
+    const savedDraft = localStorage.getItem('incident-draft');
+    if (savedDraft) {
+      try {
+        const draft = JSON.parse(savedDraft);
+        const now = Date.now();
+        const draftAge = now - (draft.timestamp || 0);
+
+        if (draftAge < 24 * 60 * 60 * 1000) {
+          // Ask user if they want to restore draft
+          const shouldRestore = window.confirm(
+            'พบแบบร่างที่บันทึกไว้\n\nต้องการกู้คืนข้อมูลหรือไม่?\n\n' +
+            '- กด "ตกลง" เพื่อกู้คืนข้อมูล\n' +
+            '- กด "ยกเลิก" เพื่อเริ่มต้นใหม่'
+          );
+
+          if (shouldRestore) {
+            setIncidentDate(draft.incidentDate ? new Date(draft.incidentDate) : new Date());
+            // DON'T restore disasterType, severity, and village - force user to select
+            // setDisasterType(draft.disasterType || '');
+            setDisasterTypeOther(draft.disasterTypeOther || '');
+            // setVillage(draft.village || ''); // Don't restore - force user to select
+            // setSeverity(draft.severity || ''); // Don't restore - force user to select
+            setEstimatedHouseholds(draft.estimatedHouseholds || '');
+            setNotes(draft.notes || '');
+            setLatitude(draft.latitude);
+            setLongitude(draft.longitude);
+            setPolygonData(draft.polygonData);
+
+            toast.success('✅ กู้คืนแบบร่างสำเร็จ (กรุณาเลือกหมู่บ้าน, ประเภทภัย และความรุนแรง)', {
+              duration: 3000
+            });
+          } else {
+            // User chose to start fresh - clear draft
+            localStorage.removeItem('incident-draft');
+            toast.success('🆕 เริ่มต้นใหม่');
+          }
         } else {
           localStorage.removeItem('incident-draft');
         }
@@ -251,7 +303,7 @@ export function CreateIncidentReportPage() {
         localStorage.removeItem('incident-draft');
       }
     }
-  }, []);
+  }, [villages]);
 
   // Initialize map
   useEffect(() => {
@@ -333,7 +385,6 @@ export function CreateIncidentReportPage() {
             L.DomEvent.preventDefault(e);
             L.DomEvent.stopPropagation(e);
 
-            console.log('🔴 Cancel button clicked');
             map.pm.disableDraw();
             button.style.display = 'none';
             toast('ยกเลิกการวาด', { icon: 'ℹ️' });
@@ -388,13 +439,20 @@ export function CreateIncidentReportPage() {
         const layer = e.layer;
         const shape = e.shape;
 
-        console.log('✅ pm:create fired:', shape);
-
         // ✅ Handle Marker Creation
         if (shape === 'Marker') {
-          console.log('📍 Marker created - opening modal');
           setCurrentLayer(layer);
           setMarkerLabel(''); // Reset label
+
+          // Add click listener for editing
+          layer.on('click', (e: any) => {
+            L.DomEvent.stopPropagation(e);
+            setCurrentLayer(layer);
+            const props = (layer as any).feature?.properties;
+            setMarkerLabel(props?.label || '');
+            setShowMarkerModal(true);
+          });
+
           setShowMarkerModal(true); // Open modal
 
           // ✅ Disable draw mode to prevent continuous pinning
@@ -407,7 +465,6 @@ export function CreateIncidentReportPage() {
 
         // ✅ Process Polygon/Rectangle here
         if (shape === 'Polygon' || shape === 'Rectangle') {
-          console.log(`🔷 Processing ${shape} in pm:create`);
 
           // Validate polygon points
           const latlngs = (layer as any).getLatLngs();
@@ -431,11 +488,15 @@ export function CreateIncidentReportPage() {
             return;
           }
 
-          console.log(`✅ Valid ${shape}:`, points.length, 'points');
-
-          // Update polygonData with ALL items
+          // Update polygonData with ALL items (Filter to only include Polygons)
           if (drawnItemsRef.current) {
-            setPolygonData(drawnItemsRef.current.toGeoJSON());
+            const geoJson = (drawnItemsRef.current.toGeoJSON() as any);
+            if (geoJson.features) {
+              geoJson.features = geoJson.features.filter((f: any) =>
+                f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+              );
+            }
+            setPolygonData(geoJson.features && geoJson.features.length > 0 ? geoJson : null);
 
             // Count polygons for toast
             const layers = drawnItemsRef.current.getLayers();
@@ -450,26 +511,38 @@ export function CreateIncidentReportPage() {
               icon: '🎉'
             });
           }
-
-          console.log(`✅ ${shape} drawn successfully`);
         }
       });
 
       // ✅ Handle shape edited (Geoman)
       map.on('pm:edit', (e: any) => {
-        console.log('✏️ pm:edit event triggered');
         if (drawnItemsRef.current) {
-          setPolygonData(drawnItemsRef.current.toGeoJSON());
+          const geoJson = (drawnItemsRef.current.toGeoJSON() as any);
+          if (geoJson.features) {
+            geoJson.features = geoJson.features.filter((f: any) =>
+              f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+            );
+          }
+          setPolygonData(geoJson.features && geoJson.features.length > 0 ? geoJson : null);
         }
         toast.success('✏️ แก้ไขพื้นที่สำเร็จ');
       });
 
       // ✅ Handle shape deleted (Geoman)
       map.on('pm:remove', () => {
-        console.log('🗑️ pm:remove event triggered');
         if (drawnItemsRef.current) {
           const layers = drawnItemsRef.current.getLayers();
-          setPolygonData(layers.length > 0 ? drawnItemsRef.current.toGeoJSON() : null);
+          if (layers.length === 0) {
+            setPolygonData(null);
+          } else {
+            const geoJson = (drawnItemsRef.current.toGeoJSON() as any);
+            if (geoJson.features) {
+              geoJson.features = geoJson.features.filter((f: any) =>
+                f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+              );
+            }
+            setPolygonData(geoJson.features && geoJson.features.length > 0 ? geoJson : null);
+          }
         }
         toast('🗑️ ลบพื้นที่แล้ว', { icon: 'ℹ️' });
       });
@@ -588,20 +661,21 @@ export function CreateIncidentReportPage() {
           }
 
           if (mapRef.current) {
-            if (currentMarkerRef.current) {
-              mapRef.current.removeLayer(currentMarkerRef.current);
-            }
+            // Allow multiple markers - do not remove previous one
+            // if (currentMarkerRef.current) {
+            //   mapRef.current.removeLayer(currentMarkerRef.current);
+            // }
 
             // Add marker with accuracy circle
             const marker = L.marker([lat, lng], { draggable: true })
               .addTo(mapRef.current)
-              .bindPopup(
-                `📍 ตำแหน่งปัจจุบัน<br>` +
-                `<small>ความแม่นยำ: ±${Math.round(acc)}m</small><br>` +
-                `<small>ลากย้ายเพื่อปรับตำแหน่ง</small>`
-              )
+              .bindPopup(`📍 ตำแหน่งปัจจุบัน<br><small>ความแม่นยำ: ±${Math.round(acc)}m</small>`)
               .openPopup();
 
+            // Add to drawn items so it can be collected later
+            if (drawnItemsRef.current) {
+              drawnItemsRef.current.addLayer(marker);
+            }
             // Add accuracy circle
             const accuracyCircle = L.circle([lat, lng], {
               radius: acc,
@@ -646,6 +720,15 @@ export function CreateIncidentReportPage() {
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
+      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+      // Check file sizes
+      const oversizedFiles = files.filter(f => f.size > MAX_FILE_SIZE);
+      if (oversizedFiles.length > 0) {
+        toast.error(`ไฟล์ "${oversizedFiles[0].name}" มีขนาดใหญ่เกิน 5MB`);
+        e.target.value = ''; // Reset input
+        return;
+      }
 
       const newPhotos: PhotoPreview[] = files.map(file => ({
         file,
@@ -667,10 +750,30 @@ export function CreateIncidentReportPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Map Thai disaster types to English enum values
+  const mapDisasterTypeToEnum = (thaiType: string): string => {
+    const mapping: Record<string, string> = {
+      'น้ำท่วม': 'FLOOD',
+      'ไฟป่า': 'FIRE',
+      'ดินถลม': 'LANDSLIDE',
+      'วาตภัย': 'STORM',
+      'อัคคีภัย': 'FIRE',
+      'แผ่นดินไหว': 'EARTHQUAKE',
+      'ภัยแล้ง': 'DROUGHT',
+      'อื่นๆ': 'OTHER'
+    };
+    const result = mapping[thaiType] || 'OTHER';
+    return result;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Comprehensive validation
+    const markersCount = drawnItemsRef.current
+      ? drawnItemsRef.current.getLayers().filter(l => l instanceof L.Marker).length
+      : 0;
+
     const validationErrors = validateIncidentForm({
       village,
       disasterType,
@@ -680,6 +783,7 @@ export function CreateIncidentReportPage() {
       latitude,
       longitude,
       polygonData,
+      markersCount,
       incidentDate
     });
 
@@ -759,46 +863,70 @@ export function CreateIncidentReportPage() {
     setIsSubmitting(true);
 
     try {
-      const payload = {
-        title: `${disasterType} - ${village}`,
-        description: notes || `เหตุการณ์${disasterType}ที่${village}`,
-        type: disasterType,
-        severity: severity === '5' ? 'CRITICAL' : severity === '4' ? 'HIGH' : severity === '3' ? 'MEDIUM' : 'LOW',
-        location: {
-          lat: latitude!,  // Safe: validated above
-          lng: longitude!, // Safe: validated above
-          address: village
+      // 1. Upload photos first (if any)
+      let photoUrls: string[] = [];
+      if (photos.length > 0) {
+        try {
+          const newFiles = photos.map(p => p.file);
+          photoUrls = await fieldSurveyApi.uploadImages(newFiles);
+        } catch (photoError) {
+          console.error('❌ Photo upload failed:', photoError);
+          toast.error('ไม่สามารถอัปโหลดรูปภาพได้ แต่จะดำเนินการต่อด้วยข้อมูลที่มี');
+        }
+      }
+
+      // 2. Prepare data for Review Page
+      const markers = drawnItemsRef.current ? drawnItemsRef.current.getLayers()
+        .filter((layer: any) => layer instanceof L.Marker)
+        .map((layer: any, index: number) => {
+          const props = layer.feature?.properties;
+          return {
+            lat: layer.getLatLng().lat,
+            lng: layer.getLatLng().lng,
+            label: props?.label || ''
+          };
+        }) : [];
+
+      const selectedVillage = villages.find(v => `หมู่ ${v.moo} ${v.name}` === village);
+
+      const surveyData = {
+        villageId: selectedVillage ? selectedVillage.id.toString() : '',
+        villageName: selectedVillage ? selectedVillage.name : village,
+        disasterType: mapDisasterTypeToEnum(disasterType), // Convert to English enum
+        severity: Number(severity),
+        estimatedHouseholds: Number(estimatedHouseholds),
+        notes: disasterType === 'อื่นๆ' && disasterTypeOther
+          ? `[ประเภทภัยอื่นๆ: ${disasterTypeOther}]\n\n${notes}`
+          : notes,
+        gpsLocation: {
+          lat: latitude || 19.9422,
+          lng: longitude || 99.2195,
         },
-        affectedArea: drawnItemsRef.current ? drawnItemsRef.current.toGeoJSON() : null,
-        photos: photos.map(p => p.name)
+        polygon: polygonData,
+        photoUrls,
+        additionalData: {
+          incidentDate: incidentDate?.toISOString(),
+          markers,
+          disasterTypeOther: disasterType === 'อื่นๆ' ? disasterTypeOther : undefined,
+          disasterTypeThai: disasterType // Keep Thai version for reference
+        }
       };
 
-      // 🔴 MOCK SUBMISSION (Backend not ready for FeatureCollection yet)
-      // await incidentService.create(payload);
-      console.log('Mock Submitting Payload:', payload);
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Clear draft on success
+      // 3. Clear draft before navigating (prevent old data from persisting)
       localStorage.removeItem('incident-draft');
+      console.log('🗑️ Draft cleared after successful submission');
 
-      await Swal.fire({
-        title: 'บันทึกสำเร็จ!',
-        text: 'รายงานเหตุการณ์ใหม่ถูกส่งไปยังผู้บังคับบัญชาแล้ว',
-        icon: 'success',
-        confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#10b981'
+      // 4. Navigate to Review Page
+      navigate('/survey-review', {
+        state: {
+          surveyData,
+          isNewIncident: true // Flag to tell Review Page to call incidentService.create
+        }
       });
 
-      navigate('/dashboard/officer');
     } catch (error) {
-      console.error('Error creating incident:', error);
-      Swal.fire({
-        title: 'เกิดข้อผิดพลาด',
-        text: 'ไม่สามารถส่งรายงานได้ กรุณาลองใหม่อีกครั้ง',
-        icon: 'error',
-        confirmButtonText: 'ตกลง',
-        confirmButtonColor: '#ef4444'
-      });
+      console.error('Error preparing incident report:', error);
+      toast.error('เกิดข้อผิดพลาดในการเตรียมข้อมูล');
     } finally {
       setIsSubmitting(false);
     }
@@ -834,17 +962,27 @@ export function CreateIncidentReportPage() {
 
   const handleSaveMarker = () => {
     if (currentLayer && markerLabel.trim()) {
-      // Calculate next marker number
-      let nextNumber = 1;
-      if (drawnItemsRef.current) {
-        const layers = drawnItemsRef.current.getLayers();
-        const markers = layers.filter(l => l instanceof L.Marker && l !== currentLayer);
-        nextNumber = markers.length + 1;
+      // Check if this is an existing marker being edited
+      let markerNumber = (currentLayer as any).options?.markerNumber || (currentLayer as any).feature?.properties?.number;
+
+      if (!markerNumber) {
+        // Calculate next marker number for new markers (Max + 1)
+        let maxNumber = 0;
+        if (drawnItemsRef.current) {
+          const layers = drawnItemsRef.current.getLayers();
+          layers.forEach(l => {
+            if (l instanceof L.Marker && l !== currentLayer) {
+              const num = (l as any).options?.markerNumber || (l as any).feature?.properties?.number;
+              if (num && num > maxNumber) maxNumber = num;
+            }
+          });
+        }
+        markerNumber = maxNumber + 1;
       }
 
       // Set numbered icon
       if (currentLayer instanceof L.Marker) {
-        currentLayer.setIcon(createNumberedIcon(nextNumber));
+        currentLayer.setIcon(createNumberedIcon(markerNumber));
 
         const latlng = currentLayer.getLatLng();
         const lat = latlng.lat.toFixed(6);
@@ -853,25 +991,26 @@ export function CreateIncidentReportPage() {
         // Bind popup with number, label, and GPS
         const popupContent = `
           <div style="text-align: center;">
-            <strong>จุดที่ ${nextNumber}</strong><br>
+            <strong>จุดที่ ${markerNumber}</strong><br>
             ${markerLabel}<br>
             <small style="color: #666;">${lat}, ${lng}</small>
           </div>
         `;
         currentLayer.bindPopup(popupContent).openPopup();
 
-        // Save properties for GeoJSON
+        // Save properties for GeoJSON and internal tracking
+        (currentLayer as any).options.markerNumber = markerNumber;
         (currentLayer as any).feature = (currentLayer as any).feature || {};
         (currentLayer as any).feature.type = 'Feature';
         (currentLayer as any).feature.properties = {
-          number: nextNumber,
+          number: markerNumber,
           label: markerLabel,
           latitude: latlng.lat,
           longitude: latlng.lng
         };
       } else {
         // For non-marker shapes
-        const popupContent = `<strong>จุดที่ ${nextNumber}</strong>: ${markerLabel}`;
+        const popupContent = `<strong>จุดที่ ${markerNumber}</strong>: ${markerLabel}`;
         currentLayer.bindPopup(popupContent).openPopup();
       }
 
@@ -880,8 +1019,14 @@ export function CreateIncidentReportPage() {
         if (!drawnItemsRef.current.hasLayer(currentLayer)) {
           drawnItemsRef.current.addLayer(currentLayer);
         }
-        // Update polygonData state to trigger UI feedback
-        setPolygonData(drawnItemsRef.current.toGeoJSON());
+        // Update polygonData state (Filter to only include Polygons)
+        const geoJson = (drawnItemsRef.current.toGeoJSON() as any);
+        if (geoJson.features) {
+          geoJson.features = geoJson.features.filter((f: any) =>
+            f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+          );
+        }
+        setPolygonData(geoJson.features && geoJson.features.length > 0 ? geoJson : null);
       }
 
       // ✅ Update GPS coordinates from marker
@@ -898,18 +1043,28 @@ export function CreateIncidentReportPage() {
         });
       }
 
-      toast.success(`📍 เพิ่มจุดที่ ${nextNumber} เรียบร้อย`);
+      toast.success(`📍 เพิ่มจุดที่ ${markerNumber} เรียบร้อย`);
     } else if (currentLayer) {
       // Fallback for empty label
-      let nextNumber = 1;
-      if (drawnItemsRef.current) {
-        const layers = drawnItemsRef.current.getLayers();
-        const markers = layers.filter(l => l instanceof L.Marker && l !== currentLayer);
-        nextNumber = markers.length + 1;
+      let markerNumber = (currentLayer as any).options?.markerNumber || (currentLayer as any).feature?.properties?.number;
+
+      if (!markerNumber) {
+        // Calculate next marker number for new markers (Max + 1)
+        let maxNumber = 0;
+        if (drawnItemsRef.current) {
+          const layers = drawnItemsRef.current.getLayers();
+          layers.forEach(l => {
+            if (l instanceof L.Marker && l !== currentLayer) {
+              const num = (l as any).options?.markerNumber || (l as any).feature?.properties?.number;
+              if (num && num > maxNumber) maxNumber = num;
+            }
+          });
+        }
+        markerNumber = maxNumber + 1;
       }
 
       if (currentLayer instanceof L.Marker) {
-        currentLayer.setIcon(createNumberedIcon(nextNumber));
+        currentLayer.setIcon(createNumberedIcon(markerNumber));
 
         const latlng = currentLayer.getLatLng();
         const lat = latlng.lat.toFixed(6);
@@ -917,30 +1072,38 @@ export function CreateIncidentReportPage() {
 
         const popupContent = `
           <div style="text-align: center;">
-            <strong>จุดที่ ${nextNumber}</strong><br>
+            <strong>จุดที่ ${markerNumber}</strong><br>
             <small style="color: #666;">${lat}, ${lng}</small>
           </div>
         `;
         currentLayer.bindPopup(popupContent).openPopup();
 
-        // Save properties for GeoJSON
+        // Save properties for GeoJSON and internal tracking
+        (currentLayer as any).options.markerNumber = markerNumber;
         (currentLayer as any).feature = (currentLayer as any).feature || {};
         (currentLayer as any).feature.type = 'Feature';
         (currentLayer as any).feature.properties = {
-          number: nextNumber,
+          number: markerNumber,
           label: '',
           latitude: latlng.lat,
           longitude: latlng.lng
         };
       } else {
-        currentLayer.bindPopup(`จุดที่ ${nextNumber}`).openPopup();
+        currentLayer.bindPopup(`จุดที่ ${markerNumber}`).openPopup();
       }
 
       if (drawnItemsRef.current) {
         if (!drawnItemsRef.current.hasLayer(currentLayer)) {
           drawnItemsRef.current.addLayer(currentLayer);
         }
-        setPolygonData(drawnItemsRef.current.toGeoJSON());
+        // Update polygonData state (Filter to only include Polygons)
+        const geoJson = (drawnItemsRef.current.toGeoJSON() as any);
+        if (geoJson.features) {
+          geoJson.features = geoJson.features.filter((f: any) =>
+            f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon'
+          );
+        }
+        setPolygonData(geoJson.features && geoJson.features.length > 0 ? geoJson : null);
       }
 
       // ✅ Update GPS coordinates from marker (fallback case)
@@ -984,7 +1147,11 @@ export function CreateIncidentReportPage() {
           </div>
           <button
             className="cancel-btn"
-            onClick={() => navigate('/dashboard/officer')}
+            onClick={() => {
+              localStorage.removeItem('incident-draft');
+              console.log('🗑️ Draft cleared on cancel');
+              navigate('/dashboard/officer');
+            }}
           >
             ✕ ยกเลิก
           </button>
@@ -1072,8 +1239,39 @@ export function CreateIncidentReportPage() {
 
             <div className="map-controls">
               <button className="map-btn" onClick={getCurrentLocation} title="ระบุตำแหน่งปัจจุบัน">
-                📍 Get Location
+                <span>📍</span> Get Location
               </button>
+              <button
+                type="button"
+                className="map-btn"
+                onClick={() => {
+                  if (drawnItemsRef.current && drawnItemsRef.current.getLayers().length > 0) {
+                    Swal.fire({
+                      title: 'ยืนยันการลบพื้นที่',
+                      text: "คุณต้องการลบพื้นที่ที่วาดทั้งหมดใช่หรือไม่?",
+                      icon: 'warning',
+                      showCancelButton: true,
+                      confirmButtonColor: '#ef4444',
+                      cancelButtonColor: '#6b7280',
+                      confirmButtonText: 'ใช่, ลบทั้งหมด',
+                      cancelButtonText: 'ยกเลิก'
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        drawnItemsRef.current?.clearLayers();
+                        setPolygonData(null);
+                        toast.success('ลบพื้นที่เรียบร้อย');
+                      }
+                    });
+                  } else {
+                    toast('ไม่มีพื้นที่ให้ลบ', { icon: 'ℹ️' });
+                  }
+                }}
+                title="ลบพื้นที่ที่วาด"
+                style={{ color: '#ef4444', borderColor: '#ef4444' }}
+              >
+                <span>🗑️</span> Clear Area
+              </button>
+
             </div>
 
 
@@ -1138,6 +1336,8 @@ export function CreateIncidentReportPage() {
                     onChange={(e) => setVillage(e.target.value)}
                     required
                     disabled={isLoadingVillages}
+                    onInvalid={(e) => e.currentTarget.setCustomValidity('กรุณาเลือกหมู่บ้าน')}
+                    onInput={(e) => e.currentTarget.setCustomValidity('')}
                   >
                     <option value="">
                       {isLoadingVillages ? '⏳ กำลังโหลดข้อมูล...' : '-- เลือกหมู่บ้าน --'}
@@ -1156,16 +1356,29 @@ export function CreateIncidentReportPage() {
                     value={disasterType}
                     onChange={(e) => setDisasterType(e.target.value)}
                     required
+                    onInvalid={(e) => e.currentTarget.setCustomValidity('กรุณาเลือกประเภทภัย')}
+                    onInput={(e) => e.currentTarget.setCustomValidity('')}
                   >
                     <option value="">-- เลือกประเภทภัย --</option>
-                    <option>น้ำท่วม</option>
-                    <option>ดินถลม</option>
-                    <option>วาตภัย</option>
-                    <option>อัคคีภัย</option>
-                    <option>แผ่นดินไหว</option>
-                    <option>ภัยแล้ง</option>
-                    <option>อื่นๆ</option>
+                    <option value="น้ำท่วม">น้ำท่วม</option>
+                    <option value="ไฟป่า">ไฟป่า</option>
+                    <option value="ดินถลม">ดินถล่ม</option>
+                    <option value="วาตภัย">วาตภัย</option>
+                    <option value="อัคคีภัย">อัคคีภัย</option>
+                    <option value="แผ่นดินไหว">แผ่นดินไหว</option>
+                    <option value="ภัยแล้ง">ภัยแล้ง</option>
+                    <option value="อื่นๆ">อื่นๆ</option>
                   </select>
+                  {disasterType === 'อื่นๆ' && (
+                    <input
+                      type="text"
+                      value={disasterTypeOther}
+                      onChange={(e) => setDisasterTypeOther(e.target.value)}
+                      placeholder="ระบุประเภทภัยอื่นๆ..."
+                      style={{ marginTop: '8px' }}
+                      required
+                    />
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -1174,6 +1387,8 @@ export function CreateIncidentReportPage() {
                     value={severity}
                     onChange={(e) => setSeverity(e.target.value)}
                     required
+                    onInvalid={(e) => e.currentTarget.setCustomValidity('กรุณาเลือกความรุนแรง')}
+                    onInput={(e) => e.currentTarget.setCustomValidity('')}
                   >
                     <option value="">-- เลือกความรุนแรง --</option>
                     <option value="1">1 - เล็กน้อย</option>
@@ -1189,10 +1404,13 @@ export function CreateIncidentReportPage() {
                   <input
                     type="number"
                     min="0"
+                    max="10000"
                     placeholder="0"
                     value={estimatedHouseholds}
                     onChange={(e) => setEstimatedHouseholds(e.target.value)}
                     required
+                    onInvalid={(e) => e.currentTarget.setCustomValidity('กรุณากรอกจำนวนครัวเรือน')}
+                    onInput={(e) => e.currentTarget.setCustomValidity('')}
                   />
                 </div>
 
@@ -1282,6 +1500,6 @@ export function CreateIncidentReportPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </DashboardLayout >
   );
 }

@@ -55,6 +55,14 @@ export const BuddhistDatePicker: React.FC<BuddhistDatePickerProps> = ({
         return `${day}/${month}/${buddhistYear}`;
     };
 
+    interface CustomHeaderProps {
+        date: Date;
+        decreaseMonth: () => void;
+        increaseMonth: () => void;
+        prevMonthButtonDisabled: boolean;
+        nextMonthButtonDisabled: boolean;
+    }
+
     // Custom header component for calendar
     const CustomHeader = ({
         date,
@@ -62,7 +70,7 @@ export const BuddhistDatePicker: React.FC<BuddhistDatePickerProps> = ({
         increaseMonth,
         prevMonthButtonDisabled,
         nextMonthButtonDisabled,
-    }: any) => {
+    }: CustomHeaderProps) => {
         const buddhistYear = date.getFullYear() + 543;
         const monthName = THAI_MONTHS[date.getMonth()];
 
@@ -130,22 +138,6 @@ export const BuddhistDatePicker: React.FC<BuddhistDatePickerProps> = ({
                 formatWeekDay={(day) => THAI_DAYS_SHORT[new Date(day).getDay()]}
                 showPopperArrow={false}
                 popperPlacement="bottom-start"
-                popperModifiers={[
-                    {
-                        name: 'offset',
-                        options: {
-                            offset: [0, 8],
-                        },
-                    },
-                    {
-                        name: 'preventOverflow',
-                        options: {
-                            rootBoundary: 'viewport',
-                            tether: false,
-                            altAxis: true,
-                        },
-                    },
-                ]}
             />
             <p className="text-gray-500 text-xs mt-1">
                 รูปแบบ: วว/ดด/ปปปป (เช่น {formatDateToBuddhist(new Date())}) - คลิกเพื่อเลือกวันที่

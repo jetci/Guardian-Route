@@ -154,9 +154,9 @@ export function FieldOfficerDashboard() {
                   📍 {task.village?.name || task.incident?.address || 'ไม่ระบุ'}
                 </div>
 
-                {task.surveyDate && (
+                {task.completedAt && (
                   <div className="task-survey-date">
-                    ✅ สำรวจเมื่อ: {formatThaiDateShort(task.surveyDate)}
+                    ✅ สำรวจเมื่อ: {formatThaiDateShort(task.completedAt)}
                   </div>
                 )}
 

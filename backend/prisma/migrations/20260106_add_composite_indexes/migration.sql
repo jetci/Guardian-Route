@@ -29,7 +29,8 @@ CREATE INDEX IF NOT EXISTS "idx_reports_type_status" ON "reports"("type", "statu
 CREATE INDEX IF NOT EXISTS "idx_reports_author_status" ON "reports"("author_id", "status");
 
 -- Field Surveys: ค้นหาด้วย field officer + status
-CREATE INDEX IF NOT EXISTS "idx_field_surveys_officer_status" ON "field_surveys"("field_officer_id", "status");
+-- COMMENTED OUT: field_surveys table doesn't exist in current schema
+-- CREATE INDEX IF NOT EXISTS "idx_field_surveys_officer_status" ON "field_surveys"("field_officer_id", "status");
 
 -- Activity Logs: ค้นหาด้วย user + action
 CREATE INDEX IF NOT EXISTS "idx_activity_logs_user_action" ON "activity_logs"("user_id", "action");

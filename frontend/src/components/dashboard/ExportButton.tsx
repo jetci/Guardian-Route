@@ -36,16 +36,16 @@ Resolved: ${kpi.resolved}
 Avg Resolution Time: ${kpi.avgResolutionTime}
 
 === Trend Data (Last 6 Months) ===
-${trend.map((t) => `${t.month}: ${t.count} incidents, ${t.avgResponseTime}h avg response`).join('\n')}
+${trend.map((t: any) => `${t.month}: ${t.count} incidents, ${t.avgResponseTime}h avg response`).join('\n')}
 
 === Incidents by Type ===
-${byType.map((t) => `${t.type}: ${t.count} (${t.percentage}%)`).join('\n')}
+${byType.map((t: any) => `${t.type}: ${t.count} (${t.percentage}%)`).join('\n')}
 
 === Critical Incidents ===
-${critical.map((i) => `${i.title} - ${i.priority} - ${i.status}`).join('\n')}
+${critical.map((i: any) => `${i.title} - ${i.priority} - ${i.status}`).join('\n')}
 
 === Risk Areas ===
-${riskAreas.map((r) => `Lat: ${r.lat}, Lng: ${r.lng}, Count: ${r.count}, Severity: ${r.severity}/5`).join('\n')}
+${riskAreas.map((r: any) => `Lat: ${r.lat}, Lng: ${r.lng}, Count: ${r.count}, Severity: ${r.severity}/5`).join('\n')}
       `;
 
       // Create blob and download
@@ -105,21 +105,21 @@ ${riskAreas.map((r) => `Lat: ${r.lat}, Lng: ${r.lng}, Count: ${r.count}, Severit
 
       csv += 'Trend Data\n';
       csv += 'Month,Count,Avg Response Time (h)\n';
-      trend.forEach((t) => {
+      trend.forEach((t: any) => {
         csv += `${t.month},${t.count},${t.avgResponseTime}\n`;
       });
       csv += '\n';
 
       csv += 'Incidents by Type\n';
       csv += 'Type,Count,Percentage\n';
-      byType.forEach((t) => {
+      byType.forEach((t: any) => {
         csv += `${t.type},${t.count},${t.percentage}%\n`;
       });
       csv += '\n';
 
       csv += 'Critical Incidents\n';
       csv += 'Title,Priority,Status,Location,Date\n';
-      critical.forEach((i) => {
+      critical.forEach((i: any) => {
         csv += `"${i.title}",${i.priority},${i.status},"${i.location}",${new Date(i.createdAt).toLocaleDateString('th-TH')}\n`;
       });
 

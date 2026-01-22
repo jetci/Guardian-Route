@@ -11,7 +11,6 @@ export interface UserProfile {
   username: string;
   firstName: string;
   lastName: string;
-  lastName: string;
   phone?: string;
   department?: string;
   role: string;

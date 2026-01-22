@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '../../pages/admin/AuditLogsPage.css';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import axios from 'axios';
 import ThaiDatePicker from '../ThaiDatePicker';
 import toast from 'react-hot-toast';
@@ -39,7 +39,7 @@ const AuditLogTable: React.FC = () => {
       const { data } = await axios.get(`/api/admin/audit-logs?${params}`);
       return data;
     },
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
   });
 
   const handleExportCSV = async () => {
@@ -152,6 +152,7 @@ const AuditLogTable: React.FC = () => {
               value={startDate}
               onChange={setStartDate}
               placeholder="เลือกวันเริ่มต้น"
+              maxDate={new Date()} // ✅ ไม่ให้เลือกวันในอนาคต
             />
           </div>
 
@@ -162,6 +163,7 @@ const AuditLogTable: React.FC = () => {
               value={endDate}
               onChange={setEndDate}
               placeholder="เลือกวันสิ้นสุด"
+              maxDate={new Date()} // ✅ ไม่ให้เลือกวันในอนาคต
             />
           </div>
         </div>

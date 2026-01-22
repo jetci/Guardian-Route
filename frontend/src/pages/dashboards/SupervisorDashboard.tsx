@@ -1,7 +1,7 @@
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { KPICard } from '../../components/KPICard';
 import { mockKPIs, mockTasks } from '../../mocks/dashboardData';
-import './SupervisorDashboard.css';
+
 
 export function SupervisorDashboard() {
   const kpis = mockKPIs.supervisor;
@@ -56,7 +56,7 @@ export function SupervisorDashboard() {
             </div>
           </div>
           <div className="tasks-list">
-            {mockTasks.map((task) => (
+            {mockTasks.map((task: any) => (
               <div key={task.id} className="task-item">
                 <div className="task-header">
                   <div className="task-title-section">

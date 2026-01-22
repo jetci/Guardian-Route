@@ -36,7 +36,7 @@ export class FieldOfficerSurveyService {
             ]
           }
         });
-        
+
         // If found, use its ID
         if (village) {
           surveyDto.villageId = village.id;
@@ -57,9 +57,9 @@ export class FieldOfficerSurveyService {
       const fieldSurvey = await this.prisma.fieldSurvey.create({
         data: {
           fieldOfficerId,
-          taskId: surveyDto.taskId,
-          incidentId: surveyDto.incidentId,
-          villageId: surveyDto.villageId,
+          taskId: surveyDto.taskId || null,
+          incidentId: surveyDto.incidentId || null,
+          villageId: surveyDto.villageId || null,
           villageName: surveyDto.villageName,
           disasterType: surveyDto.disasterType,
           severity: surveyDto.severity,

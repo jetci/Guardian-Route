@@ -1,4 +1,4 @@
-import { api } from './client';
+import { apiClient } from './client';
 
 export interface KpiSummary {
   total: number;
@@ -6,23 +6,6 @@ export interface KpiSummary {
   investigating: number;
   resolved: number;
   avgResolutionTime: string;
-}
-
-export interface IncidentsByStatus {
-  status: string;
-  count: number;
-}
-
-export interface TrendData {
-  month: string;
-  count: number;
-  avgResponseTime: number;
-}
-
-export interface IncidentsByType {
-  type: string;
-  count: number;
-  percentage: number;
 }
 
 export interface CriticalIncident {
@@ -41,34 +24,66 @@ export interface RiskArea {
   severity: number;
 }
 
+export interface TrendData {
+  month: string;
+  count: number;
+  avgResponseTime: number;
+}
+
+export interface IncidentsByType {
+  type: string;
+  count: number;
+  percentage: number;
+}
+
 export const analyticsApi = {
   getKpiSummary: async (): Promise<KpiSummary> => {
-    const response = await api.get('/analytics/kpi-summary');
+    const response = await apiClient.get('/analytics/kpi/summary');
     return response.data;
   },
 
-  getIncidentsByStatus: async (): Promise<IncidentsByStatus[]> => {
-    const response = await api.get('/analytics/by-status');
+  getIncidentOverview: async (params?: any) => {
+    const response = await apiClient.get('/analytics/incidents/overview', { params });
     return response.data;
   },
 
-  getTrendData: async (): Promise<TrendData[]> => {
-    const response = await api.get('/analytics/trend');
+  getTrendData: async () => {
+    const response = await apiClient.get('/analytics/incidents/trend');
     return response.data;
   },
 
-  getIncidentsByType: async (): Promise<IncidentsByType[]> => {
-    const response = await api.get('/analytics/by-type');
+  getCriticalIncidents: async () => {
+    const response = await apiClient.get('/analytics/incidents/critical');
     return response.data;
   },
 
-  getCriticalIncidents: async (): Promise<CriticalIncident[]> => {
-    const response = await api.get('/analytics/critical-incidents');
+  getRiskAreas: async () => {
+    const response = await apiClient.get('/analytics/risk-areas');
     return response.data;
   },
 
-  getRiskAreas: async (): Promise<RiskArea[]> => {
-    const response = await api.get('/analytics/risk-areas');
+  getIncidentsByType: async () => {
+    const response = await apiClient.get('/analytics/incidents/by-type');
+    return response.data;
+  },
+
+  getIncidentsBySeverity: async () => {
+    const response = await apiClient.get('/analytics/incidents/by-severity');
+    return response.data;
+  },
+
+  getTopPerformers: async () => {
+    const response = await apiClient.get('/analytics/performers/top');
+    return response.data;
+  },
+
+  getTasksStatus: async (params?: any) => {
+    const response = await apiClient.get('/analytics/tasks/status', { params });
+    return response.data;
+  },
+
+  getTasksTrend: async (params?: any) => {
+    const response = await apiClient.get('/analytics/tasks/trend', { params });
     return response.data;
   },
 };

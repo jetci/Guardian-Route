@@ -1,49 +1,17 @@
 import { useState, useEffect } from 'react';
-import {
-  Box,
-  Container,
-  Heading,
-  VStack,
-  HStack,
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
-  Badge,
-  useToast,
-  Spinner,
-  Text,
-  Alert,
-  AlertIcon,
-  AlertDescription,
-} from '@chakra-ui/react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
-import { TaskCard } from '../../components/tasks/TaskCard';
-import { taskService } from '../../services/taskService';
-
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  status: 'PENDING' | 'IN_PROGRESS' | 'SURVEYED' | 'COMPLETED' | 'CANCELLED';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  dueDate?: string;
-  incident: {
-    id: string;
-    title: string;
-    disasterType: string;
-    priority: string;
-  };
-  createdAt: string;
-}
+import { LoadingSpinner, EmptyState } from '../../components/common';
+import { tasksApi } from '../../api/tasks';
+import { formatThaiDateShort } from '../../utils/dateFormatter';
+import toast from 'react-hot-toast';
+import type { Task } from '../../types';
+import './MyTasksPage.css';
 
 export const MyTasksPage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState(0);
-  const toast = useToast();
+  const [activeTab, setActiveTab] = useState<'pending' | 'inProgress' | 'surveyed' | 'completed'>('pending');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,15 +21,12 @@ export const MyTasksPage = () => {
   const fetchMyTasks = async () => {
     try {
       setIsLoading(true);
-      const response = await taskService.getMyTasks();
-      setTasks(response as any); // Type mismatch - API returns optional incident field
+      const response = await tasksApi.getMyTasks();
+      setTasks(response);
+      toast.success('โหลดข้อมูลสำเร็จ');
     } catch (error: any) {
-      toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: error.message || 'ไม่สามารถโหลดข้อมูลงานได้',
-        status: 'error',
-        duration: 5000,
-      });
+      console.error('Failed to load tasks:', error);
+      toast.error(error.message || 'ไม่สามารถโหลดข้อมูลงานได้');
     } finally {
       setIsLoading(false);
     }
@@ -69,22 +34,11 @@ export const MyTasksPage = () => {
 
   const handleAcceptTask = async (taskId: string) => {
     try {
-      await taskService.updateStatus(taskId, 'IN_PROGRESS');
-      toast({
-        title: 'รับงานสำเร็จ',
-        description: 'คุณสามารถเริ่มทำงานได้แล้ว',
-        status: 'success',
-        duration: 3000,
-      });
-      // Refresh tasks
+      await tasksApi.acceptTask(taskId);
+      toast.success('รับงานสำเร็จ');
       fetchMyTasks();
     } catch (error: any) {
-      toast({
-        title: 'เกิดข้อผิดพลาด',
-        description: error.message || 'ไม่สามารถรับงานได้',
-        status: 'error',
-        duration: 5000,
-      });
+      toast.error(error.message || 'ไม่สามารถรับงานได้');
     }
   };
 
@@ -98,149 +52,254 @@ export const MyTasksPage = () => {
   const surveyedTasks = tasks.filter((t) => t.status === 'SURVEYED');
   const completedTasks = tasks.filter((t) => t.status === 'COMPLETED');
 
+  const getActiveTabTasks = () => {
+    switch (activeTab) {
+      case 'pending':
+        return pendingTasks;
+      case 'inProgress':
+        return inProgressTasks;
+      case 'surveyed':
+        return surveyedTasks;
+      case 'completed':
+        return completedTasks;
+      default:
+        return pendingTasks;
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'URGENT':
+      case 'HIGH':
+        return 'red';
+      case 'MEDIUM':
+        return 'orange';
+      case 'LOW':
+        return 'green';
+      default:
+        return 'gray';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return 'gray';
+      case 'IN_PROGRESS':
+        return 'orange';
+      case 'SURVEYED':
+        return 'blue';
+      case 'COMPLETED':
+        return 'green';
+      case 'CANCELLED':
+        return 'red';
+      default:
+        return 'gray';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      PENDING: 'รอดำเนินการ',
+      IN_PROGRESS: 'กำลังดำเนินการ',
+      SURVEYED: 'สำรวจแล้ว',
+      COMPLETED: 'เสร็จสิ้น',
+      CANCELLED: 'ยกเลิก',
+    };
+    return labels[status] || status;
+  };
+
+  const getPriorityLabel = (priority: string) => {
+    const labels: Record<string, string> = {
+      LOW: 'ต่ำ',
+      MEDIUM: 'ปานกลาง',
+      HIGH: 'สูง',
+      URGENT: 'เร่งด่วน',
+    };
+    return labels[priority] || priority;
+  };
+
+  const getDisasterTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      FLOOD: '🌊 น้ำท่วม',
+      LANDSLIDE: '⛰️ ดินถล่ม',
+      FIRE: '🔥 ไฟไหม้',
+      WILDFIRE: '🔥 ไฟป่า',
+      STORM: '🌪️ พายุ',
+      EARTHQUAKE: '🏚️ แผ่นดินไหว',
+      DROUGHT: '☀️ ภัยแล้ง',
+      OTHER: '📋 อื่นๆ',
+    };
+    return labels[type] || type;
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout>
-        <Container maxW="container.xl" py={8}>
-          <VStack spacing={4}>
-            <Spinner size="xl" color="blue.500" />
-            <Text>กำลังโหลดข้อมูล...</Text>
-          </VStack>
-        </Container>
+        <div className="my-tasks-page">
+          <LoadingSpinner size="lg" message="กำลังโหลดข้อมูล..." centered />
+        </div>
       </DashboardLayout>
     );
   }
 
   return (
     <DashboardLayout>
-      <Container maxW="container.xl" py={8}>
-      <VStack spacing={6} align="stretch">
+      <div className="my-tasks-page">
         {/* Header */}
-        <Box>
-          <Heading size="lg" mb={2}>
-            งานของฉัน
-          </Heading>
-          <Text color="gray.600">งานที่ได้รับมอบหมายทั้งหมด</Text>
-        </Box>
+        <div className="page-header">
+          <div>
+            <h1>📋 งานของฉัน</h1>
+            <p className="subtitle">งานที่ได้รับมอบหมายทั้งหมด</p>
+          </div>
+          <button className="btn-refresh" onClick={fetchMyTasks}>
+            🔄 รีเฟรช
+          </button>
+        </div>
 
-        {/* Summary */}
-        <HStack spacing={4} flexWrap="wrap">
-          <Badge colorScheme="yellow" fontSize="md" px={3} py={1}>
-            รอดำเนินการ: {pendingTasks.length}
-          </Badge>
-          <Badge colorScheme="blue" fontSize="md" px={3} py={1}>
-            กำลังดำเนินการ: {inProgressTasks.length}
-          </Badge>
-          <Badge colorScheme="green" fontSize="md" px={3} py={1}>
-            สำรวจแล้ว: {surveyedTasks.length}
-          </Badge>
-          <Badge colorScheme="gray" fontSize="md" px={3} py={1}>
-            เสร็จสิ้น: {completedTasks.length}
-          </Badge>
-        </HStack>
+        {/* Stats Summary */}
+        <div className="stats-grid">
+          <div className="stat-card yellow">
+            <div className="stat-icon">⏳</div>
+            <div className="stat-content">
+              <h3>{pendingTasks.length}</h3>
+              <p>รอดำเนินการ</p>
+            </div>
+          </div>
+          <div className="stat-card orange">
+            <div className="stat-icon">🔄</div>
+            <div className="stat-content">
+              <h3>{inProgressTasks.length}</h3>
+              <p>กำลังดำเนินการ</p>
+            </div>
+          </div>
+          <div className="stat-card blue">
+            <div className="stat-icon">✅</div>
+            <div className="stat-content">
+              <h3>{surveyedTasks.length}</h3>
+              <p>สำรวจแล้ว</p>
+            </div>
+          </div>
+          <div className="stat-card green">
+            <div className="stat-icon">🎉</div>
+            <div className="stat-content">
+              <h3>{completedTasks.length}</h3>
+              <p>เสร็จสิ้น</p>
+            </div>
+          </div>
+        </div>
 
         {/* Tabs */}
-        <Tabs index={activeTab} onChange={setActiveTab} colorScheme="blue">
-          <TabList>
-            <Tab>
-              รอดำเนินการ <Badge ml={2} colorScheme="yellow">{pendingTasks.length}</Badge>
-            </Tab>
-            <Tab>
-              กำลังดำเนินการ <Badge ml={2} colorScheme="blue">{inProgressTasks.length}</Badge>
-            </Tab>
-            <Tab>
-              สำรวจแล้ว <Badge ml={2} colorScheme="green">{surveyedTasks.length}</Badge>
-            </Tab>
-            <Tab>
-              เสร็จสิ้น <Badge ml={2} colorScheme="gray">{completedTasks.length}</Badge>
-            </Tab>
-          </TabList>
+        <div className="task-tabs">
+          <button
+            className={`task-tab ${activeTab === 'pending' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pending')}
+          >
+            <span className="tab-icon">⏳</span>
+            <span className="tab-label">รอดำเนินการ</span>
+            <span className="tab-count">{pendingTasks.length}</span>
+          </button>
+          <button
+            className={`task-tab ${activeTab === 'inProgress' ? 'active' : ''}`}
+            onClick={() => setActiveTab('inProgress')}
+          >
+            <span className="tab-icon">🔄</span>
+            <span className="tab-label">กำลังดำเนินการ</span>
+            <span className="tab-count">{inProgressTasks.length}</span>
+          </button>
+          <button
+            className={`task-tab ${activeTab === 'surveyed' ? 'active' : ''}`}
+            onClick={() => setActiveTab('surveyed')}
+          >
+            <span className="tab-icon">✅</span>
+            <span className="tab-label">สำรวจแล้ว</span>
+            <span className="tab-count">{surveyedTasks.length}</span>
+          </button>
+          <button
+            className={`task-tab ${activeTab === 'completed' ? 'active' : ''}`}
+            onClick={() => setActiveTab('completed')}
+          >
+            <span className="tab-icon">🎉</span>
+            <span className="tab-label">เสร็จสิ้น</span>
+            <span className="tab-count">{completedTasks.length}</span>
+          </button>
+        </div>
 
-          <TabPanels>
-            {/* Pending Tasks */}
-            <TabPanel px={0}>
-              <VStack spacing={4} align="stretch">
-                {pendingTasks.length === 0 ? (
-                  <Alert status="info">
-                    <AlertIcon />
-                    <AlertDescription>ไม่มีงานที่รอดำเนินการ</AlertDescription>
-                  </Alert>
-                ) : (
-                  pendingTasks.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onAccept={handleAcceptTask}
-                      onViewDetails={handleViewDetails}
-                    />
-                  ))
-                )}
-              </VStack>
-            </TabPanel>
+        {/* Tasks Grid */}
+        <div className="tasks-grid">
+          {getActiveTabTasks().length === 0 ? (
+            <EmptyState
+              icon="clipboard"
+              title={`ไม่มีงาน${getStatusLabel(activeTab.toUpperCase().replace('INPROGRESS', 'IN_PROGRESS'))}`}
+              description="คุณไม่มีงานในสถานะนี้ในขณะนี้"
+            />
+          ) : (
+            getActiveTabTasks().map((task) => (
+              <div key={task.id} className="task-card">
+                <div className="task-card-header">
+                  <div className="task-id">#{task.id.substring(0, 8)}</div>
+                  <div className="task-badges">
+                    <span className={`priority-badge ${getPriorityColor(task.priority)}`}>
+                      {getPriorityLabel(task.priority)}
+                    </span>
+                    <span className={`status-badge ${getStatusColor(task.status)}`}>
+                      {getStatusLabel(task.status)}
+                    </span>
+                  </div>
+                </div>
 
-            {/* In Progress Tasks */}
-            <TabPanel px={0}>
-              <VStack spacing={4} align="stretch">
-                {inProgressTasks.length === 0 ? (
-                  <Alert status="info">
-                    <AlertIcon />
-                    <AlertDescription>ไม่มีงานที่กำลังดำเนินการ</AlertDescription>
-                  </Alert>
-                ) : (
-                  inProgressTasks.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onViewDetails={handleViewDetails}
-                    />
-                  ))
-                )}
-              </VStack>
-            </TabPanel>
+                <h3 className="task-title">{task.title}</h3>
 
-            {/* Surveyed Tasks */}
-            <TabPanel px={0}>
-              <VStack spacing={4} align="stretch">
-                {surveyedTasks.length === 0 ? (
-                  <Alert status="info">
-                    <AlertIcon />
-                    <AlertDescription>ไม่มีงานที่สำรวจแล้ว</AlertDescription>
-                  </Alert>
-                ) : (
-                  surveyedTasks.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onViewDetails={handleViewDetails}
-                    />
-                  ))
+                {task.description && (
+                  <p className="task-description">{task.description}</p>
                 )}
-              </VStack>
-            </TabPanel>
 
-            {/* Completed Tasks */}
-            <TabPanel px={0}>
-              <VStack spacing={4} align="stretch">
-                {completedTasks.length === 0 ? (
-                  <Alert status="info">
-                    <AlertIcon />
-                    <AlertDescription>ไม่มีงานที่เสร็จสิ้น</AlertDescription>
-                  </Alert>
-                ) : (
-                  completedTasks.map((task) => (
-                    <TaskCard
-                      key={task.id}
-                      task={task}
-                      onViewDetails={handleViewDetails}
-                    />
-                  ))
+                {task.incident && (
+                  <div className="task-incident">
+                    <span className="incident-type">
+                      {getDisasterTypeLabel(task.incident.disasterType)}
+                    </span>
+                    <span className="incident-title">{task.incident.title}</span>
+                  </div>
                 )}
-              </VStack>
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
-      </VStack>
-    </Container>
+
+                <div className="task-meta">
+                  {task.village && (
+                    <span className="meta-item">
+                      📍 {task.village.name}
+                    </span>
+                  )}
+                  {task.dueDate && (
+                    <span className="meta-item">
+                      📅 ครบกำหนด: {formatThaiDateShort(task.dueDate)}
+                    </span>
+                  )}
+                  <span className="meta-item">
+                    🕐 สร้างเมื่อ: {formatThaiDateShort(task.createdAt)}
+                  </span>
+                </div>
+
+                <div className="task-actions">
+                  {task.status === 'PENDING' && (
+                    <button
+                      className="btn-accept"
+                      onClick={() => handleAcceptTask(task.id)}
+                    >
+                      ✅ รับงาน
+                    </button>
+                  )}
+                  <button
+                    className="btn-view-details"
+                    onClick={() => handleViewDetails(task.id)}
+                  >
+                    👁️ ดูรายละเอียด
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </DashboardLayout>
   );
 };

@@ -82,6 +82,9 @@ export const NotificationBell = () => {
             icon={<BellIcon />}
             variant="ghost"
             size="lg"
+            color="white"
+            _hover={{ bg: 'rgba(255, 255, 255, 0.2)' }}
+            _active={{ bg: 'rgba(255, 255, 255, 0.3)' }}
           />
           {unreadCount > 0 && (
             <Badge

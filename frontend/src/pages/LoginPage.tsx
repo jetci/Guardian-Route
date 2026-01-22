@@ -17,15 +17,17 @@ export function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await authService.login({ email, password });
-      
+      console.log('Attempting manual login with:', { email: email.trim(), passwordLength: password.length });
+      const response = await authService.login({ email: email.trim(), password });
+      console.log('Manual login successful:', response);
+
       localStorage.setItem('access_token', response.accessToken);
       localStorage.setItem('refresh_token', response.refreshToken);
-      
+
       setAuth(response.user as any, response.accessToken, response.refreshToken);
-      
+
       toast.success(`ยินดีต้อนรับ ${response.user.firstName} ${response.user.lastName}!`);
-      
+
       const redirectPath = getRoleRedirectPath(response.user.role);
       navigate(redirectPath);
     } catch (error: any) {
@@ -67,21 +69,21 @@ export function LoginPage() {
       FIELD_OFFICER: { email: 'field@obtwiang.go.th', password: 'password123' },
     };
     const cred = credentials[role as keyof typeof credentials];
-    
+
     // Auto-submit after filling
     setLoading(true);
     try {
-      console.log('🔐 Quick Login attempt:', { role, email: cred.email });
+      // console.log('🔐 Quick Login attempt:', { role, email: cred.email });
       const response = await authService.login({ email: cred.email, password: cred.password });
-      console.log('✅ Login successful:', response);
-      
+      // console.log('✅ Login successful:', response);
+
       localStorage.setItem('access_token', response.accessToken);
       localStorage.setItem('refresh_token', response.refreshToken);
-      
+
       setAuth(response.user as any, response.accessToken, response.refreshToken);
-      
+
       toast.success(`ยินดีต้อนรับ ${response.user.firstName} ${response.user.lastName}!`);
-      
+
       const redirectPath = getRoleRedirectPath(response.user.role);
       navigate(redirectPath);
     } catch (error: any) {
@@ -92,7 +94,7 @@ export function LoginPage() {
         status: error.response?.status,
         config: error.config,
       });
-      
+
       if (error.response?.status === 401) {
         toast.error('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
       } else if (error.response?.status === 403) {

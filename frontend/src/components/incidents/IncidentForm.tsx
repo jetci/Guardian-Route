@@ -18,6 +18,7 @@ interface IncidentFormData {
   longitude: number;
   address?: string;
   surveyTemplateId?: string; // New field for optional initial survey
+  disasterTypeOther?: string;
 }
 
 interface IncidentFormProps {
@@ -25,12 +26,13 @@ interface IncidentFormProps {
 }
 
 export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
-  const { register, handleSubmit, formState: { errors } } = useForm<IncidentFormData>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<IncidentFormData>({
     defaultValues: {
       priority: 'MEDIUM' as Priority,
       surveyTemplateId: '', // Default to no survey
     }
   });
+  const disasterType = watch('disasterType');
   const [loading, setLoading] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [surveyTemplates, setSurveyTemplates] = useState<SurveyTemplate[]>([]);
@@ -52,7 +54,7 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
     try {
       const newIncident = await incidentsApi.create({
         title: data.title,
-        description: data.description,
+        description: (data.disasterType === 'OTHER' && data.disasterTypeOther ? `[ประเภทภัยอื่นๆ: ${data.disasterTypeOther}]\n\n` : '') + (data.description || ''),
         disasterType: data.disasterType,
         priority: data.priority,
         villageId: data.villageId,
@@ -136,6 +138,23 @@ export const IncidentForm = ({ onSuccess }: IncidentFormProps) => {
             <p className="text-red-600 text-sm mt-1 font-medium">{errors.disasterType.message}</p>
           )}
         </div>
+
+        {/* Other Disaster Type Specification */}
+        {disasterType === 'OTHER' && (
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              ระบุประเภทภัยอื่นๆ <span className="text-red-500">*</span>
+            </label>
+            <input
+              {...register('disasterTypeOther', { required: 'กรุณาระบุประเภทภัยอื่นๆ' })}
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              placeholder="ระบุรายละเอียด..."
+            />
+            {errors.disasterTypeOther && (
+              <p className="text-red-600 text-sm mt-1 font-medium">{errors.disasterTypeOther.message}</p>
+            )}
+          </div>
+        )}
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">

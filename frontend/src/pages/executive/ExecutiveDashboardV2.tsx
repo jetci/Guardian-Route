@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import {
   Chart as ChartJS,
@@ -13,6 +13,7 @@ import {
   Legend
 } from 'chart.js';
 import { Line, Pie, Bar } from 'react-chartjs-2';
+import { analyticsApi } from '../../api/analytics';
 import './ExecutiveDashboard.css';
 
 // Register Chart.js components
@@ -28,148 +29,62 @@ ChartJS.register(
   Legend
 );
 
-// Mock data for charts
-const incidentsTrendData = {
-  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-  datasets: [
-    {
-      label: 'Incidents',
-      data: [12, 19, 15, 25, 22, 30, 28, 35, 32, 40, 38, 45],
-      borderColor: 'rgb(59, 130, 246)',
-      backgroundColor: 'rgba(59, 130, 246, 0.1)',
-      tension: 0.4,
-      fill: true
-    },
-    {
-      label: 'Resolved',
-      data: [10, 17, 14, 23, 20, 28, 26, 33, 30, 38, 36, 43],
-      borderColor: 'rgb(34, 197, 94)',
-      backgroundColor: 'rgba(34, 197, 94, 0.1)',
-      tension: 0.4,
-      fill: true
-    }
-  ]
-};
-
-const incidentsByTypeData = {
-  labels: ['Flood', 'Fire', 'Earthquake', 'Landslide', 'Storm', 'Other'],
-  datasets: [
-    {
-      data: [35, 20, 15, 12, 10, 8],
-      backgroundColor: [
-        'rgba(59, 130, 246, 0.8)',
-        'rgba(239, 68, 68, 0.8)',
-        'rgba(234, 179, 8, 0.8)',
-        'rgba(168, 85, 247, 0.8)',
-        'rgba(34, 197, 94, 0.8)',
-        'rgba(156, 163, 175, 0.8)'
-      ],
-      borderColor: [
-        'rgb(59, 130, 246)',
-        'rgb(239, 68, 68)',
-        'rgb(234, 179, 8)',
-        'rgb(168, 85, 247)',
-        'rgb(34, 197, 94)',
-        'rgb(156, 163, 175)'
-      ],
-      borderWidth: 2
-    }
-  ]
-};
-
-const incidentsBySeverityData = {
-  labels: ['Critical', 'High', 'Medium', 'Low'],
-  datasets: [
-    {
-      label: 'Number of Incidents',
-      data: [15, 28, 42, 35],
-      backgroundColor: [
-        'rgba(239, 68, 68, 0.8)',
-        'rgba(249, 115, 22, 0.8)',
-        'rgba(234, 179, 8, 0.8)',
-        'rgba(34, 197, 94, 0.8)'
-      ],
-      borderColor: [
-        'rgb(239, 68, 68)',
-        'rgb(249, 115, 22)',
-        'rgb(234, 179, 8)',
-        'rgb(34, 197, 94)'
-      ],
-      borderWidth: 2
-    }
-  ]
-};
-
-// Mock recent reports
-const mockRecentReports = [
-  {
-    id: 1,
-    title: 'Flood Assessment - District 5',
-    officer: 'Somchai Supervisor',
-    date: '2025-11-12',
-    status: 'APPROVED',
-    priority: 'HIGH'
-  },
-  {
-    id: 2,
-    title: 'Fire Incident - Village 12',
-    officer: 'Somsri Field',
-    date: '2025-11-12',
-    status: 'UNDER_REVIEW',
-    priority: 'CRITICAL'
-  },
-  {
-    id: 3,
-    title: 'Earthquake Damage Report',
-    officer: 'Prasit Officer',
-    date: '2025-11-11',
-    status: 'APPROVED',
-    priority: 'HIGH'
-  },
-  {
-    id: 4,
-    title: 'Landslide Risk Assessment',
-    officer: 'Wipa Analyst',
-    date: '2025-11-11',
-    status: 'DRAFT',
-    priority: 'MEDIUM'
-  },
-  {
-    id: 5,
-    title: 'Storm Damage Survey',
-    officer: 'Surachai Team',
-    date: '2025-11-10',
-    status: 'APPROVED',
-    priority: 'MEDIUM'
-  }
-];
-
-// Mock top performers
-const mockTopPerformers = [
-  { name: 'Somsri Field', reports: 24, rating: 4.8 },
-  { name: 'Somchai Supervisor', reports: 22, rating: 4.7 },
-  { name: 'Prasit Officer', reports: 20, rating: 4.6 },
-  { name: 'Wipa Analyst', reports: 18, rating: 4.5 },
-  { name: 'Surachai Team', reports: 16, rating: 4.4 }
-];
-
 export default function ExecutiveDashboard() {
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('month');
+  const [loading, setLoading] = useState(true);
 
-  // Stats
-  const stats = {
-    totalIncidents: 456,
-    resolutionRate: 94.5,
-    activeUsers: 48,
-    systemHealth: 99.2
-  };
+  // Stats State
+  const [stats, setStats] = useState({
+    totalIncidents: 0,
+    resolutionRate: 0,
+    activeUsers: 0,
+    systemHealth: 98.5 // Mocked for now
+  });
 
-  // Performance metrics
+  // Charts State
+  const [trendData, setTrendData] = useState<any>(null);
+  const [typeData, setTypeData] = useState<any>(null);
+  const [severityData, setSeverityData] = useState<any>(null);
+  const [topPerformers, setTopPerformers] = useState<any[]>([]);
+
+  // Performance metrics (Mocked for now as per plan)
   const metrics = {
     uptime: 99.9,
     avgResponseTime: 2.3,
     satisfaction: 4.5,
     tasksCompleted: 1248
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [overview, trend, byType, bySeverity, performers] = await Promise.all([
+        analyticsApi.getKpiSummary(),
+        analyticsApi.getTrendData(),
+        analyticsApi.getIncidentsByType(),
+        analyticsApi.getIncidentsBySeverity(),
+        analyticsApi.getTopPerformers()
+      ]);
+
+      setStats({
+        totalIncidents: overview.total,
+        resolutionRate: overview.total > 0 ? Math.round((overview.resolved / overview.total) * 100) : 0,
+        activeUsers: 0, // Not in KpiSummary
+        systemHealth: 98.5 // Mocked
+      });
+      setTrendData(trend);
+      setTypeData(byType);
+      setSeverityData(bySeverity);
+      setTopPerformers(performers);
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const chartOptions = {
@@ -186,6 +101,16 @@ export default function ExecutiveDashboard() {
     alert(`Exporting ${type} report...`);
   };
 
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-xl text-gray-600">Loading Dashboard...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="executive-dashboard">
@@ -193,22 +118,22 @@ export default function ExecutiveDashboard() {
           <div className="header-content">
             <div>
               <h2>📊 Executive Dashboard</h2>
-              <p>ภาพรวมระบบและผลการดำเนินงาน</p>
+              <p>ภาพรวมระบบและผลการดำเนินงาน (ข้อมูลจริง)</p>
             </div>
             <div className="time-range-selector">
-              <button 
+              <button
                 className={timeRange === 'week' ? 'active' : ''}
                 onClick={() => setTimeRange('week')}
               >
                 Week
               </button>
-              <button 
+              <button
                 className={timeRange === 'month' ? 'active' : ''}
                 onClick={() => setTimeRange('month')}
               >
                 Month
               </button>
-              <button 
+              <button
                 className={timeRange === 'year' ? 'active' : ''}
                 onClick={() => setTimeRange('year')}
               >
@@ -225,34 +150,31 @@ export default function ExecutiveDashboard() {
             <div className="kpi-content">
               <h3>{stats.totalIncidents}</h3>
               <p>Total Incidents</p>
-              <span className="kpi-trend up">+12% from last month</span>
             </div>
           </div>
-          
+
           <div className="kpi-card green">
             <div className="kpi-icon">✅</div>
             <div className="kpi-content">
               <h3>{stats.resolutionRate}%</h3>
               <p>Resolution Rate</p>
-              <span className="kpi-trend up">+2.3% from last month</span>
             </div>
           </div>
-          
+
           <div className="kpi-card purple">
             <div className="kpi-icon">👥</div>
             <div className="kpi-content">
               <h3>{stats.activeUsers}</h3>
               <p>Active Users</p>
-              <span className="kpi-trend up">+5 new this month</span>
             </div>
           </div>
-          
+
           <div className="kpi-card orange">
             <div className="kpi-icon">💚</div>
             <div className="kpi-content">
               <h3>{stats.systemHealth}%</h3>
               <p>System Health</p>
-              <span className="kpi-trend stable">Excellent</span>
+              <span className="kpi-trend stable">Simulated</span>
             </div>
           </div>
         </div>
@@ -267,7 +189,7 @@ export default function ExecutiveDashboard() {
               </button>
             </div>
             <div className="chart-wrapper">
-              <Line data={incidentsTrendData} options={chartOptions} />
+              {trendData && <Line data={trendData} options={chartOptions} />}
             </div>
           </div>
 
@@ -280,7 +202,7 @@ export default function ExecutiveDashboard() {
                 </button>
               </div>
               <div className="chart-wrapper">
-                <Pie data={incidentsByTypeData} options={chartOptions} />
+                {typeData && <Pie data={typeData} options={chartOptions} />}
               </div>
             </div>
 
@@ -292,7 +214,7 @@ export default function ExecutiveDashboard() {
                 </button>
               </div>
               <div className="chart-wrapper">
-                <Bar data={incidentsBySeverityData} options={chartOptions} />
+                {severityData && <Bar data={severityData} options={chartOptions} />}
               </div>
             </div>
           </div>
@@ -300,32 +222,6 @@ export default function ExecutiveDashboard() {
 
         {/* Reports and Performance Section */}
         <div className="content-grid">
-          {/* Recent Reports */}
-          <div className="section-card">
-            <div className="section-header">
-              <h3>📝 Recent Reports</h3>
-              <button className="btn-view-all">View All →</button>
-            </div>
-            <div className="reports-list">
-              {mockRecentReports.map(report => (
-                <div key={report.id} className="report-item">
-                  <div className="report-main">
-                    <h4>{report.title}</h4>
-                    <p>👤 {report.officer} • 📅 {report.date}</p>
-                  </div>
-                  <div className="report-badges">
-                    <span className={`priority-badge ${report.priority.toLowerCase()}`}>
-                      {report.priority}
-                    </span>
-                    <span className={`status-badge ${report.status.toLowerCase()}`}>
-                      {report.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Top Performers */}
           <div className="section-card">
             <div className="section-header">
@@ -333,7 +229,7 @@ export default function ExecutiveDashboard() {
               <button className="btn-view-all">View All →</button>
             </div>
             <div className="performers-list">
-              {mockTopPerformers.map((performer, index) => (
+              {topPerformers.map((performer, index) => (
                 <div key={index} className="performer-item">
                   <div className="performer-rank">#{index + 1}</div>
                   <div className="performer-info">
@@ -351,14 +247,13 @@ export default function ExecutiveDashboard() {
 
         {/* Performance Metrics */}
         <div className="metrics-section">
-          <h3>📊 System Performance Metrics</h3>
+          <h3>📊 System Performance Metrics (Simulated)</h3>
           <div className="metrics-grid">
             <div className="metric-card">
               <div className="metric-icon">🟢</div>
               <div className="metric-content">
                 <h4>{metrics.uptime}%</h4>
                 <p>System Uptime</p>
-                <span className="metric-detail">Last 30 days</span>
               </div>
             </div>
 
@@ -367,7 +262,6 @@ export default function ExecutiveDashboard() {
               <div className="metric-content">
                 <h4>{metrics.avgResponseTime}h</h4>
                 <p>Avg Response Time</p>
-                <span className="metric-detail">Incident to action</span>
               </div>
             </div>
 
@@ -376,7 +270,6 @@ export default function ExecutiveDashboard() {
               <div className="metric-content">
                 <h4>{metrics.satisfaction}/5</h4>
                 <p>User Satisfaction</p>
-                <span className="metric-detail">Based on 156 reviews</span>
               </div>
             </div>
 
@@ -385,7 +278,6 @@ export default function ExecutiveDashboard() {
               <div className="metric-content">
                 <h4>{metrics.tasksCompleted}</h4>
                 <p>Tasks Completed</p>
-                <span className="metric-detail">This month</span>
               </div>
             </div>
           </div>

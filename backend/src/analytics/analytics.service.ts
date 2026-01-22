@@ -16,7 +16,7 @@ import { TaskStatus } from '../tasks/dto/create-task.dto';
 export class AnalyticsService {
   private readonly logger = new Logger(AnalyticsService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   /**
    * Get task status overview
@@ -317,5 +317,204 @@ export class AnalyticsService {
       completionRate,
       trend,
     };
+  }
+  /**
+   * Get incident overview statistics
+   */
+  async getIncidentOverview(query?: AnalyticsQueryDto) {
+    const where: any = {};
+
+    if (query) {
+      const { startDate, endDate } = this.getDateRange(query);
+      where.createdAt = {
+        gte: startDate,
+        lte: endDate,
+      };
+    }
+
+    const [total, resolved, activeUsers] = await Promise.all([
+      this.prisma.incident.count({ where }),
+      this.prisma.incident.count({
+        where: {
+          ...where,
+          status: { in: ['RESOLVED', 'CLOSED'] }
+        },
+      }),
+      this.prisma.user.count({
+        where: { isActive: true },
+      }),
+    ]);
+
+    const resolutionRate = total > 0 ? (resolved / total) * 100 : 0;
+
+    return {
+      totalIncidents: total,
+      resolutionRate: Math.round(resolutionRate * 10) / 10,
+      activeUsers,
+      systemHealth: 98.5, // Mock for now
+    };
+  }
+
+  /**
+   * Get incident trend over time (last 6 months)
+   */
+  async getIncidentTrend() {
+    const months = 6;
+    const today = new Date();
+    const startDate = new Date(today.getFullYear(), today.getMonth() - months + 1, 1);
+
+    const incidents = await this.prisma.incident.findMany({
+      where: {
+        createdAt: { gte: startDate },
+      },
+      select: {
+        createdAt: true,
+        status: true,
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    // Group by month
+    const labels: string[] = [];
+    const incidentCounts: number[] = [];
+    const resolvedCounts: number[] = [];
+
+    for (let i = 0; i < months; i++) {
+      const d = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+      const monthLabel = d.toLocaleString('default', { month: 'short' });
+      labels.push(monthLabel);
+
+      const nextMonth = new Date(d.getFullYear(), d.getMonth() + 1, 1);
+
+      const monthIncidents = incidents.filter(
+        (inc) => inc.createdAt >= d && inc.createdAt < nextMonth
+      );
+
+      incidentCounts.push(monthIncidents.length);
+      resolvedCounts.push(
+        monthIncidents.filter((inc) => ['RESOLVED', 'CLOSED'].includes(inc.status)).length
+      );
+    }
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Incidents',
+          data: incidentCounts,
+          borderColor: 'rgb(59, 130, 246)',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          tension: 0.4,
+          fill: true,
+        },
+        {
+          label: 'Resolved',
+          data: resolvedCounts,
+          borderColor: 'rgb(34, 197, 94)',
+          backgroundColor: 'rgba(34, 197, 94, 0.1)',
+          tension: 0.4,
+          fill: true,
+        },
+      ],
+    };
+  }
+
+  /**
+   * Get incidents by type
+   */
+  async getIncidentsByType() {
+    const byType = await this.prisma.incident.groupBy({
+      by: ['disasterType'],
+      _count: true,
+    });
+
+    const labels = byType.map((item) => item.disasterType);
+    const data = byType.map((item) => item._count);
+
+    return {
+      labels,
+      datasets: [
+        {
+          data,
+          backgroundColor: [
+            'rgba(59, 130, 246, 0.8)',
+            'rgba(239, 68, 68, 0.8)',
+            'rgba(234, 179, 8, 0.8)',
+            'rgba(168, 85, 247, 0.8)',
+            'rgba(34, 197, 94, 0.8)',
+            'rgba(156, 163, 175, 0.8)',
+          ],
+          borderWidth: 1,
+        },
+      ],
+    };
+  }
+
+  /**
+   * Get incidents by severity
+   */
+  async getIncidentsBySeverity() {
+    const bySeverity = await this.prisma.incident.groupBy({
+      by: ['priority'],
+      _count: true,
+    });
+
+    // Ensure order: CRITICAL, HIGH, MEDIUM, LOW
+    const order = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
+    const sortedData = order.map((priority) => {
+      const found = bySeverity.find((item) => item.priority === priority);
+      return found ? found._count : 0;
+    });
+
+    return {
+      labels: order,
+      datasets: [
+        {
+          label: 'Number of Incidents',
+          data: sortedData,
+          backgroundColor: [
+            'rgba(239, 68, 68, 0.8)',
+            'rgba(249, 115, 22, 0.8)',
+            'rgba(234, 179, 8, 0.8)',
+            'rgba(34, 197, 94, 0.8)',
+          ],
+          borderWidth: 1,
+        },
+      ],
+    };
+  }
+
+  /**
+   * Get top performers (users with most completed reports/tasks)
+   */
+  async getTopPerformers() {
+    // For simplicity in this phase, we'll count reports created
+    const topReporters = await this.prisma.report.groupBy({
+      by: ['authorId'],
+      _count: true,
+      orderBy: {
+        _count: {
+          authorId: 'desc',
+        },
+      },
+      take: 5,
+    });
+
+    // Get user details
+    const performers = await Promise.all(
+      topReporters.map(async (item) => {
+        const user = await this.prisma.user.findUnique({
+          where: { id: item.authorId },
+          select: { firstName: true, lastName: true },
+        });
+        return {
+          name: user ? `${user.firstName} ${user.lastName}` : 'Unknown',
+          reports: item._count,
+          rating: (4.0 + Math.random()).toFixed(1), // Mock rating for now
+        };
+      })
+    );
+
+    return performers;
   }
 }

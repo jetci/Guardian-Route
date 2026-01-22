@@ -16,9 +16,15 @@ async function main() {
     const village = await prisma.village.upsert({
       where: { villageNo: villageData.villageNo },
       update: {
+        // ⚠️ CRITICAL: Only update metadata fields, NEVER user-entered data
+        // This prevents data loss when seed runs on existing villages
+        // See: CRITICAL-006, CRITICAL-008 resolution reports
         name: villageData.name,
-        centerPoint: villageData.centerPoint,
-        boundary: villageData.boundary as any,
+        alternateNames: villageData.alternateNames,
+        area: villageData.area,
+        description: villageData.description,
+        // DO NOT UPDATE: households, population, populationMale, populationFemale
+        // DO NOT UPDATE: centerPoint, boundary (user may have corrected these)
       },
       create: {
         villageNo: villageData.villageNo,

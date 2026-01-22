@@ -19,6 +19,7 @@ export default function ManageUsersPage() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -56,9 +57,9 @@ export default function ManageUsersPage() {
     if (!user) return;
 
     const result = await Swal.fire({
-      title: '⚠️ ยืนยันการลบผู้ใช้',
+      title: '⚠️ ยืนยันการระงับผู้ใช้',
       html: `
-        <p>คุณแน่ใจหรือไม่ที่จะลบผู้ใช้:</p>
+        <p>คุณต้องการระงับการใช้งานผู้ใช้:</p>
         <div style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #dc3545;">
           <div style="margin-bottom: 8px;">
             <strong style="font-size: 18px; color: #dc3545;">👤 ${user.firstName} ${user.lastName}</strong>
@@ -72,10 +73,10 @@ export default function ManageUsersPage() {
           </div>
         </div>
         <div style="margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
-          <strong style="color: #856404;">⚠️ คำเตือน:</strong><br>
+          <strong style="color: #856404;">ℹ️ หมายเหตุ:</strong><br>
           <small style="color: #856404;">
-            ผู้ใช้จะถูกลบอย่างถาวร และไม่สามารถกู้คืนได้!<br>
-            ข้อมูลทั้งหมดที่เกี่ยวข้องจะถูกลบด้วย
+            การดำเนินการนี้เป็นการ "ระงับการใช้งาน" (Soft Delete)<br>
+            ข้อมูลประวัติการทำงานจะยังคงอยู่ แต่ผู้ใช้จะไม่สามารถเข้าสู่ระบบได้
           </small>
         </div>
       `,
@@ -83,7 +84,7 @@ export default function ManageUsersPage() {
       showCancelButton: true,
       confirmButtonColor: '#dc3545',
       cancelButtonColor: '#6c757d',
-      confirmButtonText: '🗑️ ยืนยันลบผู้ใช้',
+      confirmButtonText: '🚫 ยืนยันระงับการใช้งาน',
       cancelButtonText: '❌ ยกเลิก',
       focusCancel: true,
     });
@@ -91,10 +92,10 @@ export default function ManageUsersPage() {
     if (result.isConfirmed) {
       try {
         await usersApi.delete(userId);
-        toast.success('ลบผู้ใช้สำเร็จ');
+        toast.success('ระงับการใช้งานผู้ใช้สำเร็จ');
         loadUsers();
       } catch (error) {
-        toast.error('ลบผู้ใช้ไม่สำเร็จ');
+        toast.error('ดำเนินการไม่สำเร็จ');
       }
     }
   };
@@ -124,8 +125,14 @@ export default function ManageUsersPage() {
     const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase());
+
     const matchesRole = filterRole === 'all' || user.role === filterRole;
-    return matchesSearch && matchesRole;
+
+    const matchesStatus = filterStatus === 'all' ||
+      (filterStatus === 'active' && user.isActive) ||
+      (filterStatus === 'inactive' && !user.isActive);
+
+    return matchesSearch && matchesRole && matchesStatus;
   });
 
   return (
@@ -136,7 +143,6 @@ export default function ManageUsersPage() {
           <p className="subtitle">จัดการบัญชีผู้ใช้งานทั้งหมดในระบบ Guardian Route</p>
         </div>
 
-        {/* Stats Cards */}
         {/* Stats Cards */}
         <div className="stats-grid">
           <StatCard
@@ -191,6 +197,16 @@ export default function ManageUsersPage() {
               <option value="FIELD_OFFICER">🎯 Field Officer</option>
               {isDeveloper && <option value="DEVELOPER">💻 Developer</option>}
             </select>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="filter-select"
+              style={{ minWidth: '150px' }}
+            >
+              <option value="all">🔋 ทุกสถานะ</option>
+              <option value="active">✅ ใช้งานอยู่</option>
+              <option value="inactive">❌ ระงับการใช้งาน</option>
+            </select>
             <button className="btn-add-user" onClick={handleAddUser}>
               <span className="btn-icon">➕</span>
               <span className="btn-text">เพิ่มผู้ใช้ใหม่</span>
@@ -228,7 +244,7 @@ export default function ManageUsersPage() {
               </thead>
               <tbody>
                 {filteredUsers.map(user => (
-                  <tr key={user.id}>
+                  <tr key={user.id} className={!user.isActive ? 'user-inactive' : ''}>
                     <td>{user.email}</td>
                     <td>{user.username}</td>
                     <td>{`${user.firstName} ${user.lastName}`}</td>
@@ -254,9 +270,15 @@ export default function ManageUsersPage() {
                         <button className="btn-edit" onClick={() => handleEditUser(user)}>
                           ✏️ แก้ไข
                         </button>
-                        <button className="btn-delete" onClick={() => handleDeleteUser(user.id)}>
-                          🗑️ ลบ
-                        </button>
+                        {user.isActive ? (
+                          <button className="btn-delete" onClick={() => handleDeleteUser(user.id)}>
+                            🚫 ระงับ
+                          </button>
+                        ) : (
+                          <button className="btn-restore" onClick={() => handleDeleteUser(user.id)} style={{ backgroundColor: '#28a745', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}>
+                            🔄 คืนค่า
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

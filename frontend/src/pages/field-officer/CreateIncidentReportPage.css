@@ -9,6 +9,58 @@
   grid-column: 1 / -1;
 }
 
+/* Critical: Prevent form overflow */
+.form-section {
+  flex: 1;
+  min-width: 0 !important;
+  max-width: 600px;
+  overflow-y: auto;
+  overflow-x: hidden !important;
+  background: white;
+  padding: 20px;
+  box-sizing: border-box !important;
+}
+
+.survey-form {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.incident-form-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+.form-group {
+  margin-bottom: 16px;
+  min-width: 0 !important;
+  width: 100%;
+  box-sizing: border-box !important;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #2d3748;
+  font-size: 14px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100% !important;
+  max-width: 100% !important;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box !important;
+}
+
 /* Loading Overlay */
 .loading-overlay {
   position: absolute;
@@ -76,6 +128,7 @@
   align-items: center;
   gap: 8px;
   font-size: 0.95rem;
+  white-space: nowrap;
 }
 
 .map-btn:hover {
@@ -119,12 +172,10 @@
   left: 50% !important;
   transform: translateX(-50%) !important;
   z-index: 2147483647 !important;
-  /* Max integer value */
   bottom: auto !important;
   display: flex !important;
   visibility: visible !important;
 }
-
 
 /* Photo Upload UI Overrides */
 .upload-drop-zone {
@@ -220,4 +271,149 @@
 .photo-remove:hover {
   background: #ef4444;
   transform: scale(1.1);
+}
+
+/* GPS Toggle Button */
+.gps-toggle-btn {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 0.75rem;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.gps-toggle-btn:hover {
+  background: #f9fafb;
+}
+
+/* Responsive Design - CRITICAL */
+@media (max-width: 1200px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .form-section {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  .form-section {
+    max-width: 100% !important;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  .form-section {
+    max-width: 100% !important;
+    padding: 16px;
+  }
+
+  .map-section {
+    height: 350px;
+    min-height: 350px;
+  }
+
+  .create-incident-page {
+    padding: 12px;
+  }
+
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .map-controls {
+    bottom: 16px;
+    right: 12px;
+    gap: 8px;
+  }
+
+  .map-btn {
+    padding: 10px 12px;
+    font-size: 0.85rem;
+  }
+
+  .photo-preview-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
+  }
+
+  .upload-drop-zone {
+    padding: 1rem;
+    min-height: 100px;
+  }
+
+  .upload-icon {
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 1.5rem;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 16px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .form-section {
+    padding: 12px;
+  }
+
+  .map-section {
+    height: 300px;
+    min-height: 300px;
+  }
+
+  .map-controls {
+    bottom: 12px;
+    right: 8px;
+    gap: 6px;
+  }
+
+  .map-btn {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    gap: 4px;
+  }
+
+  .map-btn span:first-child {
+    font-size: 1rem;
+  }
+
+  .photo-preview-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .gps-toggle-btn {
+    font-size: 0.875rem;
+    padding: 0.625rem;
+  }
+
+  .form-group {
+    margin-bottom: 12px;
+  }
+
+  .form-group label {
+    font-size: 13px;
+  }
 }

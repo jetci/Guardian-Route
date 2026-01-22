@@ -20,12 +20,12 @@ const ReportList: React.FC<ReportListProps> = ({
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
-  
+
   // Filters
   const [filters, setFilters] = useState<FilterReportDto>({
     page: 1,
@@ -57,7 +57,7 @@ const ReportList: React.FC<ReportListProps> = ({
 
   const handleDelete = async (id: string) => {
     if (!confirm('คุณแน่ใจหรือไม่ที่จะลบรายงานนี้?')) return;
-    
+
     try {
       await deleteReport(id);
       loadReports();
@@ -78,8 +78,10 @@ const ReportList: React.FC<ReportListProps> = ({
     const classes: Record<ReportStatus, string> = {
       [ReportStatus.DRAFT]: 'bg-gray-100 text-gray-800',
       [ReportStatus.SUBMITTED]: 'bg-blue-100 text-blue-800',
-      [ReportStatus.UNDER_REVIEW]: 'bg-yellow-100 text-yellow-800',
-      [ReportStatus.REVISION_REQUIRED]: 'bg-orange-100 text-orange-800',
+      [ReportStatus.PENDING_REVIEW]: 'bg-yellow-100 text-yellow-800',
+      [ReportStatus.UNDER_REVIEW]: 'bg-indigo-100 text-indigo-800',
+      [ReportStatus.REVISION_REQUESTED]: 'bg-orange-100 text-orange-800',
+      [ReportStatus.REVISION_REQUIRED]: 'bg-red-100 text-red-800',
       [ReportStatus.APPROVED]: 'bg-green-100 text-green-800',
       [ReportStatus.REJECTED]: 'bg-red-100 text-red-800',
     };
@@ -366,11 +368,10 @@ const ReportList: React.FC<ReportListProps> = ({
                     <button
                       key={pageNum}
                       onClick={() => setFilters((prev) => ({ ...prev, page: pageNum }))}
-                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors ${
-                        pageNum === page
+                      className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors ${pageNum === page
                           ? 'z-10 bg-blue-600 border-blue-600 text-white hover:bg-blue-700'
                           : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-100'
-                      }`}
+                        }`}
                     >
                       {pageNum}
                     </button>

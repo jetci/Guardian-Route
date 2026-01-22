@@ -302,7 +302,7 @@ const IncidentDetailsModal: React.FC<IncidentDetailsModalProps> = ({ incidentId,
                       <HStack justify="space-between" align="center">
                         <VStack align="start" spacing={0}>
                           <Text fontWeight="extrabold" fontSize="lg" color="gray.800">{survey.template?.name || 'แบบสำรวจ'}</Text>
-                          <Text fontSize="sm" color="gray.500">สร้างโดย: {survey.createdById || 'ไม่ระบุ'}</Text>
+                          <Text fontSize="sm" color="gray.500">สร้างโดย: {survey.submittedBy || 'ไม่ระบุ'}</Text>
                         </VStack>
                         <HStack spacing={3}>
                           {renderSurveyStatus(survey.status)}

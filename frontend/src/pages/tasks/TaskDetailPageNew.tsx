@@ -55,8 +55,8 @@ export function TaskDetailPageNew() {
 
     const handleStartSurvey = () => {
         if (!taskId) return;
-        // Navigate to Survey Area Page with taskId
-        navigate(`/survey-area/${taskId}`);
+        // Navigate to Initial Survey Page (Step 2 of Workflow)
+        navigate(`/field-survey/${taskId}`);
     };
 
     const getStatusColor = (status: string) => {

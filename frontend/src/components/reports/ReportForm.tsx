@@ -75,7 +75,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
       const photoUrls = formData.photoUrls
         ? (Array.isArray(formData.photoUrls)
           ? formData.photoUrls
-          : formData.photoUrls.split(',').map((url) => url.trim())
+          : (formData.photoUrls as any).split(',').map((url: string) => url.trim())
         ).filter(Boolean)
         : [];
 
@@ -88,7 +88,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
       if (report) {
         result = await updateReport(report.id, submitData);
       } else {
-        result = await createReport(submitData);
+        result = await createReport(submitData as CreateReportDto);
       }
 
       if (onSuccess) {
@@ -318,7 +318,7 @@ const ReportForm: React.FC<ReportFormProps> = ({
             onChange={(e) =>
               setFormData((prev) => ({
                 ...prev,
-                photoUrls: e.target.value,
+                photoUrls: e.target.value as any,
               }))
             }
             rows={4}

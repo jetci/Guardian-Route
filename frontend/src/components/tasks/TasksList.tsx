@@ -10,20 +10,24 @@ const getStatusLabel = (status: TaskStatus) => {
   const labels = {
     PENDING: 'รอดำเนินการ',
     IN_PROGRESS: 'กำลังดำเนินการ',
+    SURVEYED: 'สำรวจแล้ว',
     COMPLETED: 'เสร็จสิ้น',
     CANCELLED: 'ยกเลิก',
+    REVISION_REQUIRED: 'ต้องแก้ไข',
   };
-  return labels[status];
+  return labels[status] || status;
 };
 
 const getStatusColor = (status: TaskStatus) => {
   const colors = {
     PENDING: 'bg-yellow-100 text-yellow-800',
     IN_PROGRESS: 'bg-blue-100 text-blue-800',
+    SURVEYED: 'bg-indigo-100 text-indigo-800',
     COMPLETED: 'bg-green-100 text-green-800',
     CANCELLED: 'bg-gray-100 text-gray-800',
+    REVISION_REQUIRED: 'bg-red-100 text-red-800',
   };
-  return colors[status];
+  return colors[status] || 'bg-gray-100 text-gray-800';
 };
 
 const getPriorityLabel = (priority: TaskPriority) => {

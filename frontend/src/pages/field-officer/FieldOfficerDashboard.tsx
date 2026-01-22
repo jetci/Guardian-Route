@@ -207,15 +207,42 @@ export default function FieldOfficerDashboard() {
   return (
     <DashboardLayout>
       <div className="field-officer-dashboard">
-        {/* Header */}
-        <div className="dashboard-header">
-          <h1>👨‍🚒 แดชบอร์ดเจ้าหน้าที่ภาคสนาม</h1>
-          <p className="subtitle">ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่</p>
+        {/* Header with Location Info */}
+        <div className="dashboard-header-wrapper">
+          <div className="dashboard-header">
+            <h1>👨‍🚒 แดชบอร์ดเจ้าหน้าที่ภาคสนาม</h1>
+            <p className="subtitle">ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่</p>
+          </div>
+
+          {/* Location Info - Top Right */}
+          <div className="location-info">
+            <h3>📍 พื้นที่รับผิดชอบ</h3>
+            <p>{TAMBON_INFO.fullName}</p>
+            <p>พิกัด: {TAMBON_INFO.centerLat}°N, {TAMBON_INFO.centerLng}°E</p>
+            <p>จำนวนหมู่บ้าน: {TAMBON_INFO.totalVillages} หมู่บ้าน</p>
+            <p>ประชากรรวม: {TAMBON_INFO.totalPopulation.toLocaleString()} คน</p>
+          </div>
         </div>
 
         {/* Weather Widget */}
         <div className="mb-6 min-h-[250px] h-auto">
           <WeatherWidget />
+        </div>
+
+        {/* Quick Actions */}
+        <div className="quick-actions mb-6">
+          <button
+            className="btn-quick-action"
+            onClick={() => navigate('/create-incident')}
+          >
+            🚨 แจ้งเหตุใหม่
+          </button>
+          <button
+            className="btn-quick-action"
+            onClick={() => navigate('/report-history')}
+          >
+            📋 ประวัติรายงาน
+          </button>
         </div>
 
         {/* KPI Cards */}
@@ -350,15 +377,6 @@ export default function FieldOfficerDashboard() {
           </div>
 
 
-        </div>
-
-        {/* Location Info */}
-        <div className="location-info">
-          <h3>📍 พื้นที่รับผิดชอบ</h3>
-          <p>{TAMBON_INFO.fullName}</p>
-          <p>พิกัด: {TAMBON_INFO.centerLat}°N, {TAMBON_INFO.centerLng}°E</p>
-          <p>จำนวนหมู่บ้าน: {TAMBON_INFO.totalVillages} หมู่บ้าน</p>
-          <p>ประชากรรวม: {TAMBON_INFO.totalPopulation.toLocaleString()} คน</p>
         </div>
       </div>
     </DashboardLayout>

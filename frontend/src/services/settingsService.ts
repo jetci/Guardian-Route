@@ -116,7 +116,7 @@ export const triggerBackup = async (): Promise<{ message: string; filename: stri
 /**
  * Purge old data
  */
-export const purgeOldData = async (): Promise<{ message: string; deletedFiles: number }> => {
+export const purgeOldData = async (): Promise<{ message: string; deletedFiles: number; retentionDate: string }> => {
   const token = localStorage.getItem('access_token');
   const response = await axios.delete(`${API_URL}/settings/purge`, {
     headers: {

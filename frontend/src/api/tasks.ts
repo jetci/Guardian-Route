@@ -7,17 +7,17 @@ export const tasksApi = {
     return response.data;
   },
 
-  async getAll(filters: {
+  async getAll(filters?: {
     status?: TaskStatus;
     priority?: TaskPriority;
     incidentId?: string;
     assignedToId?: string;
   }): Promise<Task[]> {
     const params = new URLSearchParams();
-    if (filters.status) params.append('status', filters.status);
-    if (filters.priority) params.append('priority', filters.priority);
-    if (filters.incidentId) params.append('incidentId', filters.incidentId);
-    if (filters.assignedToId) params.append('assignedToId', filters.assignedToId);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.priority) params.append('priority', filters.priority);
+    if (filters?.incidentId) params.append('incidentId', filters.incidentId);
+    if (filters?.assignedToId) params.append('assignedToId', filters.assignedToId);
 
     const response = await apiClient.get(`/tasks?${params.toString()}`);
     // Backend returns paginated response: { data: [], meta: {} }

@@ -23,6 +23,7 @@ export interface IncidentFormData {
   latitude: number | null;
   longitude: number | null;
   polygonData: any;
+  markersCount?: number; // [NEW] Number of markers placed on map
   incidentDate: Date | null;
 }
 
@@ -66,8 +67,8 @@ export function validateIncidentForm(data: IncidentFormData): IncidentValidation
   // Notes validation
   if (!data.notes || data.notes.trim().length === 0) {
     errors.notes = 'กรุณาระบุรายละเอียด';
-  } else if (data.notes.trim().length < 10) {
-    errors.notes = 'รายละเอียดต้องมีอย่างน้อย 10 ตัวอักษร';
+  } else if (data.notes.trim().length < 3) {
+    errors.notes = 'รายละเอียดต้องมีอย่างน้อย 3 ตัวอักษร';
   } else if (data.notes.trim().length > 2000) {
     errors.notes = 'รายละเอียดต้องไม่เกิน 2,000 ตัวอักษร';
   }
@@ -89,24 +90,22 @@ export function validateIncidentForm(data: IncidentFormData): IncidentValidation
     }
   }
 
-  // Polygon/Area validation
-  if (!data.polygonData) {
+  // Polygon/Area/Marker validation
+  const hasPolygon = data.polygonData && (
+    (data.polygonData.type === 'FeatureCollection' && data.polygonData.features?.length > 0) ||
+    (data.polygonData.type === 'Feature')
+  );
+  const hasMarkers = (data.markersCount || 0) > 0;
+
+  if (!hasPolygon && !hasMarkers) {
     errors.polygon = 'กรุณาวาดพื้นที่ที่ได้รับผลกระทบ หรือปักหมุดบนแผนที่';
-  } else {
+  } else if (data.polygonData) {
     // Check if it's a FeatureCollection (multiple shapes/markers) or a single Feature
     const isFeatureCollection = data.polygonData.type === 'FeatureCollection';
     const features = isFeatureCollection ? data.polygonData.features : [data.polygonData];
 
     if (!features || features.length === 0) {
       errors.polygon = 'กรุณาวาดพื้นที่หรือปักหมุดอย่างน้อย 1 จุด';
-    } else {
-      // If there are features, we generally accept it.
-      // If specifically checking for polygon validity (min 3 points), we can iterate.
-      // But for now, if there's any valid feature (Point or Polygon), it's fine.
-
-      // Optional: Check specifically if a Polygon has < 3 points (invalid geometry)
-      // But Leaflet usually handles drawing validity.
-      // We just ensure there is SOME data.
     }
   }
 

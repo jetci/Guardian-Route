@@ -89,8 +89,8 @@ export default function ManageVillagesPage() {
       lat: village.lat.toString(),
       lng: village.lng.toString(),
       population: village.population?.toString() || '',
-      malePopulation: '',
-      femalePopulation: '',
+      malePopulation: village.malePopulation?.toString() || '',
+      femalePopulation: village.femalePopulation?.toString() || '',
       households: village.households?.toString() || ''
     });
     setShowModal(true);
@@ -131,16 +131,29 @@ export default function ManageVillagesPage() {
         province: formData.province,
         district: formData.district,
         subdistrict: formData.subdistrict,
+        villageNo: parseInt(formData.moo), // Allow updating villageNo
       };
 
-      // Add villageNo only for create (not for update)
-      if (!editingVillage) {
-        villageData.villageNo = parseInt(formData.moo);
+      // Validate coordinates if provided
+      if (formData.lat && formData.lng) {
+        const lat = parseFloat(formData.lat);
+        const lng = parseFloat(formData.lng);
+
+        if (isNaN(lat) || isNaN(lng)) {
+          toast.error('พิกัด (Latitude/Longitude) ต้องเป็นตัวเลข');
+          return;
+        }
+
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+          toast.error('พิกัดไม่ถูกต้อง (Latitude: -90 ถึง 90, Longitude: -180 ถึง 180)');
+          return;
+        }
+
+        villageData.lat = lat;
+        villageData.lng = lng;
       }
 
       // Add optional fields only if they have values
-      if (formData.lat) villageData.lat = parseFloat(formData.lat);
-      if (formData.lng) villageData.lng = parseFloat(formData.lng);
       if (formData.population) villageData.population = parseInt(formData.population);
       if (formData.malePopulation) villageData.malePopulation = parseInt(formData.malePopulation);
       if (formData.femalePopulation) villageData.femalePopulation = parseInt(formData.femalePopulation);
@@ -162,7 +175,13 @@ export default function ManageVillagesPage() {
     } catch (error: any) {
       console.error('Error saving village:', error);
       const message = error.response?.data?.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
-      toast.error(message);
+
+      // Handle specific error messages
+      if (message.includes('already exists')) {
+        toast.error(`หมู่ที่ ${formData.moo} มีอยู่ในระบบแล้ว`);
+      } else {
+        toast.error(message);
+      }
     }
   };
 

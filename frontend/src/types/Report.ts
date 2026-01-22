@@ -1,4 +1,4 @@
-import type { User, Incident } from './index';
+import type { User, Incident, Village } from './index';
 
 export enum ReportType {
   INCIDENT = 'INCIDENT',
@@ -11,7 +11,9 @@ export enum ReportType {
 export enum ReportStatus {
   DRAFT = 'DRAFT',
   SUBMITTED = 'SUBMITTED',
+  PENDING_REVIEW = 'PENDING_REVIEW', // Added
   UNDER_REVIEW = 'UNDER_REVIEW',
+  REVISION_REQUESTED = 'REVISION_REQUESTED', // Added/Fixed
   REVISION_REQUIRED = 'REVISION_REQUIRED',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
@@ -21,52 +23,53 @@ export interface Report {
   id: string;
   type: ReportType;
   status: ReportStatus;
-  
+
   // Report content
   title: string;
   summary?: string;
   details?: Record<string, any>;
-  
+
   // Damage assessment
   totalDamageEstimate?: number;
   affectedHouseholds?: number;
   affectedPersons?: number;
-  
+
   // AI Analysis
   aiAnalysis?: Record<string, any>;
-  
+
   // Photos
   photoUrls: string[];
-  
+
   // Template and Period
   templateId?: string;
   periodStart?: string;
   periodEnd?: string;
   metadata?: Record<string, any>;
-  
+
   // PDF Generation
   pdfUrl?: string;
   pdfGeneratedAt?: string;
-  
+
   // Review
   reviewNotes?: string;
   reviewedAt?: string;
-  
+
   // Timestamps
   submittedAt?: string;
   approvedAt?: string;
   createdAt: string;
   updatedAt: string;
-  
+
   // Foreign Keys
   incidentId?: string;
   authorId: string;
   reviewedById?: string;
-  
+
   // Relations
   incident?: Incident;
   author: User;
   reviewedBy?: User;
+  village?: Village;
 }
 
 export interface CreateReportDto {
@@ -87,7 +90,7 @@ export interface CreateReportDto {
   status?: ReportStatus;
 }
 
-export interface UpdateReportDto extends Partial<CreateReportDto> {}
+export interface UpdateReportDto extends Partial<CreateReportDto> { }
 
 export interface FilterReportDto {
   type?: ReportType;
@@ -109,7 +112,8 @@ export interface SubmitReportDto {
 }
 
 export interface ReviewReportDto {
-  status: ReportStatus.APPROVED | ReportStatus.REVISION_REQUIRED | ReportStatus.REJECTED;
+  status: ReportStatus.APPROVED | ReportStatus.REVISION_REQUIRED | ReportStatus.REJECTED | ReportStatus.REVISION_REQUESTED;
+  comments?: string; // Changed from reviewNotes to match usage
   reviewNotes?: string;
 }
 

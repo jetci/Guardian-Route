@@ -5,7 +5,7 @@ import { NotificationType, NotificationPriority } from '@prisma/client';
 
 @Injectable()
 export class NotificationsService {
-  constructor(private readonly db: PrismaService) {}
+  constructor(private readonly db: PrismaService) { }
 
   /**
    * Create notification and send to specific users
@@ -29,16 +29,6 @@ export class NotificationsService {
             userId,
             notificationId: notification.id,
           },
-          include: {
-            user: {
-              select: {
-                id: true,
-                username: true,
-                email: true,
-                fullName: true,
-              },
-            },
-          },
         }),
       ),
     );
@@ -54,7 +44,7 @@ export class NotificationsService {
    */
   async findAllForUser(userId: string, includeRead = false) {
     const where: any = { userId };
-    
+
     if (!includeRead) {
       where.isRead = false;
     }

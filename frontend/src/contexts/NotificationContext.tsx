@@ -64,7 +64,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const markAsRead = useCallback(async (notificationIds: string[]) => {
     try {
       await notificationService.markAsRead(notificationIds);
-      
+
       // Update local state
       setNotifications((prev) =>
         prev.map((notif) =>
@@ -73,7 +73,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
             : notif
         )
       );
-      
+
       // Refresh unread count
       await refreshUnreadCount();
     } catch (error) {
@@ -91,7 +91,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   const markAllAsRead = useCallback(async () => {
     try {
       await notificationService.markAllAsRead();
-      
+
       // Update local state
       setNotifications((prev) =>
         prev.map((notif) => ({
@@ -100,9 +100,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
           readAt: new Date().toISOString(),
         }))
       );
-      
+
       setUnreadCount(0);
-      
+
       toast({
         title: 'Success',
         description: 'All notifications marked as read',
@@ -123,9 +123,9 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
   // Initialize WebSocket connection
   useEffect(() => {
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
-      console.log('No token found, skipping WebSocket connection');
+      // console.log('No token found, skipping WebSocket connection');
       return;
     }
 
@@ -141,16 +141,16 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
     // Connection events
     newSocket.on('connect', () => {
-      console.log('✅ WebSocket connected');
+      // console.log('✅ WebSocket connected');
       setIsConnected(true);
     });
 
     newSocket.on('connected', (data) => {
-      console.log('✅ WebSocket authenticated:', data);
+      // console.log('✅ WebSocket authenticated:', data);
     });
 
     newSocket.on('disconnect', () => {
-      console.log('🔌 WebSocket disconnected');
+      // console.log('🔌 WebSocket disconnected');
       setIsConnected(false);
     });
 
@@ -161,25 +161,25 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
 
     // Listen for new notifications
     newSocket.on('notification', (data: any) => {
-      console.log('🔔 New notification received:', data);
-      
+      // console.log('🔔 New notification received:', data);
+
       // Add to notifications list
       setNotifications((prev) => [data, ...prev]);
-      
+
       // Increment unread count
       setUnreadCount((prev) => prev + 1);
-      
+
       // Show toast notification
       toast({
         title: data.notification?.title || 'New Notification',
         description: data.notification?.message || 'You have a new notification',
-        status: data.notification?.priority === 'URGENT' ? 'error' : 
-                data.notification?.priority === 'HIGH' ? 'warning' : 'info',
+        status: data.notification?.priority === 'URGENT' ? 'error' :
+          data.notification?.priority === 'HIGH' ? 'warning' : 'info',
         duration: 5000,
         isClosable: true,
         position: 'top-right',
       });
-      
+
       // Play notification sound (optional)
       try {
         const audio = new Audio('/notification-sound.mp3');
@@ -208,7 +208,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       notificationService.getMyNotifications(false)
         .then(setNotifications)
         .catch((error) => console.error('Failed to fetch initial notifications:', error));
-      
+
       notificationService.getUnreadCount()
         .then(setUnreadCount)
         .catch((error) => console.error('Failed to fetch initial unread count:', error));

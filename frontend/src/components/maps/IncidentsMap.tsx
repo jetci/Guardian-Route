@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Marker, Popup } from 'react-leaflet';
+import { Marker, Popup, GeoJSON } from 'react-leaflet';
 import { BaseMap } from './BaseMap';
 import { incidentsApi } from '../../api/incidents';
 import type { Incident, Priority } from '../../types';
@@ -31,6 +31,33 @@ const getMarkerIcon = (priority: Priority) => {
     `,
     iconSize: [24, 24],
     iconAnchor: [12, 24],
+  });
+};
+
+const getNumberedIcon = (number: number) => {
+  return L.divIcon({
+    className: 'custom-numbered-icon',
+    html: `
+      <div style="
+        background-color: #ef4444;
+        color: white;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 11px;
+        border: 2px solid white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      ">
+        ${number}
+      </div>
+    `,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10]
   });
 };
 
@@ -107,63 +134,97 @@ export const IncidentsMap = ({ className, onIncidentClick }: IncidentsMapProps) 
         console.log(`Incident ${incident.id}:`, { lat, lng, raw: incident.location.coordinates });
 
         return (
-          <Marker
-            key={incident.id}
-            position={[lat, lng]}
-            icon={getMarkerIcon(incident.priority)}
-            eventHandlers={{
-              click: () => onIncidentClick?.(incident),
-            }}
-          >
-            <Popup>
-              <div className="p-2 min-w-[200px]">
-                <h3 className="font-bold text-lg mb-2">{incident.title}</h3>
+          <div key={incident.id}>
+            <Marker
+              position={[lat, lng]}
+              icon={getMarkerIcon(incident.priority)}
+              eventHandlers={{
+                click: () => onIncidentClick?.(incident),
+              }}
+            >
+              <Popup>
+                <div className="p-2 min-w-[200px]">
+                  <h3 className="font-bold text-lg mb-2">{incident.title}</h3>
 
-                {incident.description && (
-                  <p className="text-sm text-gray-600 mb-2">
-                    {incident.description}
-                  </p>
-                )}
+                  {incident.description && (
+                    <p className="text-sm text-gray-600 mb-2">
+                      {incident.description}
+                    </p>
+                  )}
 
-                <div className="space-y-1 text-sm">
-                  <div>
-                    <span className="font-medium">ประเภท:</span>{' '}
-                    {getDisasterTypeLabel(incident.disasterType)}
-                  </div>
-                  <div>
-                    <span className="font-medium">ความสำคัญ:</span>{' '}
-                    <span className={`font-medium ${incident.priority === 'CRITICAL' ? 'text-red-600' :
+                  <div className="space-y-1 text-sm">
+                    <div>
+                      <span className="font-medium">ประเภท:</span>{' '}
+                      {getDisasterTypeLabel(incident.disasterType)}
+                    </div>
+                    <div>
+                      <span className="font-medium">ความสำคัญ:</span>{' '}
+                      <span className={`font-medium ${incident.priority === 'CRITICAL' ? 'text-red-600' :
                         incident.priority === 'HIGH' ? 'text-orange-600' :
                           incident.priority === 'MEDIUM' ? 'text-blue-600' :
                             'text-gray-600'
-                      }`}>
-                      {getPriorityLabel(incident.priority)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium">สถานะ:</span>{' '}
-                    {getStatusLabel(incident.status)}
-                  </div>
-                  {incident.village && (
-                    <div>
-                      <span className="font-medium">หมู่บ้าน:</span>{' '}
-                      {incident.village.name}
+                        }`}>
+                        {getPriorityLabel(incident.priority)}
+                      </span>
                     </div>
-                  )}
-                  {incident.address && (
                     <div>
-                      <span className="font-medium">ที่อยู่:</span>{' '}
-                      {incident.address}
+                      <span className="font-medium">สถานะ:</span>{' '}
+                      {getStatusLabel(incident.status)}
                     </div>
-                  )}
-                </div>
+                    {incident.village && (
+                      <div>
+                        <span className="font-medium">หมู่บ้าน:</span>{' '}
+                        {incident.village.name}
+                      </div>
+                    )}
+                    {incident.address && (
+                      <div>
+                        <span className="font-medium">ที่อยู่:</span>{' '}
+                        {incident.address}
+                      </div>
+                    )}
+                  </div>
 
-                <div className="mt-3 pt-2 border-t text-xs text-gray-500">
-                  รายงานโดย: {incident.createdBy.firstName} {incident.createdBy.lastName}
+                  <div className="mt-3 pt-2 border-t text-xs text-gray-500">
+                    รายงานโดย: {incident.createdBy.firstName} {incident.createdBy.lastName}
+                  </div>
                 </div>
-              </div>
-            </Popup>
-          </Marker>
+              </Popup>
+            </Marker>
+
+            {incident.affectedArea && (
+              <GeoJSON
+                data={incident.affectedArea}
+                style={() => ({
+                  color: incident.priority === 'CRITICAL' ? '#ef4444' :
+                    incident.priority === 'HIGH' ? '#f97316' :
+                      incident.priority === 'MEDIUM' ? '#3b82f6' : '#6b7280',
+                  weight: 3,
+                  opacity: 0.6,
+                  fillColor: incident.priority === 'CRITICAL' ? '#ef4444' :
+                    incident.priority === 'HIGH' ? '#f97316' :
+                      incident.priority === 'MEDIUM' ? '#3b82f6' : '#6b7280',
+                  fillOpacity: 0.2
+                })}
+                pointToLayer={(feature, latlng) => {
+                  const markerNumber = feature.properties?.number || feature.properties?.index + 1 || '';
+                  return L.marker(latlng, {
+                    icon: getNumberedIcon(markerNumber)
+                  });
+                }}
+                onEachFeature={(feature, layer) => {
+                  if (feature.properties?.label || feature.properties?.number) {
+                    layer.bindPopup(`
+                      <div style="text-align: center; font-family: 'Sarabun', sans-serif;">
+                        <strong>จุดที่ ${feature.properties.number || ''}</strong><br/>
+                        ${feature.properties.label || '📍 ตำแหน่ง'}
+                      </div>
+                    `);
+                  }
+                }}
+              />
+            )}
+          </div>
         );
       })}
     </BaseMap>

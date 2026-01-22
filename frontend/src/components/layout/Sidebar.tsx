@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../../stores/authStore';
+import { NotificationBell } from '../notifications/NotificationBell';
 import './Sidebar.css';
 
 export function Sidebar() {
@@ -26,8 +27,8 @@ export function Sidebar() {
     // Convert role to string for comparison (handles both string and enum)
     const userRole = user?.role ? String(user.role) : '';
 
-    console.log('🔍 Sidebar - Current user role:', userRole);
-    console.log('👤 Sidebar - User data:', user);
+    // console.log('🔍 Sidebar - Current user role:', userRole);
+    // console.log('👤 Sidebar - User data:', user);
 
     switch (userRole) {
       case 'DEVELOPER':
@@ -66,7 +67,7 @@ export function Sidebar() {
         return [
           { icon: '👨‍🚒', label: 'แดชบอร์ดเจ้าหน้าที่', path: '/field-officer/dashboard' },
           { icon: '🗺️', label: 'แผนที่เหตุการณ์', path: '/map-incidents' },
-          { icon: '📋', label: 'งานของฉัน', path: '/dashboard/officer' },
+          { icon: '📋', label: 'งานของฉัน', path: '/tasks/my-tasks' },
           { icon: '📝', label: 'รายงานเหตุการณ์ใหม่', path: '/create-incident' },
           { icon: '🔍', label: 'สำรวจพื้นที่', path: '/survey-area' },
           { icon: '📜', label: 'ประวัติการรายงาน', path: '/report-history' },
@@ -98,6 +99,10 @@ export function Sidebar() {
           <div className="user-name">{user?.firstName} {user?.lastName}</div>
           <div className="user-role">{user?.role}</div>
         </div>
+      </div>
+
+      <div className="sidebar-notifications">
+        <NotificationBell />
       </div>
 
       <nav className="sidebar-nav">

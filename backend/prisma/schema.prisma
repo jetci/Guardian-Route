@@ -1,12 +1,12 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["postgresqlExtensions"]
+  // previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider   = "postgresql"
   url        = env("DATABASE_URL")
-  extensions = [postgis]
+  // extensions = [postgis]
 }
 
 model User {
@@ -48,8 +48,8 @@ model User {
   assignedTasks           Task[]             @relation("AssignedTo")
   createdTasks            Task[]             @relation("TaskCreator")
   user_devices            user_devices[]
-  userNotifications       UserNotification[]
   fieldSurveys            FieldSurvey[]      @relation("FieldSurveys")
+  comprehensiveSurveys    ComprehensiveSurvey[] @relation("ComprehensiveSurveys")
 
   @@map("users")
 }
@@ -73,6 +73,7 @@ model Village {
   surveys          Survey[]
   tasks            Task[]
   fieldSurveys     FieldSurvey[]
+  comprehensiveSurveys ComprehensiveSurvey[]
 
   @@index([villageNo])
   @@map("villages")
@@ -141,6 +142,7 @@ model Task {
   incident       Incident     @relation(fields: [incidentId], references: [id], onDelete: Cascade)
   village        Village?     @relation(fields: [villageId], references: [id])
   fieldSurveys   FieldSurvey[]
+  comprehensiveSurveys ComprehensiveSurvey[]
 
   @@index([status])
   @@index([priority])
@@ -377,7 +379,6 @@ model UserNotification {
   readAt         DateTime?    @map("read_at")
   createdAt      DateTime     @default(now()) @map("created_at")
   notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, notificationId])
   @@index([userId])
@@ -479,6 +480,63 @@ model FieldSurvey {
   @@map("field_surveys")
 }
 
+model ComprehensiveSurvey {
+  id             String   @id @default(uuid())
+  fieldOfficerId String   @map("field_officer_id")
+  taskId         String?  @map("task_id")
+  villageId      String?  @map("village_id")
+  
+  // Step 1: Incident Info
+  villageName    String   @map("village_name")
+  disasterType   String   @map("disaster_type")
+  surveyDate     DateTime @map("survey_date")
+  gpsLocation    Json     @map("gps_location")
+  
+  // Step 2: Affected People
+  affectedHouseholds Int  @map("affected_households")
+  affectedPeople     Int  @map("affected_people")
+  deadCount          Int  @default(0) @map("dead_count")
+  missingCount       Int  @default(0) @map("missing_count")
+  injuredCount       Int  @default(0) @map("injured_count")
+  evacuatedPeople    Int  @default(0) @map("evacuated_people")
+  evacuatedHouseholds Int @default(0) @map("evacuated_households")
+  
+  // Step 3: Damage Assessment (stored as JSON for flexibility)
+  damageAssessment Json   @map("damage_assessment")
+  
+  // Step 4: Relief Operations
+  reliefData Json?        @map("relief_data")
+  
+  // Step 5: Resources
+  resourcesData Json?     @map("resources_data")
+  
+  // Step 6: Operations
+  operationsData Json?    @map("operations_data")
+  
+  // Step 7: Certification
+  reportType String       @map("report_type") // INFO, DISASTER_ZONE, ASSISTANCE
+  
+  // Additional Metadata
+  photoUrls   String[]    @default([]) @map("photo_urls")
+  polygon     Json?
+  notes       String?     @db.Text
+  status      String      @default("SUBMITTED")
+  submittedAt DateTime    @default(now()) @map("submitted_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  
+  // Relations
+  fieldOfficer User      @relation("ComprehensiveSurveys", fields: [fieldOfficerId], references: [id])
+  task         Task?     @relation(fields: [taskId], references: [id])
+  village      Village?  @relation(fields: [villageId], references: [id])
+  
+  @@index([fieldOfficerId])
+  @@index([taskId])
+  @@index([villageId])
+  @@index([submittedAt])
+  @@index([status])
+  @@map("comprehensive_surveys")
+}
+
 enum Role {
   FIELD_OFFICER
   SUPERVISOR
@@ -539,6 +597,7 @@ enum DisasterType {
   FIRE
   STORM
   EARTHQUAKE
+  DROUGHT
   OTHER
 }
 
@@ -548,6 +607,7 @@ enum TaskPriority {
   HIGH
   URGENT
 }
+
 
 enum SurveyStatus {
   PENDING

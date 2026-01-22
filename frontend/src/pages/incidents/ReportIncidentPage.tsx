@@ -45,12 +45,13 @@ export const ReportIncidentPage: React.FC = () => {
     villageId: '',
     estimatedAffectedHouseholds: '',
     estimatedAffectedPopulation: '',
+    disasterTypeOther: '',
   });
 
   // Map state
   const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(null);
   const [polygonCoordinates, setPolygonCoordinates] = useState<[number, number][]>([]);
-  
+
   // Suppress unused warning - polygonCoordinates will be used for affected area in future
   void polygonCoordinates;
 
@@ -127,7 +128,7 @@ export const ReportIncidentPage: React.FC = () => {
       const data: CreateIncidentDto = {
         disasterType: formData.disasterType as DisasterType,
         title: formData.title,
-        description: formData.description,
+        description: (formData.disasterType === 'OTHER' && formData.disasterTypeOther ? `[ประเภทภัยอื่นๆ: ${formData.disasterTypeOther}]\n\n` : '') + formData.description,
         priority: formData.priority as Priority,
         villageId: formData.villageId,
         location: {
@@ -187,6 +188,15 @@ export const ReportIncidentPage: React.FC = () => {
                 <option value="EARTHQUAKE">แผ่นดินไหว</option>
                 <option value="OTHER">อื่นๆ</option>
               </Select>
+              {formData.disasterType === 'OTHER' && (
+                <Input
+                  name="disasterTypeOther"
+                  value={(formData as any).disasterTypeOther}
+                  onChange={handleInputChange}
+                  placeholder="ระบุประเภทภัยอื่นๆ..."
+                  mt={2}
+                />
+              )}
               <FormErrorMessage>{errors.disasterType}</FormErrorMessage>
             </FormControl>
 

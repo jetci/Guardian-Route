@@ -157,9 +157,11 @@ export const INITIAL_SURVEY_DATA: SurveyData = {
 export interface SurveyTemplate {
   id: string;
   title: string;
+  name: string; // Added to match usage
   description?: string;
   fields: FormField[];
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  isActive: boolean; // Added to match usage
   version: number;
   createdAt: string;
   updatedAt: string;
@@ -175,6 +177,7 @@ export interface Survey {
   taskId?: string;
   submittedBy: string;
   submittedAt: string;
+  status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'; // Updated status
   createdAt: string;
   updatedAt: string;
 }

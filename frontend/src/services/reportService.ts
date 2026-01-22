@@ -23,10 +23,19 @@ export const reportService = {
     try {
       // Get all my tasks (completed tasks are reports)
       const response = await api.get('/tasks');
-      console.log('✅ Loaded my reports from API:', response.data.length);
-      
+      console.log('✅ Loaded my reports raw response:', response);
+
+      const tasks = Array.isArray(response.data) ? response.data : (response.data?.data || []);
+
+      if (!Array.isArray(tasks)) {
+        console.warn('⚠️ /tasks response is not an array:', response.data);
+        return [];
+      }
+
+      console.log('✅ Processed tasks count:', tasks.length);
+
       // Transform tasks to report format
-      return response.data.map((task: any) => ({
+      return tasks.map((task: any) => ({
         id: task.id,
         title: task.title,
         content: task.description || '',
@@ -42,7 +51,8 @@ export const reportService = {
       }));
     } catch (error) {
       console.error('❌ Failed to load my reports:', error);
-      throw error;
+      // Return empty array instead of throwing to prevent UI crash
+      return [];
     }
   },
 
@@ -92,5 +102,23 @@ export const reportService = {
   delete: async (id: string) => {
     const response = await api.delete(`/reports/${id}`);
     return response.data;
+  },
+
+  /**
+   * Download PDF
+   */
+  downloadPdf: async (pdfUrl: string, filename: string) => {
+    const response = await api.get(pdfUrl, {
+      responseType: 'blob',
+    });
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   },
 };
