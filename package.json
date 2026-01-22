@@ -17,12 +17,12 @@
   },
   "lint-staged": {
     "backend/**/*.ts": [
-      "cd backend && npm run lint",
-      "cd backend && npm run format"
+      "npm --prefix backend run lint",
+      "npm --prefix backend run format"
     ],
     "frontend/**/*.{ts,tsx}": [
-      "cd frontend && npm run lint",
-      "cd frontend && prettier --write"
+      "npm --prefix frontend run lint",
+      "npm --prefix frontend exec prettier --write"
     ]
   },
   "repository": {
