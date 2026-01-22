@@ -3,7 +3,7 @@ import { apiClient } from './client';
 export interface KpiSummary {
   total: number;
   pending: number;
-  investigating: number;
+  inProgress: number;
   resolved: number;
   avgResolutionTime: string;
 }
@@ -39,7 +39,16 @@ export interface IncidentsByType {
 export const analyticsApi = {
   getKpiSummary: async (): Promise<KpiSummary> => {
     const response = await apiClient.get('/analytics/kpi/summary');
-    return response.data;
+    const data = response.data || {};
+    // Normalize field naming to support legacy 'investigating' and new 'inProgress'
+    const inProgress = data.inProgress ?? data.in_progress ?? data.investigating ?? 0;
+    return {
+      total: data.total ?? 0,
+      pending: data.pending ?? 0,
+      inProgress,
+      resolved: data.resolved ?? 0,
+      avgResolutionTime: data.avgResolutionTime ?? data.avg_resolution_time ?? '-',
+    };
   },
 
   getIncidentOverview: async (params?: any) => {

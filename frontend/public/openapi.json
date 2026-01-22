@@ -15,6 +15,33 @@
         ]
       }
     },
+    "/security/csrf-token": {
+      "get": {
+        "operationId": "SecurityController_getCsrfToken",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "CSRF token retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "csrfToken": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get CSRF token",
+        "tags": [
+          "security"
+        ]
+      }
+    },
     "/auth/register": {
       "post": {
         "operationId": "AuthController_register",
@@ -585,6 +612,37 @@
         "tags": [
           "villages"
         ]
+      },
+      "post": {
+        "operationId": "VillagesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVillageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Village created successfully"
+          },
+          "409": {
+            "description": "Village number already exists"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new village (ADMIN only)",
+        "tags": [
+          "villages"
+        ]
       }
     },
     "/villages/statistics": {
@@ -660,6 +718,172 @@
           }
         ],
         "summary": "Get village by ID",
+        "tags": [
+          "villages"
+        ]
+      },
+      "patch": {
+        "operationId": "VillagesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVillageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Village updated successfully"
+          },
+          "404": {
+            "description": "Village not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update village (ADMIN only)",
+        "tags": [
+          "villages"
+        ]
+      },
+      "delete": {
+        "operationId": "VillagesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Village deleted successfully"
+          },
+          "400": {
+            "description": "Cannot delete village with related data"
+          },
+          "404": {
+            "description": "Village not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete village (ADMIN only)",
+        "tags": [
+          "villages"
+        ]
+      }
+    },
+    "/villages/upload/geojson/validate": {
+      "post": {
+        "operationId": "VillagesController_validateGeoJson",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "village_boundary",
+                      "district_boundary",
+                      "risk_zone",
+                      "infrastructure"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Validate GeoJSON file without saving",
+        "tags": [
+          "villages"
+        ]
+      }
+    },
+    "/villages/upload/geojson": {
+      "post": {
+        "operationId": "VillagesController_uploadGeoJson",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "village_boundary",
+                      "district_boundary",
+                      "risk_zone",
+                      "infrastructure"
+                    ]
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload and save GeoJSON file",
         "tags": [
           "villages"
         ]
@@ -762,6 +986,7 @@
                 "FIRE",
                 "STORM",
                 "EARTHQUAKE",
+                "DROUGHT",
                 "OTHER"
               ],
               "type": "string"
@@ -774,11 +999,29 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (default: 1)",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page (default: 20, max: 100)",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Return all incidents"
+            "description": "Return paginated incidents"
           }
         },
         "security": [
@@ -786,7 +1029,7 @@
             "bearer": []
           }
         ],
-        "summary": "Get all incidents with optional filters",
+        "summary": "Get all incidents with optional filters and pagination",
         "tags": [
           "incidents"
         ]
@@ -1353,6 +1596,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -1366,26 +1625,6 @@
           }
         ],
         "summary": "Get all tasks with optional filters",
-        "tags": [
-          "tasks"
-        ]
-      }
-    },
-    "/tasks/statistics": {
-      "get": {
-        "operationId": "TasksController_getStatistics",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get task statistics",
         "tags": [
           "tasks"
         ]
@@ -1406,7 +1645,7 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Returns tasks assigned to current user"
           }
         },
         "security": [
@@ -1415,6 +1654,26 @@
           }
         ],
         "summary": "Get tasks assigned to current user",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/tasks/statistics": {
+      "get": {
+        "operationId": "TasksController_getStatistics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get task statistics",
         "tags": [
           "tasks"
         ]
@@ -1527,8 +1786,14 @@
           }
         ],
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "Task accepted and status changed to IN_PROGRESS"
+          },
+          "400": {
+            "description": "Task is not in PENDING status"
+          },
+          "403": {
+            "description": "Not assigned to this task"
           }
         },
         "security": [
@@ -1544,7 +1809,7 @@
     },
     "/tasks/{id}/survey": {
       "post": {
-        "operationId": "TasksController_submitSurvey",
+        "operationId": "TasksController_submitSurveyData",
         "parameters": [
           {
             "name": "id",
@@ -1555,9 +1820,25 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSurveyDataDto"
+              }
+            }
+          }
+        },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "Survey data submitted and status changed to SURVEYED"
+          },
+          "400": {
+            "description": "Task is not in IN_PROGRESS status"
+          },
+          "403": {
+            "description": "Not assigned to this task"
           }
         },
         "security": [
@@ -1565,7 +1846,7 @@
             "bearer": []
           }
         ],
-        "summary": "Submit survey data for a task",
+        "summary": "Submit field survey data",
         "tags": [
           "tasks"
         ]
@@ -1631,6 +1912,40 @@
           }
         },
         "summary": "Upload multiple images (max 5)",
+        "tags": [
+          "upload"
+        ]
+      }
+    },
+    "/upload/survey-images": {
+      "post": {
+        "operationId": "UploadController_uploadSurveyImages",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Upload survey images (max 10)",
         "tags": [
           "upload"
         ]
@@ -2071,6 +2386,236 @@
         "summary": "Delete a survey template",
         "tags": [
           "Survey Templates"
+        ]
+      }
+    },
+    "/field-officer/surveys": {
+      "post": {
+        "description": "Field officers use this endpoint to submit survey data collected in the field, including GPS coordinates and photos",
+        "operationId": "FieldOfficerSurveyController_submitSurvey",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldOfficerSurveyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Survey submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldOfficerSurveyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data"
+          },
+          "401": {
+            "description": "Unauthorized - Field Officer role required"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit initial survey from field",
+        "tags": [
+          "Field Officer - Surveys"
+        ]
+      }
+    },
+    "/field-officer/surveys/my-surveys": {
+      "get": {
+        "description": "Retrieve all surveys submitted by the current field officer",
+        "operationId": "FieldOfficerSurveyController_getMySurveys",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of submitted surveys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FieldOfficerSurveyResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get my submitted surveys",
+        "tags": [
+          "Field Officer - Surveys"
+        ]
+      }
+    },
+    "/field-officer/surveys/{id}": {
+      "get": {
+        "description": "Retrieve a specific survey by its ID",
+        "operationId": "FieldOfficerSurveyController_getSurvey",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Survey details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldOfficerSurveyResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Survey not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get survey by ID",
+        "tags": [
+          "Field Officer - Surveys"
+        ]
+      }
+    },
+    "/field-officer/comprehensive-surveys": {
+      "post": {
+        "description": "Field officers use this endpoint to submit detailed survey data collected through the 8-step survey wizard",
+        "operationId": "ComprehensiveSurveyController_submitSurvey",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComprehensiveSurveyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Comprehensive survey submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComprehensiveSurveyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data"
+          },
+          "401": {
+            "description": "Unauthorized - Field Officer role required"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit comprehensive survey (8 steps)",
+        "tags": [
+          "Field Officer - Comprehensive Surveys"
+        ]
+      }
+    },
+    "/field-officer/comprehensive-surveys/my-surveys": {
+      "get": {
+        "description": "Retrieve all comprehensive surveys submitted by the current field officer",
+        "operationId": "ComprehensiveSurveyController_getMySurveys",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of comprehensive surveys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ComprehensiveSurveyResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get my comprehensive surveys",
+        "tags": [
+          "Field Officer - Comprehensive Surveys"
+        ]
+      }
+    },
+    "/field-officer/comprehensive-surveys/{id}": {
+      "get": {
+        "description": "Retrieve a specific comprehensive survey by its ID",
+        "operationId": "ComprehensiveSurveyController_getSurvey",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comprehensive survey details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComprehensiveSurveyResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Survey not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get comprehensive survey by ID",
+        "tags": [
+          "Field Officer - Comprehensive Surveys"
         ]
       }
     },
@@ -2518,6 +3063,85 @@
           }
         ],
         "summary": "Review a report (SUPERVISOR, EXECUTIVE, ADMIN only)",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/reports/{id}/generate-pdf": {
+      "post": {
+        "operationId": "ReportController_generatePdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Report ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeneratePdfDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PDF generation started successfully"
+          },
+          "404": {
+            "description": "Report not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Generate PDF for a report",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/reports/{id}/pdf": {
+      "get": {
+        "operationId": "ReportController_downloadPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Report ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF file",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "404": {
+            "description": "Report or PDF not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download PDF of a report",
         "tags": [
           "reports"
         ]
@@ -3258,6 +3882,210 @@
         ]
       }
     },
+    "/analytics/incidents/overview": {
+      "get": {
+        "operationId": "AnalyticsController_getIncidentOverview",
+        "parameters": [
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "description": "Start date (ISO 8601)",
+            "schema": {
+              "example": "2024-01-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "description": "End date (ISO 8601)",
+            "schema": {
+              "example": "2024-12-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "granularity",
+            "required": false,
+            "in": "query",
+            "description": "Data granularity",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DAILY",
+                "WEEKLY",
+                "MONTHLY",
+                "QUARTERLY",
+                "YEARLY"
+              ]
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by user ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by team ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by task status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "IN_PROGRESS",
+                "SURVEYED",
+                "COMPLETED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "priority",
+            "required": false,
+            "in": "query",
+            "description": "Filter by task priority",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "URGENT"
+              ]
+            }
+          },
+          {
+            "name": "villageId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by village ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tambonId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by tambon ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get incident overview statistics",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/analytics/incidents/trend": {
+      "get": {
+        "operationId": "AnalyticsController_getIncidentTrend",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get incident trend over time",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/analytics/incidents/by-type": {
+      "get": {
+        "operationId": "AnalyticsController_getIncidentsByType",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get incidents by type",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/analytics/incidents/by-severity": {
+      "get": {
+        "operationId": "AnalyticsController_getIncidentsBySeverity",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get incidents by severity",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/analytics/performers/top": {
+      "get": {
+        "operationId": "AnalyticsController_getTopPerformers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get top performers",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
     "/admin/audit-logs": {
       "get": {
         "operationId": "AuditLogController_findAll",
@@ -3377,6 +4205,51 @@
         "summary": "Export audit logs to CSV",
         "tags": [
           "audit-logs"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "HealthController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "System is healthy"
+          }
+        },
+        "summary": "Health check endpoint",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/health/system-stats": {
+      "get": {
+        "operationId": "HealthController_getSystemStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Return system statistics"
+          }
+        },
+        "summary": "Get system statistics",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/health/database": {
+      "get": {
+        "operationId": "HealthController_getDatabaseHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Database connection status"
+          }
+        },
+        "summary": "Check database connection",
+        "tags": [
+          "health"
         ]
       }
     }
@@ -3682,6 +4555,130 @@
           }
         }
       },
+      "CreateVillageDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "บ้านสันทราย",
+            "description": "ชื่อหมู่บ้าน"
+          },
+          "villageNo": {
+            "type": "number",
+            "example": 1,
+            "description": "หมู่ที่"
+          },
+          "lat": {
+            "type": "number",
+            "example": 19.9167,
+            "description": "Latitude (will be converted to centerPoint)"
+          },
+          "lng": {
+            "type": "number",
+            "example": 99.2333,
+            "description": "Longitude (will be converted to centerPoint)"
+          },
+          "population": {
+            "type": "number",
+            "example": 1500,
+            "description": "จำนวนประชากรรวม"
+          },
+          "malePopulation": {
+            "type": "number",
+            "example": 750,
+            "description": "จำนวนประชากรชาย (will be saved as populationMale)"
+          },
+          "femalePopulation": {
+            "type": "number",
+            "example": 750,
+            "description": "จำนวนประชากรหญิง (will be saved as populationFemale)"
+          },
+          "households": {
+            "type": "number",
+            "example": 350,
+            "description": "จำนวนครัวเรือน"
+          },
+          "province": {
+            "type": "string",
+            "example": "เชียงใหม่",
+            "description": "จังหวัด (stored in alternateNames)"
+          },
+          "district": {
+            "type": "string",
+            "example": "ฝาง",
+            "description": "อำเภอ (stored in alternateNames)"
+          },
+          "subdistrict": {
+            "type": "string",
+            "example": "เวียง",
+            "description": "ตำบล (stored in alternateNames)"
+          }
+        },
+        "required": [
+          "name",
+          "villageNo"
+        ]
+      },
+      "UpdateVillageDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "บ้านสันทราย",
+            "description": "ชื่อหมู่บ้าน"
+          },
+          "villageNo": {
+            "type": "number",
+            "example": 1,
+            "description": "หมู่ที่"
+          },
+          "lat": {
+            "type": "number",
+            "example": 19.9167,
+            "description": "Latitude (will be converted to centerPoint)"
+          },
+          "lng": {
+            "type": "number",
+            "example": 99.2333,
+            "description": "Longitude (will be converted to centerPoint)"
+          },
+          "population": {
+            "type": "number",
+            "example": 1500,
+            "description": "จำนวนประชากรรวม"
+          },
+          "malePopulation": {
+            "type": "number",
+            "example": 750,
+            "description": "จำนวนประชากรชาย (will be saved as populationMale)"
+          },
+          "femalePopulation": {
+            "type": "number",
+            "example": 750,
+            "description": "จำนวนประชากรหญิง (will be saved as populationFemale)"
+          },
+          "households": {
+            "type": "number",
+            "example": 350,
+            "description": "จำนวนครัวเรือน"
+          },
+          "province": {
+            "type": "string",
+            "example": "เชียงใหม่",
+            "description": "จังหวัด (stored in alternateNames)"
+          },
+          "district": {
+            "type": "string",
+            "example": "ฝาง",
+            "description": "อำเภอ (stored in alternateNames)"
+          },
+          "subdistrict": {
+            "type": "string",
+            "example": "เวียง",
+            "description": "ตำบล (stored in alternateNames)"
+          }
+        }
+      },
       "CreateIncidentDto": {
         "type": "object",
         "properties": {
@@ -3701,6 +4698,7 @@
               "FIRE",
               "STORM",
               "EARTHQUAKE",
+              "DROUGHT",
               "OTHER"
             ],
             "example": "FLOOD"
@@ -3721,8 +4719,8 @@
             "example": {
               "type": "Point",
               "coordinates": [
-                99.8832,
-                19.9263
+                99.2333,
+                19.9167
               ]
             },
             "description": "GeoJSON Point [longitude, latitude]"
@@ -3745,6 +4743,49 @@
             "items": {
               "type": "string"
             }
+          },
+          "affectedArea": {
+            "type": "object",
+            "example": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    99.2333,
+                    19.9167
+                  ],
+                  [
+                    99.2343,
+                    19.9167
+                  ],
+                  [
+                    99.2343,
+                    19.9157
+                  ],
+                  [
+                    99.2333,
+                    19.9157
+                  ],
+                  [
+                    99.2333,
+                    19.9167
+                  ]
+                ]
+              ]
+            },
+            "description": "GeoJSON Polygon of affected area"
+          },
+          "estimatedHouseholds": {
+            "type": "number",
+            "example": 25,
+            "description": "Estimated number of affected households"
+          },
+          "severity": {
+            "type": "number",
+            "example": 3,
+            "minimum": 1,
+            "maximum": 5,
+            "description": "Severity level (1=Low, 5=Critical)"
           }
         },
         "required": [
@@ -3784,16 +4825,17 @@
               "RESOLVED",
               "CLOSED"
             ],
-            "example": "INVESTIGATING"
+            "example": "RESOLVED"
           },
           "reviewNotes": {
             "type": "string",
-            "description": "Review comments",
-            "example": "Approved. Please proceed with investigation."
+            "description": "Review comments (decision rationale, actions required)",
+            "example": "Approved. Assign two field officers to verify damages and proceed with relief distribution."
           },
           "additionalNotes": {
             "type": "string",
-            "description": "Additional details or instructions"
+            "description": "Additional details or instructions for teams (optional)",
+            "example": "Coordinate with local administrative office. Prepare sandbags if water level rises overnight."
           }
         },
         "required": [
@@ -3820,6 +4862,7 @@
               "FIRE",
               "STORM",
               "EARTHQUAKE",
+              "DROUGHT",
               "OTHER"
             ],
             "example": "FLOOD"
@@ -3840,8 +4883,8 @@
             "example": {
               "type": "Point",
               "coordinates": [
-                99.8832,
-                19.9263
+                99.2333,
+                19.9167
               ]
             },
             "description": "GeoJSON Point [longitude, latitude]"
@@ -3864,6 +4907,49 @@
             "items": {
               "type": "string"
             }
+          },
+          "affectedArea": {
+            "type": "object",
+            "example": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    99.2333,
+                    19.9167
+                  ],
+                  [
+                    99.2343,
+                    19.9167
+                  ],
+                  [
+                    99.2343,
+                    19.9157
+                  ],
+                  [
+                    99.2333,
+                    19.9157
+                  ],
+                  [
+                    99.2333,
+                    19.9167
+                  ]
+                ]
+              ]
+            },
+            "description": "GeoJSON Polygon of affected area"
+          },
+          "estimatedHouseholds": {
+            "type": "number",
+            "example": 25,
+            "description": "Estimated number of affected households"
+          },
+          "severity": {
+            "type": "number",
+            "example": 3,
+            "minimum": 1,
+            "maximum": 5,
+            "description": "Severity level (1=Low, 5=Critical)"
           },
           "status": {
             "type": "string",
@@ -4002,6 +5088,147 @@
           "priority",
           "incidentId"
         ]
+      },
+      "GeoJSONPoint": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "Point",
+            "description": "GeoJSON type"
+          },
+          "coordinates": {
+            "example": [
+              98.9817,
+              19.9167
+            ],
+            "description": "[longitude, latitude]",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ]
+      },
+      "GeoJSONPolygon": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "Polygon",
+            "description": "GeoJSON type"
+          },
+          "coordinates": {
+            "example": [
+              [
+                [
+                  98.9817,
+                  19.9167
+                ],
+                [
+                  98.9827,
+                  19.9167
+                ],
+                [
+                  98.9827,
+                  19.9177
+                ],
+                [
+                  98.9817,
+                  19.9177
+                ],
+                [
+                  98.9817,
+                  19.9167
+                ]
+              ]
+            ],
+            "description": "Array of linear rings (array of coordinates) following GeoJSON spec",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ]
+      },
+      "UpdateSurveyDataDto": {
+        "type": "object",
+        "properties": {
+          "surveyLocation": {
+            "description": "Survey location (GPS point)",
+            "example": {
+              "type": "Point",
+              "coordinates": [
+                98.9817,
+                19.9167
+              ]
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GeoJSONPoint"
+              }
+            ]
+          },
+          "surveyArea": {
+            "description": "Survey area (drawn polygon)",
+            "example": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    98.9817,
+                    19.9167
+                  ],
+                  [
+                    98.9827,
+                    19.9167
+                  ],
+                  [
+                    98.9827,
+                    19.9177
+                  ],
+                  [
+                    98.9817,
+                    19.9177
+                  ],
+                  [
+                    98.9817,
+                    19.9167
+                  ]
+                ]
+              ]
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GeoJSONPolygon"
+              }
+            ]
+          },
+          "surveyNotes": {
+            "type": "string",
+            "description": "Survey notes and observations",
+            "example": "Water level increased by 15cm since last visit. Noted minor landslide near village entrance."
+          },
+          "surveyPhotos": {
+            "description": "Array of photo URLs",
+            "example": [
+              "https://cdn.guardian-route.example.com/uploads/surveys/IMG_001.jpg",
+              "https://cdn.guardian-route.example.com/uploads/surveys/IMG_002.jpg"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
       },
       "UpdateTaskDto": {
         "type": "object",
@@ -4270,6 +5497,548 @@
             "additionalProperties": true
           }
         }
+      },
+      "GPSCoordinatesDto": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number",
+            "example": 19.9167,
+            "description": "Latitude"
+          },
+          "lng": {
+            "type": "number",
+            "example": 99.2333,
+            "description": "Longitude"
+          },
+          "accuracy": {
+            "type": "number",
+            "example": 10.5,
+            "description": "GPS accuracy in meters"
+          },
+          "altitude": {
+            "type": "number",
+            "example": 350.5,
+            "description": "Altitude in meters"
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ]
+      },
+      "FieldOfficerSurveyDto": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "example": "uuid-of-task",
+            "description": "Related task ID"
+          },
+          "incidentId": {
+            "type": "string",
+            "example": "uuid-of-incident",
+            "description": "Related incident ID"
+          },
+          "villageId": {
+            "type": "string",
+            "example": "uuid-of-village",
+            "description": "Village ID (optional if village name is provided)"
+          },
+          "villageName": {
+            "type": "string",
+            "example": "บ้านเต๋าดิน หมู่ 3",
+            "description": "Village name"
+          },
+          "disasterType": {
+            "type": "string",
+            "example": "น้ำท่วม",
+            "description": "Disaster type (น้ำท่วม, ดินถ่ม, ไฟป่า, etc.)"
+          },
+          "severity": {
+            "type": "number",
+            "example": 3,
+            "description": "Severity level (1-5)",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "estimatedHouseholds": {
+            "type": "number",
+            "example": 25,
+            "description": "Estimated affected households"
+          },
+          "notes": {
+            "type": "string",
+            "example": "น้ำท่วมขังบริเวณถนนสายหลัก ระดับน้ำประมาณ 50 ซม. ประชาชนต้องการความช่วยเหลือด้านอาหารและน้ำดื่ม",
+            "description": "Survey notes and observations"
+          },
+          "gpsLocation": {
+            "description": "GPS coordinates of survey location",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GPSCoordinatesDto"
+              }
+            ]
+          },
+          "photoUrls": {
+            "example": [
+              "https://example.com/photo1.jpg",
+              "https://example.com/photo2.jpg"
+            ],
+            "description": "Array of photo URLs (uploaded separately)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "polygon": {
+            "type": "object",
+            "example": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    99.8833,
+                    19.9167
+                  ],
+                  [
+                    99.885,
+                    19.9167
+                  ],
+                  [
+                    99.885,
+                    19.915
+                  ],
+                  [
+                    99.8833,
+                    19.915
+                  ],
+                  [
+                    99.8833,
+                    19.9167
+                  ]
+                ]
+              ]
+            },
+            "description": "GeoJSON polygon of affected area (drawn on map)"
+          },
+          "areaSize": {
+            "type": "number",
+            "example": 2.5,
+            "description": "Area size in km² (calculated from polygon)"
+          },
+          "additionalData": {
+            "type": "object",
+            "example": {
+              "weather": "ฝนตก",
+              "temperature": "28°C",
+              "visibility": "ดี"
+            },
+            "description": "Additional survey data (flexible JSON)"
+          }
+        },
+        "required": [
+          "villageName",
+          "disasterType",
+          "severity",
+          "estimatedHouseholds",
+          "notes",
+          "gpsLocation"
+        ]
+      },
+      "FieldOfficerSurveyResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-of-survey"
+          },
+          "fieldOfficerId": {
+            "type": "string",
+            "example": "uuid-of-user"
+          },
+          "taskId": {
+            "type": "string",
+            "example": "uuid-of-task"
+          },
+          "incidentId": {
+            "type": "string",
+            "example": "uuid-of-incident"
+          },
+          "villageId": {
+            "type": "string",
+            "example": "uuid-of-village"
+          },
+          "villageName": {
+            "type": "string",
+            "example": "บ้านเต๋าดิน หมู่ 3"
+          },
+          "disasterType": {
+            "type": "string",
+            "example": "น้ำท่วม"
+          },
+          "severity": {
+            "type": "number",
+            "example": 3
+          },
+          "estimatedHouseholds": {
+            "type": "number",
+            "example": 25
+          },
+          "notes": {
+            "type": "string",
+            "example": "Survey notes..."
+          },
+          "gpsLocation": {
+            "$ref": "#/components/schemas/GPSCoordinatesDto"
+          },
+          "photoUrls": {
+            "example": [
+              "url1",
+              "url2"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "polygon": {
+            "type": "object",
+            "example": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    99.8833,
+                    19.9167
+                  ]
+                ]
+              ]
+            }
+          },
+          "areaSize": {
+            "type": "number",
+            "example": 2.5
+          },
+          "additionalData": {
+            "type": "object"
+          },
+          "submittedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2025-11-29T14:30:00Z"
+          },
+          "status": {
+            "type": "string",
+            "example": "SUBMITTED"
+          }
+        },
+        "required": [
+          "id",
+          "fieldOfficerId",
+          "taskId",
+          "incidentId",
+          "villageId",
+          "villageName",
+          "disasterType",
+          "severity",
+          "estimatedHouseholds",
+          "notes",
+          "gpsLocation",
+          "photoUrls",
+          "additionalData",
+          "submittedAt",
+          "status"
+        ]
+      },
+      "GPSLocationDto": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number",
+            "example": 19.9167,
+            "description": "Latitude"
+          },
+          "lng": {
+            "type": "number",
+            "example": 99.2333,
+            "description": "Longitude"
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ]
+      },
+      "DamageAssessmentDto": {
+        "type": "object",
+        "properties": {
+          "buildings": {
+            "type": "object",
+            "description": "Building damage details"
+          },
+          "agriculture": {
+            "type": "object",
+            "description": "Agriculture damage details"
+          },
+          "utilities": {
+            "type": "object",
+            "description": "Public utilities damage details"
+          }
+        },
+        "required": [
+          "buildings",
+          "agriculture",
+          "utilities"
+        ]
+      },
+      "ComprehensiveSurveyDto": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "example": "uuid-of-task",
+            "description": "Related task ID"
+          },
+          "villageId": {
+            "type": "string",
+            "example": "uuid-of-village",
+            "description": "Village ID"
+          },
+          "villageName": {
+            "type": "string",
+            "example": "บ้านเต๋าดิน หมู่ 3",
+            "description": "Village name"
+          },
+          "disasterType": {
+            "type": "string",
+            "example": "น้ำท่วม",
+            "description": "Disaster type"
+          },
+          "surveyDate": {
+            "type": "string",
+            "example": "2026-01-20",
+            "description": "Survey date (ISO format)"
+          },
+          "gpsLocation": {
+            "description": "GPS coordinates",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GPSLocationDto"
+              }
+            ]
+          },
+          "affectedHouseholds": {
+            "type": "number",
+            "example": 25,
+            "description": "Number of affected households"
+          },
+          "affectedPeople": {
+            "type": "number",
+            "example": 100,
+            "description": "Number of affected people"
+          },
+          "deadCount": {
+            "type": "number",
+            "example": 0,
+            "description": "Number of deaths"
+          },
+          "missingCount": {
+            "type": "number",
+            "example": 0,
+            "description": "Number of missing people"
+          },
+          "injuredCount": {
+            "type": "number",
+            "example": 2,
+            "description": "Number of injured people"
+          },
+          "evacuatedPeople": {
+            "type": "number",
+            "example": 50,
+            "description": "Number of evacuated people"
+          },
+          "evacuatedHouseholds": {
+            "type": "number",
+            "example": 15,
+            "description": "Number of evacuated households"
+          },
+          "damageAssessment": {
+            "description": "Detailed damage assessment",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DamageAssessmentDto"
+              }
+            ]
+          },
+          "reliefOperations": {
+            "type": "string",
+            "example": "ช่วยเหลือด้านอาหารและน้ำดื่ม",
+            "description": "Relief operations description"
+          },
+          "resourcesData": {
+            "type": "object",
+            "description": "Resources used in operations"
+          },
+          "operationsData": {
+            "type": "object",
+            "description": "Involved agencies and operations"
+          },
+          "reportType": {
+            "type": "string",
+            "example": "INFO",
+            "description": "Report type: INFO, DISASTER_ZONE, or ASSISTANCE"
+          },
+          "photoUrls": {
+            "example": [
+              "https://example.com/photo1.jpg"
+            ],
+            "description": "Photo URLs",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "polygon": {
+            "type": "object",
+            "description": "GeoJSON polygon of affected area"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes"
+          }
+        },
+        "required": [
+          "villageId",
+          "villageName",
+          "disasterType",
+          "surveyDate",
+          "gpsLocation",
+          "affectedHouseholds",
+          "affectedPeople",
+          "deadCount",
+          "missingCount",
+          "injuredCount",
+          "damageAssessment",
+          "reportType"
+        ]
+      },
+      "ComprehensiveSurveyResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fieldOfficerId": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": "string"
+          },
+          "villageId": {
+            "type": "string"
+          },
+          "villageName": {
+            "type": "string"
+          },
+          "disasterType": {
+            "type": "string"
+          },
+          "surveyDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "gpsLocation": {
+            "$ref": "#/components/schemas/GPSLocationDto"
+          },
+          "affectedHouseholds": {
+            "type": "number"
+          },
+          "affectedPeople": {
+            "type": "number"
+          },
+          "deadCount": {
+            "type": "number"
+          },
+          "missingCount": {
+            "type": "number"
+          },
+          "injuredCount": {
+            "type": "number"
+          },
+          "evacuatedPeople": {
+            "type": "number"
+          },
+          "evacuatedHouseholds": {
+            "type": "number"
+          },
+          "damageAssessment": {
+            "type": "object"
+          },
+          "reliefData": {
+            "type": "object"
+          },
+          "resourcesData": {
+            "type": "object"
+          },
+          "operationsData": {
+            "type": "object"
+          },
+          "reportType": {
+            "type": "string"
+          },
+          "photoUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "polygon": {
+            "type": "object"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "fieldOfficerId",
+          "taskId",
+          "villageId",
+          "villageName",
+          "disasterType",
+          "surveyDate",
+          "gpsLocation",
+          "affectedHouseholds",
+          "affectedPeople",
+          "deadCount",
+          "missingCount",
+          "injuredCount",
+          "evacuatedPeople",
+          "evacuatedHouseholds",
+          "damageAssessment",
+          "reliefData",
+          "resourcesData",
+          "operationsData",
+          "reportType",
+          "photoUrls",
+          "polygon",
+          "notes",
+          "status",
+          "submittedAt",
+          "updatedAt"
+        ]
       },
       "CreateReportDto": {
         "type": "object",
@@ -4565,6 +6334,27 @@
         "required": [
           "status"
         ]
+      },
+      "GeneratePdfDto": {
+        "type": "object",
+        "properties": {
+          "options": {
+            "type": "object",
+            "description": "PDF generation options",
+            "example": {
+              "includeImages": true,
+              "includeCharts": true,
+              "pageSize": "A4",
+              "orientation": "portrait"
+            }
+          },
+          "forceRegenerate": {
+            "type": "boolean",
+            "description": "Force regeneration even if PDF already exists",
+            "example": false,
+            "default": false
+          }
+        }
       },
       "CreateFullReportDto": {
         "type": "object",

@@ -248,7 +248,7 @@ export const PhotoUpload: React.FC<PhotoUploadProps> = ({
           {photos.map((photo) => (
             <Box key={photo.id} position="relative">
               <Image
-                src={photo.url.startsWith('http') ? photo.url : `${import.meta.env.VITE_API_URL}${photo.url}`}
+                src={photo.url.startsWith('http') ? photo.url : `${(import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/api\/?$/, '')}${photo.url}`}
                 alt={photo.filename}
                 borderRadius="md"
                 objectFit="cover"

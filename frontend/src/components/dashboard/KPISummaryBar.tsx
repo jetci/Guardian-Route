@@ -59,8 +59,8 @@ export const KPISummaryBar = () => {
             <StatNumber color="yellow.500">{data.pending}</StatNumber>
           </Stat>
           <Stat>
-            <StatLabel>Investigating</StatLabel>
-            <StatNumber color="blue.500">{data.investigating}</StatNumber>
+            <StatLabel>In Progress</StatLabel>
+            <StatNumber color="blue.500">{data.inProgress}</StatNumber>
           </Stat>
           <Stat>
             <StatLabel>Resolved</StatLabel>

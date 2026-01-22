@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, Role, IncidentStatus, Priority, TaskPriority, TaskStatus, NotificationType, ReportType, ReportStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { villagesWithGeoJSONData } from './villages-with-geojson-seed';
 
@@ -140,6 +140,123 @@ async function main() {
   });
 
   console.log('  ✅ Created Developer:', developer.email);
+
+  // ========================================
+  // 3. SEED INCIDENTS, TASKS, NOTIFICATIONS, REPORTS (RBAC test data)
+  // ========================================
+  console.log('\n🧪 Seeding RBAC test data: Incidents, Tasks, Notifications, Reports...');
+
+  // Fetch a few villages for linking
+  const villages = await prisma.village.findMany({ take: 5 });
+  if (villages.length === 0) {
+    console.warn('⚠️ No villages found. Skipping incidents/tasks seeding.');
+  } else {
+    const incidents: any[] = [];
+
+    // Create 5 incidents across villages
+    const incidentStatuses: IncidentStatus[] = [IncidentStatus.PENDING, IncidentStatus.IN_PROGRESS, IncidentStatus.RESOLVED];
+    const priorities: Priority[] = [Priority.MEDIUM, Priority.HIGH, Priority.CRITICAL];
+
+    for (let i = 0; i < Math.min(5, villages.length); i++) {
+      const village = villages[i];
+      const status = incidentStatuses[i % incidentStatuses.length];
+      const priority = priorities[i % priorities.length];
+
+      const incident = await prisma.incident.create({
+        data: {
+          title: `เหตุการณ์น้ำท่วม - ${village.name}`,
+          description: `รายงานเหตุการณ์น้ำท่วมที่หมู่ ${village.villageNo} (${village.name}) ต้องการการสำรวจพื้นที่`.
+            slice(0),
+          disasterType: 'FLOOD' as any,
+          priority,
+          status,
+          location: { type: 'Point', coordinates: [99.2333 + (Math.random() - 0.5) * 0.02, 19.9167 + (Math.random() - 0.5) * 0.02] } as any,
+          address: `${village.name} หมู่ ${village.villageNo} ต.เวียง อ.ฝาง จ.เชียงใหม่`,
+          villageId: village.id,
+          createdById: fieldOfficer.id,
+          assignedToId: status === IncidentStatus.IN_PROGRESS ? fieldOfficer.id : null,
+          assignedAt: status === IncidentStatus.IN_PROGRESS ? new Date() : null,
+          images: [],
+        },
+      });
+      incidents.push(incident);
+    }
+
+    console.log(`  ✅ Created ${incidents.length} incidents`);
+
+    // Create tasks for each incident
+    const tasksAll: any[] = [];
+    const taskStatuses: TaskStatus[] = [TaskStatus.PENDING, TaskStatus.IN_PROGRESS];
+    const taskPriorities: TaskPriority[] = [TaskPriority.LOW, TaskPriority.MEDIUM, TaskPriority.HIGH];
+
+    for (const incident of incidents) {
+      // Two tasks per incident
+      for (let j = 0; j < 2; j++) {
+        const village = villages[j % villages.length];
+        const dueDate = new Date(Date.now() + (j + 1) * 24 * 60 * 60 * 1000);
+        const status = taskStatuses[(j + 1) % taskStatuses.length];
+        const priority = taskPriorities[(j + 1) % taskPriorities.length];
+
+        const task = await prisma.task.create({
+          data: {
+            title: `สำรวจพื้นที่ - ${village.name} (เหตุการณ์: ${incident.title})`,
+            description: 'สำรวจความเสียหายและเก็บข้อมูลครัวเรือนที่ได้รับผลกระทบ',
+            priority,
+            status,
+            dueDate,
+            incidentId: incident.id,
+            villageId: village.id,
+            assignedToId: fieldOfficer.id,
+            createdById: supervisor.id,
+          },
+        });
+        tasksAll.push(task);
+
+        // Notification: Task assigned to Field Officer
+        const notification = await prisma.notification.create({
+          data: {
+            title: `ได้รับมอบหมายงาน: ${task.title}`,
+            message: `คุณได้รับมอบหมายงานสำรวจพื้นที่สำหรับเหตุการณ์ ${incident.title}`,
+            type: NotificationType.TASK_ASSIGNED,
+            data: { taskId: task.id, incidentId: incident.id },
+          },
+        });
+        await prisma.userNotification.create({
+          data: {
+            userId: fieldOfficer.id,
+            notificationId: notification.id,
+          },
+        });
+      }
+    }
+
+    console.log(`  ✅ Created ${tasksAll.length} tasks`);
+
+    // Create sample reports linked to incidents and tasks
+    const reportsCreated: any[] = [];
+    for (const incident of incidents.slice(0, 3)) {
+      const relatedTasks = tasksAll.filter((t) => t.incidentId === incident.id).map((t) => t.id);
+      const report = await prisma.report.create({
+        data: {
+          type: ReportType.INCIDENT_SUMMARY,
+          status: ReportStatus.SUBMITTED,
+          title: `สรุปเหตุการณ์ - ${incident.title}`,
+          summary: `สรุปภาพรวมเหตุการณ์และแผนสำรวจสำหรับ ${incident.title}`,
+          details: {
+            notes: 'รายงานสำหรับการทดสอบ RBAC และการแสดงผลรายงาน',
+            totalTasks: relatedTasks.length,
+          } as any,
+          incidentId: incident.id,
+          authorId: supervisor.id,
+          taskIds: relatedTasks,
+          photoUrls: [],
+        },
+      });
+      reportsCreated.push(report);
+    }
+
+    console.log(`  ✅ Created ${reportsCreated.length} reports`);
+  }
 
   // ========================================
   // SUMMARY

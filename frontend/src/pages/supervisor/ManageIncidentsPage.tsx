@@ -90,7 +90,6 @@ export default function ManageIncidentsPage() {
     switch (status) {
       case 'PENDING': return '#ef4444';
       case 'IN_PROGRESS': return '#3b82f6';
-      case 'INVESTIGATING': return '#8b5cf6';
       case 'RESOLVED': return '#10b981';
       case 'CLOSED': return '#6b7280';
       default: return '#6b7280';
@@ -101,9 +100,7 @@ export default function ManageIncidentsPage() {
     const labels: Record<IncidentStatus, string> = {
       PENDING: 'ใหม่',
       IN_PROGRESS: 'กำลังดำเนินการ',
-      INVESTIGATING: 'กำลังตรวจสอบ',
       RESOLVED: 'แก้ไขแล้ว',
-      REJECTED: 'ปฏิเสธ',
       CLOSED: 'เสร็จสิ้น',
     };
     return labels[status] || status;

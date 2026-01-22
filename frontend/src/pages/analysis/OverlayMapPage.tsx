@@ -97,7 +97,7 @@ export const OverlayMapPage = () => {
     setAnalysisResult(null);
   };
 
-  const center: LatLngExpression = [13.7563, 100.5018]; // Bangkok
+  const center: LatLngExpression = [19.9167, 99.2333]; // ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
 
   if (loading) {
     return (
@@ -188,7 +188,7 @@ export const OverlayMapPage = () => {
 
         {/* Map */}
         <Box flex={1} h="calc(100vh - 200px)" borderRadius="lg" overflow="hidden" shadow="sm">
-          <MapContainer center={center} zoom={6} style={{ height: '100%', width: '100%' }}>
+          <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

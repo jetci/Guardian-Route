@@ -129,8 +129,12 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
       return;
     }
 
+    // Determine socket base URL (strip trailing '/api' if present)
+    const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+    const socketBase = apiBase.replace(/\/api\/?$/, '');
+
     // Create socket connection
-    const newSocket = io(`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/notifications`, {
+    const newSocket = io(`${socketBase}/notifications`, {
       auth: {
         token,
       },

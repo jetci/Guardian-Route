@@ -137,7 +137,7 @@ export function MapIncidentPage() {
           <p><strong>📍</strong> ${incident.address || 'ไม่ระบุที่อยู่'}</p>
           <p><strong>📅</strong> ${new Date(incident.reportedAt).toLocaleDateString('th-TH')}</p>
           <p><strong>⚠️</strong> ระดับ ${incident.severity}</p>
-          <p><strong>สถานะ:</strong> ${incident.status === 'IN_PROGRESS' || incident.status === 'INVESTIGATING' ? '🔴 ดำเนินการอยู่' : incident.status === 'RESOLVED' ? '🟢 แก้ไขแล้ว' : '⚪ รอดำเนินการ'}</p>
+          <p><strong>สถานะ:</strong> ${incident.status === 'IN_PROGRESS' ? '🔴 ดำเนินการอยู่' : incident.status === 'RESOLVED' ? '🟢 แก้ไขแล้ว' : '⚪ รอดำเนินการ'}</p>
         </div>
       `;
 
@@ -271,7 +271,7 @@ export function MapIncidentPage() {
                     <p className="incident-location">📍 {incident.address || 'ไม่ระบุที่อยู่'}</p>
                     <p className="incident-date">📅 {new Date(incident.reportedAt).toLocaleDateString('th-TH')}</p>
                     <span className={`status-badge ${incident.status.toLowerCase()}`}>
-                      {incident.status === 'IN_PROGRESS' || incident.status === 'INVESTIGATING' ? '🔴 ดำเนินการอยู่' : incident.status === 'RESOLVED' ? '🟢 แก้ไขแล้ว' : '⚪ รอดำเนินการ'}
+                      {incident.status === 'IN_PROGRESS' ? '🔴 ดำเนินการอยู่' : incident.status === 'RESOLVED' ? '🟢 แก้ไขแล้ว' : '⚪ รอดำเนินการ'}
                     </span>
                   </div>
                 ))}

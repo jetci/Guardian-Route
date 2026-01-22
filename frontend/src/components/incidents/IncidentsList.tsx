@@ -71,17 +71,13 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
     const badges: Record<IncidentStatus, string> = {
       PENDING: 'bg-yellow-100 text-yellow-800',
       IN_PROGRESS: 'bg-blue-100 text-blue-800',
-      INVESTIGATING: 'bg-purple-100 text-purple-800',
       RESOLVED: 'bg-green-100 text-green-800',
-      REJECTED: 'bg-red-100 text-red-800',
       CLOSED: 'bg-gray-100 text-gray-800',
     };
     const labels: Record<IncidentStatus, string> = {
       PENDING: 'รอดำเนินการ',
       IN_PROGRESS: 'กำลังดำเนินการ',
-      INVESTIGATING: 'กำลังตรวจสอบ',
       RESOLVED: 'แก้ไขแล้ว',
-      REJECTED: 'ปฏิเสธ',
       CLOSED: 'ปิดงาน',
     };
     return (
@@ -290,7 +286,7 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
                         {incident.images.slice(0, 3).map((url, idx) => (
                           <img
                             key={idx}
-                            src={`${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${url}`}
+                            src={`${(import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/api\/?$/, '')}${url}`}
                             alt={`Image ${idx + 1}`}
                             className="w-20 h-20 object-cover rounded-lg border-2 border-gray-300 shadow-sm"
                           />

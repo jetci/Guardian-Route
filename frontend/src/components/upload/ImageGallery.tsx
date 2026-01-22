@@ -11,7 +11,7 @@ export const ImageGallery = ({ images, onRemove, readonly = false }: ImageGaller
 
   const getFullImageUrl = (url: string) => {
     if (url.startsWith('http')) return url;
-    return `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}${url}`;
+    return `${(import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/api\/?$/, '')}${url}`;
   };
 
   if (images.length === 0) {

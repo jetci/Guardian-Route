@@ -6,28 +6,103 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  // UTF-8 encoding middleware
+  // UTF-8 encoding middleware - removed to avoid overriding Content-Type for HTML/JS/CSS assets (Swagger UI)
+  // If needed, set charset per-response or rely on framework defaults.
+  // app.use((req, res, next) => {
+  //   res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  //   next();
+  // });
+
+  const isProd = process.env.NODE_ENV === 'production';
+  // Enable security headers via Helmet
+  app.use(
+    helmet({
+      // Enable CSP with directives compatible with environment
+      contentSecurityPolicy: isProd
+        ? {
+            directives: {
+              defaultSrc: ["'self'"],
+              scriptSrc: ["'self'", 'https:'],
+              styleSrc: ["'self'", 'https:'],
+              imgSrc: ["'self'", 'data:', 'https:'],
+              connectSrc: ["'self'", 'https:'],
+              fontSrc: ["'self'", 'data:'],
+              objectSrc: ["'none'"],
+            },
+          }
+        : {
+            directives: {
+              defaultSrc: ["'self'"],
+              scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https:'],
+              styleSrc: ["'self'", "'unsafe-inline'", 'https:'],
+              imgSrc: ["'self'", 'data:', 'https:'],
+              connectSrc: ["'self'", 'https:'],
+              fontSrc: ["'self'", 'data:'],
+              objectSrc: ["'none'"],
+            },
+          },
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      hidePoweredBy: true,
+    }),
+  );
+  // Additional security headers
+  app.use(helmet.referrerPolicy({ policy: 'no-referrer' }));
+  // Only enable HSTS in production (should be served over HTTPS)
+  if (process.env.NODE_ENV === 'production') {
+    app.use(
+      helmet.hsts({
+        maxAge: 31536000, // 1 year
+        includeSubDomains: true,
+        preload: false,
+      }),
+    );
+  }
+  // Permissions-Policy is not provided by helmet; set manually
   app.use((req, res, next) => {
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader(
+      'Permissions-Policy',
+      'geolocation=(), camera=(), microphone=(), browsing-topics=()'
+    );
     next();
   });
 
   // CORS
+  const envOriginsRaw = process.env.CORS_ALLOWED_ORIGINS || process.env.CORS_ORIGIN || '';
+  const envOrigins = envOriginsRaw
+    .split(',')
+    .map((o) => o.trim())
+    .filter((o) => o.length > 0);
+
+  const defaultOrigins: (string | RegExp)[] = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+    'http://127.0.0.1:5173',
+    /^http:\/\/127\.0\.0\.1:\d+$/,
+    /^http:\/\/localhost:\d+$/,
+  ];
+
+  const allowlist: (string | RegExp)[] = [...defaultOrigins, ...envOrigins];
+
   app.enableCors({
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:5175',
-      'http://127.0.0.1:5173',
-      /^http:\/\/127\.0\.0\.1:\d+$/,  // Allow any port on 127.0.0.1 for browser preview
-      /^http:\/\/localhost:\d+$/,      // Allow any port on localhost
-    ],
-    credentials: true,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true); // allow same-origin and server-to-server
+      const isAllowed = allowlist.some((o) => {
+        if (o instanceof RegExp) return o.test(origin);
+        return o === origin;
+      });
+      callback(null, isAllowed);
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     exposedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    optionsSuccessStatus: 204,
   });
 
   // Global prefix

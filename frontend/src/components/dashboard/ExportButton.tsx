@@ -31,7 +31,7 @@ Generated: ${new Date().toLocaleString('th-TH')}
 === KPI Summary ===
 Total Incidents: ${kpi.total}
 Pending: ${kpi.pending}
-Investigating: ${kpi.investigating}
+In Progress: ${kpi.inProgress}
 Resolved: ${kpi.resolved}
 Avg Resolution Time: ${kpi.avgResolutionTime}
 
@@ -99,7 +99,7 @@ ${riskAreas.map((r: any) => `Lat: ${r.lat}, Lng: ${r.lng}, Count: ${r.count}, Se
       csv += 'Metric,Value\n';
       csv += `Total Incidents,${kpi.total}\n`;
       csv += `Pending,${kpi.pending}\n`;
-      csv += `Investigating,${kpi.investigating}\n`;
+      csv += `In Progress,${kpi.inProgress}\n`;
       csv += `Resolved,${kpi.resolved}\n`;
       csv += `Avg Resolution Time,${kpi.avgResolutionTime}\n\n`;
 

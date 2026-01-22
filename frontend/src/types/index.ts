@@ -71,10 +71,8 @@ export interface VillageStatistics {
 
 export enum IncidentStatus {
   PENDING = 'PENDING',
-  INVESTIGATING = 'INVESTIGATING',
   IN_PROGRESS = 'IN_PROGRESS',
   RESOLVED = 'RESOLVED',
-  REJECTED = 'REJECTED',
   CLOSED = 'CLOSED',
 }
 
@@ -91,6 +89,7 @@ export enum DisasterType {
   FIRE = 'FIRE',
   STORM = 'STORM',
   EARTHQUAKE = 'EARTHQUAKE',
+  DROUGHT = 'DROUGHT',
   OTHER = 'OTHER',
 }
 

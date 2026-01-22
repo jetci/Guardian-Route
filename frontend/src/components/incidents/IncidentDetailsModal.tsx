@@ -38,9 +38,7 @@ interface IncidentDetailsModalProps {
 const statusColors: Record<IncidentStatus, string> = {
   PENDING: 'orange',
   IN_PROGRESS: 'blue',
-  INVESTIGATING: 'purple',
   RESOLVED: 'green',
-  REJECTED: 'red',
   CLOSED: 'gray',
 };
 

@@ -30,17 +30,33 @@ export class AuditLogInterceptor implements NestInterceptor {
                 next: async () => {
                     try {
                         if (user) {
+                            const safeUsername =
+                                (typeof (user as any).username === 'string' && (user as any).username.trim())
+                                    ? (user as any).username
+                                    : (typeof (user as any).email === 'string' && (user as any).email.trim())
+                                        ? (user as any).email
+                                        : (typeof (user as any).id === 'string' && (user as any).id.trim())
+                                            ? (user as any).id
+                                            : undefined;
+
+                            if (!safeUsername) {
+                                this.logger.warn('Skipping audit log: missing username/email on user');
+                                return;
+                            }
+
+                            const bodySanitized = this.sanitizeBody(body);
+                            const details: any = { method, url };
+                            if (bodySanitized != null) {
+                                details.body = bodySanitized;
+                            }
+
                             await this.auditLogService.create({
-                                userId: user.id,
-                                username: user.username,
+                                userId: (user as any).id,
+                                username: safeUsername,
                                 action: `${method} ${url}`,
                                 targetType: 'API',
-                                targetId: null,
-                                details: {
-                                    method,
-                                    url,
-                                    body: this.sanitizeBody(body),
-                                },
+                                targetId: undefined,
+                                details,
                                 ipAddress: ip,
                                 userAgent: request.headers['user-agent'],
                             });

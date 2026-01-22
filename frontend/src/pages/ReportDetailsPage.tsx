@@ -165,14 +165,11 @@ const ReportDetailsPage: React.FC = () => {
     switch (status) {
       case IncidentStatus.PENDING:
         return ReportStatus.SUBMITTED;
-      case IncidentStatus.INVESTIGATING:
       case IncidentStatus.IN_PROGRESS:
         return ReportStatus.UNDER_REVIEW;
       case IncidentStatus.RESOLVED:
       case IncidentStatus.CLOSED:
         return ReportStatus.APPROVED;
-      case IncidentStatus.REJECTED:
-        return ReportStatus.REJECTED;
       default:
         return ReportStatus.SUBMITTED;
     }

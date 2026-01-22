@@ -191,7 +191,7 @@ export default function SupervisorDashboardV2() {
             </div>
 
             <div className="flex items-center gap-4">
-              <button className="p-3 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 relative group">
+              <button className="p-3 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:shadow-lg transition-all duration-300 relative group">
                 <Bell size={24} />
                 <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
               </button>
@@ -200,7 +200,7 @@ export default function SupervisorDashboardV2() {
 
               <button
                 onClick={() => setShowAssignModal(true)}
-                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 hover:-translate-y-1 transition-all duration-300 flex items-center gap-2 group"
+                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 transition-all duration-300 flex items-center gap-2 group"
               >
                 <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
                 มอบหมายงานใหม่
@@ -209,7 +209,7 @@ export default function SupervisorDashboardV2() {
           </header>
 
           {/* KPI Cards - Premium Design */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-fr items-stretch">
             <StatCard
               title="สมาชิกในทีม"
               value={stats.teamSize}
@@ -218,6 +218,7 @@ export default function SupervisorDashboardV2() {
               loading={loading}
               trend="Active Now"
               trendDirection="positive"
+              className="min-w-0 h-full ring-1 ring-white/30"
             />
             <StatCard
               title="งานที่กำลังดำเนินการ"
@@ -227,6 +228,7 @@ export default function SupervisorDashboardV2() {
               loading={loading}
               trend="On Track"
               trendDirection="neutral"
+              className="min-w-0 h-full ring-1 ring-white/30"
             />
             <StatCard
               title="รอตรวจสอบ"
@@ -236,6 +238,7 @@ export default function SupervisorDashboardV2() {
               loading={loading}
               trend="Action Needed"
               trendDirection="negative"
+              className="min-w-0 h-full ring-1 ring-white/30"
             />
             <StatCard
               title="เสร็จสิ้นวันนี้"
@@ -245,6 +248,7 @@ export default function SupervisorDashboardV2() {
               loading={loading}
               trend="+12% vs yesterday"
               trendDirection="positive"
+              className="min-w-0 h-full ring-1 ring-white/30"
             />
           </div>
 

@@ -20,9 +20,10 @@ import { AdminModule } from './admin/admin.module';
 import { SettingsModule } from './settings/settings.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
-// import { AnalysisModule } from './analysis/analysis.module'; // Disabled - causing errors
+import { AnalysisModule } from './analysis/analysis.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { HealthModule } from './health/health.module';
+import { CustomThrottlerGuard } from './common/guards/throttle.guard';
 import * as redisStore from 'cache-manager-redis-store';
 
 @Module({
@@ -57,7 +58,7 @@ import * as redisStore from 'cache-manager-redis-store';
     SettingsModule,
     NotificationsModule,
     AnalyticsModule,
-    // AnalysisModule, // Disabled - causing errors
+    AnalysisModule,
     AuditLogModule,
     HealthModule,
   ],
@@ -66,7 +67,7 @@ import * as redisStore from 'cache-manager-redis-store';
     AppService,
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: CustomThrottlerGuard,
     },
     {
       provide: APP_INTERCEPTOR,

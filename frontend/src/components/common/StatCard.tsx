@@ -40,7 +40,7 @@ export const StatCard: React.FC<StatCardProps> = ({
 
     return (
         <div
-            className={`relative overflow-hidden rounded-2xl p-6 text-white shadow-xl bg-gradient-to-br ${getGradientClass()} ${className} transform transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl`}
+            className={`relative overflow-hidden rounded-2xl p-6 text-white shadow-xl bg-gradient-to-br ${getGradientClass()} ${className} transition-all duration-300 hover:shadow-2xl`}
         >
             {/* Background Decoration */}
             <div className="absolute -top-2 -right-2 p-2 opacity-10 transform rotate-12 scale-150 pointer-events-none">

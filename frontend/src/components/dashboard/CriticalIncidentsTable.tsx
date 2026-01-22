@@ -24,9 +24,7 @@ const priorityColors: Record<string, string> = {
 const statusColors: Record<string, string> = {
   PENDING: 'yellow',
   IN_PROGRESS: 'blue',
-  INVESTIGATING: 'purple',
   RESOLVED: 'green',
-  REJECTED: 'red',
   CLOSED: 'gray',
 };
 

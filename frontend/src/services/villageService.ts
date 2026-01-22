@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 export interface VillageFromAPI {
   id: string;
@@ -50,7 +50,7 @@ function convertBoundary(geoJsonBoundary: { coordinates: [number, number][][] } 
 export async function fetchVillages(): Promise<Village[]> {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.get<VillageFromAPI[]>(`${API_URL}/api/villages`, {
+    const response = await axios.get<VillageFromAPI[]>(`${API_URL}/villages`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -84,7 +84,7 @@ export async function fetchVillages(): Promise<Village[]> {
 export async function fetchVillageByNo(villageNo: number): Promise<Village | null> {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.get<VillageFromAPI>(`${API_URL}/api/villages/no/${villageNo}`, {
+    const response = await axios.get<VillageFromAPI>(`${API_URL}/villages/no/${villageNo}`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
