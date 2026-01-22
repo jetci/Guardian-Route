@@ -250,3 +250,5 @@ Field Officer: field1@obtwiang.go.th / password123
 **For detailed information, see [FINAL-PROJECT-SUMMARY.md](./FINAL-PROJECT-SUMMARY.md)**
 
 **Built with ❤️ for the safety of Tambon Wiang community**
+
+Maintenance: Verified Husky pre-commit on 2026-01-22
