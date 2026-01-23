@@ -68,8 +68,12 @@ export const ReviewIncidentModal: React.FC<ReviewIncidentModalProps> = ({
     try {
       setIsLoading(true);
 
-      // Map review status to incident status
-      const status: IncidentStatus = reviewStatus === 'APPROVED' ? IncidentStatus.IN_PROGRESS : IncidentStatus.CLOSED;
+      // ✅ Map review status to incident status
+      // APPROVED → IN_PROGRESS (ส่งต่อให้ดำเนินการ)
+      // REJECTED → CLOSED (ปิดงานเพราะไม่อนุมัติ)
+      const status: IncidentStatus = reviewStatus === 'APPROVED' 
+        ? IncidentStatus.IN_PROGRESS 
+        : IncidentStatus.CLOSED;
 
       await incidentsApi.review(incident.id, {
         status,

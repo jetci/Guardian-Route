@@ -37,7 +37,8 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
       setIncidents(data);
     } catch (error) {
       console.error('Error loading incidents:', error);
-      toast.error('ไม่สามารถโหลดข้อมูลได้');
+      // Don't show toast error on initial load, just set empty array
+      setIncidents([]);
     } finally {
       setLoading(false);
     }
@@ -108,12 +109,13 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
   };
 
   const getDisasterTypeLabel = (type: DisasterType) => {
-    const labels = {
+    const labels: Record<DisasterType, string> = {
       FLOOD: 'น้ำท่วม',
       LANDSLIDE: 'ดินถล่ม',
       FIRE: 'ไฟไหม้',
       STORM: 'พายุ',
       EARTHQUAKE: 'แผ่นดินไหว',
+      DROUGHT: 'ภัยแล้ง',
       OTHER: 'อื่นๆ',
     };
     return labels[type];
@@ -228,82 +230,115 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
           ไม่พบข้อมูลเหตุการณ์
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {incidents.map((incident) => (
             <div
               key={incident.id}
-              className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-shadow p-6 border border-gray-100"
+              className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-5 border border-gray-100"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-xl font-bold text-gray-900">
-                      {incident.title}
-                    </h3>
+              <div className="flex flex-col gap-4">
+                {/* Title and Badges */}
+                <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                  <h3 className="text-lg font-bold text-gray-900 line-clamp-2 flex-1 min-w-0">
+                    {incident.title}
+                  </h3>
+                  <div className="flex flex-wrap gap-2 flex-shrink-0">
                     {getStatusBadge(incident.status)}
                     {getPriorityBadge(incident.priority)}
                   </div>
+                </div>
 
+                {/* Description */}
                   {incident.description && (
-                    <p className="text-gray-700 text-base mb-2">
+                    <p className="text-gray-700 text-sm mb-3 line-clamp-2">
                       {incident.description}
                     </p>
                   )}
 
-                  <div className="flex flex-wrap gap-6 text-sm text-gray-600">
-                    <div>
-                      <span className="font-medium">ประเภท:</span>{' '}
-                      {getDisasterTypeLabel(incident.disasterType)}
+                  {/* Info Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-sm text-gray-600 mb-3">
+                    <div className="flex items-center gap-1">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                      <span className="font-medium">ประเภท:</span>
+                      <span className="truncate">{getDisasterTypeLabel(incident.disasterType)}</span>
                     </div>
                     {incident.village && (
-                      <div>
-                        <span className="font-medium">หมู่บ้าน:</span>{' '}
-                        {incident.village.name}
+                      <div className="flex items-center gap-1">
+                        <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span className="font-medium">หมู่บ้าน:</span>
+                        <span className="truncate">{incident.village.name}</span>
                       </div>
                     )}
-                    <div>
-                      <span className="font-medium">รายงานโดย:</span>{' '}
-                      {incident.createdBy.firstName} {incident.createdBy.lastName}
+                    <div className="flex items-center gap-1">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      <span className="font-medium">รายงานโดย:</span>
+                      <span className="truncate">{incident.createdBy.firstName} {incident.createdBy.lastName}</span>
                     </div>
-                    <div>
-                      <span className="font-medium">เวลา:</span>{' '}
-                      {formatDate(incident.createdAt)}
+                    <div className="flex items-center gap-1">
+                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="font-medium">เวลา:</span>
+                      <span className="truncate">{formatDate(incident.createdAt)}</span>
                     </div>
                   </div>
 
+                  {/* Counts */}
                   {incident._count && (
-                    <div className="flex gap-6 mt-3 text-sm text-gray-600 font-medium">
-                      <div>งาน: {incident._count.tasks}</div>
-                      <div>สำรวจ: {incident._count.surveys}</div>
-                      <div>รายงาน: {incident._count.reports}</div>
+                    <div className="flex flex-wrap gap-4 text-sm">
+                      <div className="flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-lg">
+                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        <span className="font-semibold text-blue-700">งาน: {incident._count.tasks}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-green-50 px-3 py-1.5 rounded-lg">
+                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="font-semibold text-green-700">สำรวจ: {incident._count.surveys}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-purple-50 px-3 py-1.5 rounded-lg">
+                        <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="font-semibold text-purple-700">รายงาน: {incident._count.reports}</span>
+                      </div>
                     </div>
                   )}
 
                   {/* Images Preview */}
                   {incident.images && incident.images.length > 0 && (
                     <div className="mt-3">
-                      <div className="flex gap-2 overflow-x-auto">
-                        {incident.images.slice(0, 3).map((url, idx) => (
+                      <div className="flex gap-2 overflow-x-auto pb-2">
+                        {incident.images.slice(0, 4).map((url, idx) => (
                           <img
                             key={idx}
                             src={`${(import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/api\/?$/, '')}${url}`}
                             alt={`Image ${idx + 1}`}
-                            className="w-20 h-20 object-cover rounded-lg border-2 border-gray-300 shadow-sm"
+                            className="w-16 h-16 object-cover rounded-lg border-2 border-gray-200 shadow-sm hover:scale-110 transition-transform cursor-pointer flex-shrink-0"
                           />
                         ))}
-                        {incident.images.length > 3 && (
-                          <div className="w-20 h-20 flex items-center justify-center bg-gray-100 rounded-lg border-2 border-gray-300 text-base text-gray-600 font-semibold">
-                            +{incident.images.length - 3}
+                        {incident.images.length > 4 && (
+                          <div className="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg border-2 border-gray-300 text-sm text-gray-700 font-bold flex-shrink-0">
+                            +{incident.images.length - 4}
                           </div>
                         )}
                       </div>
                     </div>
                   )}
-                </div>
 
-                <div className="flex flex-col gap-2 ml-4">
+                {/* Action Buttons */}
+                <div className="flex lg:flex-col gap-2 flex-shrink-0">
                   <button
-                    className="px-4 py-2 text-base text-blue-600 hover:bg-blue-50 rounded-xl font-medium transition-colors border border-blue-200"
+                    className="flex-1 lg:flex-none px-4 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg font-semibold transition-all border border-blue-200 hover:border-blue-300 whitespace-nowrap"
                     onClick={() => setSelectedIncidentId(incident.id)}
                   >
                     ดูรายละเอียด
@@ -311,13 +346,13 @@ export const IncidentsList = ({ refreshKey }: { refreshKey: number }) => {
                   {isSupervisor && incident.status === 'PENDING' && (
                     <>
                       <button
-                        className="px-4 py-2 text-base text-green-600 hover:bg-green-50 rounded-xl font-medium transition-colors border border-green-200"
+                        className="flex-1 lg:flex-none px-4 py-2 text-sm text-green-600 hover:bg-green-50 rounded-lg font-semibold transition-all border border-green-200 hover:border-green-300 whitespace-nowrap"
                         onClick={() => handleAssignClick(incident)}
                       >
                         มอบหมาย
                       </button>
                       <button
-                        className="px-4 py-2 text-base text-purple-600 hover:bg-purple-50 rounded-xl font-medium transition-colors border border-purple-200"
+                        className="flex-1 lg:flex-none px-4 py-2 text-sm text-purple-600 hover:bg-purple-50 rounded-lg font-semibold transition-all border border-purple-200 hover:border-purple-300 whitespace-nowrap"
                         onClick={() => handleReviewClick(incident)}
                       >
                         ตรวจสอบ

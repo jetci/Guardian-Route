@@ -63,29 +63,52 @@ export default function SupervisorDashboardV2() {
     try {
       setLoading(true);
 
-      // Load reports pending review
-      const reportsData = await getReports({
-        status: ReportStatus.SUBMITTED
-      });
+      // ✅ Use Promise.allSettled to handle partial failures
+      const results = await Promise.allSettled([
+        getReports({ status: ReportStatus.SUBMITTED }),
+        usersApi.getFieldOfficers(),
+        tasksApi.getStatistics(),
+        incidentsApi.getAll(),
+      ]);
+
+      // Extract results with fallbacks
+      const reportsData = results[0].status === 'fulfilled' 
+        ? results[0].value 
+        : { data: [], meta: { total: 0 } };
+      
+      const team = results[1].status === 'fulfilled' 
+        ? results[1].value 
+        : [];
+      
+      const taskStats = results[2].status === 'fulfilled' 
+        ? results[2].value 
+        : { byStatus: {} };
+      
+      const incidentsData = results[3].status === 'fulfilled' 
+        ? results[3].value 
+        : [];
+
+      // Set data
       setPendingReports(reportsData.data || []);
-
-      // Load team members (Field Officers)
-      const team = await usersApi.getFieldOfficers();
       setTeamMembers(team);
-
-      // Load task statistics
-      const taskStats = await tasksApi.getStatistics();
-
-      // Load incidents for task assignment
-      const incidentsData = await incidentsApi.getAll();
       setIncidents(incidentsData);
 
       setStats({
         teamSize: team.length,
-        activeTasks: taskStats.byStatus?.IN_PROGRESS || 0,
-        pendingReview: reportsData.meta.total || 0,
-        completedToday: taskStats.byStatus?.COMPLETED || 0
+        activeTasks: (taskStats.byStatus as Record<string, number>)?.IN_PROGRESS || 0,
+        pendingReview: reportsData.meta?.total || 0,
+        completedToday: (taskStats.byStatus as Record<string, number>)?.COMPLETED || 0
       });
+
+      // ✅ Show warnings for failed requests
+      const failures = results.filter(r => r.status === 'rejected');
+      if (failures.length > 0) {
+        console.warn('⚠️ Some data failed to load:', failures);
+        toast.error(
+          `โหลดข้อมูลบางส่วนไม่สำเร็จ (${failures.length}/${results.length})`,
+          { duration: 3000 }
+        );
+      }
     } catch (error) {
       console.error('❌ Error loading dashboard data:', error);
       toast.error('ไม่สามารถโหลดข้อมูลได้');
@@ -177,39 +200,38 @@ export default function SupervisorDashboardV2() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-slate-50/50 p-6 font-sarabun">
-        <div className="max-w-7xl mx-auto space-y-8 animate-fade-in">
+      <div className="min-h-screen bg-slate-50/50 font-sarabun">
+        <div className="w-full space-y-6 p-4 sm:p-6">
           {/* Premium Header */}
-          <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-            <div>
-              <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 flex items-center gap-3 mb-2">
+          <header className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-sm border border-white/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 mb-1 truncate">
                 Supervisor Dashboard
               </h1>
-              <p className="text-slate-500 font-medium text-lg">
+              <p className="text-slate-500 font-medium text-sm sm:text-base">
                 ภาพรวมประสิทธิภาพทีมและการจัดการเหตุการณ์
               </p>
             </div>
 
-            <div className="flex items-center gap-4">
-              <button className="p-3 rounded-2xl bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:shadow-lg transition-all duration-300 relative group">
-                <Bell size={24} />
-                <span className="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <button className="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-indigo-600 hover:border-indigo-100 hover:shadow-lg transition-all duration-300 relative">
+                <Bell size={20} />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
               </button>
-
-              <div className="h-10 w-[1px] bg-slate-200 mx-2 hidden md:block"></div>
 
               <button
                 onClick={() => setShowAssignModal(true)}
-                className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 transition-all duration-300 flex items-center gap-2 group"
+                className="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 hover:shadow-xl hover:shadow-indigo-300 transition-all duration-300 flex items-center gap-2 text-sm whitespace-nowrap"
               >
-                <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
-                มอบหมายงานใหม่
+                <Plus size={18} />
+                <span className="hidden sm:inline">มอบหมายงานใหม่</span>
+                <span className="sm:hidden">มอบหมาย</span>
               </button>
             </div>
           </header>
 
           {/* KPI Cards - Premium Design */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 auto-rows-fr items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
             <StatCard
               title="สมาชิกในทีม"
               value={stats.teamSize}
@@ -218,7 +240,7 @@ export default function SupervisorDashboardV2() {
               loading={loading}
               trend="Active Now"
               trendDirection="positive"
-              className="min-w-0 h-full ring-1 ring-white/30"
+              className="min-w-0"
             />
             <StatCard
               title="งานที่กำลังดำเนินการ"
@@ -228,7 +250,7 @@ export default function SupervisorDashboardV2() {
               loading={loading}
               trend="On Track"
               trendDirection="neutral"
-              className="min-w-0 h-full ring-1 ring-white/30"
+              className="min-w-0"
             />
             <StatCard
               title="รอตรวจสอบ"
@@ -238,7 +260,7 @@ export default function SupervisorDashboardV2() {
               loading={loading}
               trend="Action Needed"
               trendDirection="negative"
-              className="min-w-0 h-full ring-1 ring-white/30"
+              className="min-w-0"
             />
             <StatCard
               title="เสร็จสิ้นวันนี้"
@@ -248,26 +270,26 @@ export default function SupervisorDashboardV2() {
               loading={loading}
               trend="+12% vs yesterday"
               trendDirection="positive"
-              className="min-w-0 h-full ring-1 ring-white/30"
+              className="min-w-0"
             />
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start mt-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 items-start">
             {/* Pending Reviews Section */}
             <div className="lg:col-span-2 space-y-6 min-w-0">
               <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 border border-white/60 shadow-xl shadow-slate-200/60">
-                <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
-                  <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-3">
-                    <span className="bg-indigo-100 p-2 rounded-xl text-indigo-600">
-                      <FileText size={24} />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                  <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <span className="bg-indigo-100 p-2 rounded-lg text-indigo-600 flex-shrink-0">
+                      <FileText size={20} />
                     </span>
-                    รายงานที่รอตรวจสอบ
+                    <span className="truncate">รายงานที่รอตรวจสอบ</span>
                   </h2>
 
-                  <div className="flex bg-slate-100/80 p-1.5 rounded-xl backdrop-blur-sm">
+                  <div className="flex bg-slate-100/80 p-1.5 rounded-xl backdrop-blur-sm flex-shrink-0">
                     <button
                       onClick={() => setActiveTab('urgent')}
-                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'urgent'
+                      className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === 'urgent'
                         ? 'bg-white text-indigo-600 shadow-sm'
                         : 'text-slate-500 hover:text-slate-700'
                         }`}
@@ -276,7 +298,7 @@ export default function SupervisorDashboardV2() {
                     </button>
                     <button
                       onClick={() => setActiveTab('normal')}
-                      className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'normal'
+                      className={`px-3 py-2 rounded-lg text-xs sm:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === 'normal'
                         ? 'bg-white text-indigo-600 shadow-sm'
                         : 'text-slate-500 hover:text-slate-700'
                         }`}
@@ -312,7 +334,7 @@ export default function SupervisorDashboardV2() {
                                 {new Date(report.createdAt).toLocaleDateString('th-TH')}
                               </span>
                             </div>
-                            <h3 className="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
+                            <h3 className="text-lg font-bold text-slate-800 group-hover:text-indigo-600 transition-colors line-clamp-2">
                               {report.title}
                             </h3>
                           </div>
@@ -321,37 +343,37 @@ export default function SupervisorDashboardV2() {
                           </button>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 mb-6">
-                          <div className="flex items-center gap-3 text-slate-600 bg-slate-50 p-3 rounded-xl">
-                            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-indigo-500 shadow-sm">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                          <div className="flex items-center gap-2 text-slate-600 bg-slate-50 p-3 rounded-xl min-w-0">
+                            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-indigo-500 shadow-sm flex-shrink-0">
                               <Users size={16} />
                             </div>
-                            <span className="text-sm font-medium">{report.author?.firstName} {report.author?.lastName}</span>
+                            <span className="text-sm font-medium truncate">{report.author?.firstName} {report.author?.lastName}</span>
                           </div>
-                          <div className="flex items-center gap-3 text-slate-600 bg-slate-50 p-3 rounded-xl">
-                            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-rose-500 shadow-sm">
+                          <div className="flex items-center gap-2 text-slate-600 bg-slate-50 p-3 rounded-xl min-w-0">
+                            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-rose-500 shadow-sm flex-shrink-0">
                               <MapPin size={16} />
                             </div>
-                            <span className="text-sm font-medium">{report.affectedHouseholds || 0} ครัวเรือน</span>
+                            <span className="text-sm font-medium truncate">{report.affectedHouseholds || 0} ครัวเรือน</span>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-3 pt-4 border-t border-slate-50">
+                        <div className="flex flex-col sm:flex-row items-stretch gap-2 pt-4 border-t border-slate-50">
                           <button
                             onClick={() => handleApprove(report.id)}
-                            className="flex-1 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl text-sm font-bold hover:bg-emerald-100 hover:shadow-md hover:shadow-emerald-100 transition-all duration-200 flex items-center justify-center gap-2"
+                            className="flex-1 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl text-sm font-bold hover:bg-emerald-100 hover:shadow-md hover:shadow-emerald-100 transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap"
                           >
-                            <CheckCircle size={18} />
+                            <CheckCircle size={16} />
                             อนุมัติ
                           </button>
                           <button
                             onClick={() => handleRequestRevision(report)}
-                            className="flex-1 py-2.5 bg-amber-50 text-amber-600 rounded-xl text-sm font-bold hover:bg-amber-100 hover:shadow-md hover:shadow-amber-100 transition-all duration-200 flex items-center justify-center gap-2"
+                            className="flex-1 py-2.5 bg-amber-50 text-amber-600 rounded-xl text-sm font-bold hover:bg-amber-100 hover:shadow-md hover:shadow-amber-100 transition-all duration-200 flex items-center justify-center gap-2 whitespace-nowrap"
                           >
-                            <AlertTriangle size={18} />
+                            <AlertTriangle size={16} />
                             ขอแก้ไข
                           </button>
-                          <button className="px-5 py-2.5 bg-slate-50 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-100 transition-colors">
+                          <button className="flex-1 sm:flex-none px-4 py-2.5 bg-slate-50 text-slate-600 rounded-xl text-sm font-bold hover:bg-slate-100 transition-colors whitespace-nowrap">
                             ดูรายละเอียด
                           </button>
                         </div>

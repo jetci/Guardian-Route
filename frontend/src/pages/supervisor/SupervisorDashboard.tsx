@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { IncidentsList } from '../../components/incidents/IncidentsList';
 import { IncidentForm } from '../../components/incidents/IncidentForm';
 import { useAuthStore } from '../../stores/authStore';
@@ -6,12 +7,13 @@ import { useNavigate } from 'react-router-dom';
 import { incidentsApi } from '../../api/incidents';
 import { tasksApi } from '../../api/tasks';
 import { BroadcastModal } from '../../components/notifications/BroadcastModal';
-import { NotificationBell } from '../../components/notifications/NotificationBell';
+import { AlertTriangle, Clock, Zap, CheckCircle, Plus, RefreshCw } from 'lucide-react';
 
 export const SupervisorDashboard = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState({
     totalIncidents: 0,
     pendingIncidents: 0,
@@ -27,19 +29,39 @@ export const SupervisorDashboard = () => {
 
   const loadStats = async () => {
     try {
-      const [incidentsData, tasksData] = await Promise.all([
-        incidentsApi.getAll(),
-        tasksApi.getAll({}),
-      ]);
+      setLoading(true);
+      const incidentsData = await incidentsApi.getAll();
+      
+      // Count incidents by status
+      const pending = incidentsData.filter((i: any) => i.status === 'PENDING').length;
+      const inProgress = incidentsData.filter((i: any) => i.status === 'IN_PROGRESS').length;
+      
+      // Try to get task stats, fallback to 0 if API fails
+      let totalTasks = 0;
+      try {
+        const taskStats = await tasksApi.getStatistics();
+        totalTasks = (taskStats.byStatus?.IN_PROGRESS || 0) + (taskStats.byStatus?.PENDING || 0);
+      } catch (taskError) {
+        console.warn('Could not load task stats:', taskError);
+      }
       
       setStats({
         totalIncidents: incidentsData.length,
-        pendingIncidents: incidentsData.filter((i: any) => i.status === 'PENDING').length,
-        inProgressIncidents: incidentsData.filter((i: any) => i.status === 'IN_PROGRESS').length,
-        totalTasks: tasksData.length,
+        pendingIncidents: pending,
+        inProgressIncidents: inProgress,
+        totalTasks: totalTasks,
       });
     } catch (error) {
       console.error('Failed to load stats:', error);
+      // Set default values on error
+      setStats({
+        totalIncidents: 0,
+        pendingIncidents: 0,
+        inProgressIncidents: 0,
+        totalTasks: 0,
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -54,175 +76,93 @@ export const SupervisorDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Modern Header */}
-      <nav className="bg-white border-b border-gray-200 shadow-lg">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex justify-between items-center">
-            {/* Left: Logo & User */}
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              </div>
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 -m-8">
+        <div className="w-full space-y-6 p-4 sm:p-6">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-xl p-6 sm:p-8 mb-6 shadow-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div>
-                <h1 className="text-2xl font-extrabold text-blue-600">
-                  Guardian Route
+                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 flex items-center gap-3">
+                  <span>🎛️</span>
+                  <span>แดชบอร์ดบัญชาการ</span>
                 </h1>
-                <p className="text-base text-gray-600">
-                  {user?.firstName} {user?.lastName} • {user?.role === 'SUPERVISOR' ? 'ผู้ควบคุม' : user?.role}
-                </p>
+                <p className="text-indigo-100 text-sm sm:text-base">ภาพรวมประสิทธิภาพและการจัดการเหตุการณ์</p>
+              </div>
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <button
+                  onClick={() => navigate('/manage-incidents')}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-all font-semibold text-sm backdrop-blur-sm"
+                >
+                  <span>👥</span>
+                  <span className="hidden sm:inline">จัดการเหตุการณ์</span>
+                  <span className="sm:hidden">จัดการ</span>
+                </button>
+                <button
+                  onClick={() => setShowBroadcastModal(true)}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-all font-semibold text-sm backdrop-blur-sm"
+                >
+                  <span>📢</span>
+                  <span className="hidden sm:inline">Broadcast</span>
+                </button>
+                <button
+                  onClick={() => setRefreshKey(prev => prev + 1)}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-all font-semibold text-sm backdrop-blur-sm"
+                >
+                  <span className={loading ? 'animate-spin' : ''}>🔄</span>
+                  <span className="hidden sm:inline">รีเฟรช</span>
+                </button>
               </div>
             </div>
 
-            {/* Right: Actions */}
-            <div className="flex items-center gap-3">
-              <NotificationBell />
-              
-              <button
-                onClick={() => setShowBroadcastModal(true)}
-                className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-4 py-2.5 rounded-xl hover:from-purple-700 hover:to-pink-700 transition-colors font-medium shadow-md"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                </svg>
-                Broadcast
-              </button>
-
-              <button
-                onClick={() => setShowCreateForm(true)}
-                className="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-colors font-medium shadow-md"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                สร้างเหตุการณ์
-              </button>
-              
-              <button
-                onClick={() => navigate('/map')}
-                className="flex items-center gap-2 bg-white text-green-600 px-4 py-2.5 rounded-xl hover:bg-green-50 transition-colors font-medium border border-green-300 shadow-sm"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                </svg>
-                แผนที่
-              </button>
-
-	              <button
-	                onClick={() => navigate('/supervisor/survey-templates')}
-	                className="flex items-center gap-2 bg-white text-yellow-600 px-4 py-2.5 rounded-xl hover:bg-yellow-50 transition-colors font-medium border border-yellow-300 shadow-sm"
-	              >
-	                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-	                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-	                </svg>
-	                แบบสำรวจ
-	              </button>
-	
-	              <button
-	                onClick={() => navigate('/tasks')}
-	                className="flex items-center gap-2 bg-white text-purple-600 px-4 py-2.5 rounded-xl hover:bg-purple-50 transition-colors font-medium border border-purple-300 shadow-sm"
-	              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                งาน
-              </button>
-
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 bg-white text-gray-700 px-4 py-2.5 rounded-xl hover:bg-gray-100 transition-colors font-medium border border-gray-300 shadow-sm"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                ออกจากระบบ
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Statistics Cards */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Total Incidents */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">เหตุการณ์ทั้งหมด</p>
-                <p className="text-3xl font-bold text-gray-900">{stats.totalIncidents}</p>
+            {/* Stats Cards Inside Header */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-white/95 rounded-xl p-4 shadow-sm">
+                <div className="text-xs sm:text-sm font-semibold text-gray-600 mb-2">
+                  📊 ทั้งหมด
+                </div>
+                <div className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  {stats.totalIncidents}
+                </div>
               </div>
-              <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+              <div className="bg-white/95 rounded-xl p-4 shadow-sm">
+                <div className="text-xs sm:text-sm font-semibold text-gray-600 mb-2">
+                  ⏰ รอดำเนินการ
+                </div>
+                <div className="text-2xl sm:text-3xl font-bold text-orange-600">
+                  {stats.pendingIncidents}
+                </div>
+              </div>
+              <div className="bg-white/95 rounded-xl p-4 shadow-sm">
+                <div className="text-xs sm:text-sm font-semibold text-gray-600 mb-2">
+                  ⚡ กำลังดำเนินการ
+                </div>
+                <div className="text-2xl sm:text-3xl font-bold text-blue-600">
+                  {stats.inProgressIncidents}
+                </div>
+              </div>
+              <div className="bg-white/95 rounded-xl p-4 shadow-sm">
+                <div className="text-xs sm:text-sm font-semibold text-gray-600 mb-2">
+                  ✅ งานทั้งหมด
+                </div>
+                <div className="text-2xl sm:text-3xl font-bold text-green-600">
+                  {stats.totalTasks}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Pending */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">รอดำเนินการ</p>
-                <p className="text-3xl font-bold text-orange-600">{stats.pendingIncidents}</p>
-              </div>
-              <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center">
-                <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-            </div>
-          </div>
 
-          {/* In Progress */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">กำลังดำเนินการ</p>
-                <p className="text-3xl font-bold text-green-600">{stats.inProgressIncidents}</p>
-              </div>
-              <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              </div>
+          {/* Incidents List */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2">
+                <span className="text-2xl">📋</span>
+                รายการเหตุการณ์
+              </h2>
             </div>
+            <IncidentsList key={refreshKey} refreshKey={refreshKey} />
           </div>
-
-          {/* Total Tasks */}
-          <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">งานทั้งหมด</p>
-                <p className="text-3xl font-bold text-purple-600">{stats.totalTasks}</p>
-              </div>
-              <div className="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center">
-                <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Incidents List */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-extrabold text-gray-900">รายการเหตุการณ์</h2>
-            <button
-              onClick={() => setRefreshKey(prev => prev + 1)}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              รีเฟรช
-            </button>
-          </div>
-	          <IncidentsList key={refreshKey} refreshKey={refreshKey} />
         </div>
       </div>
 
@@ -235,14 +175,21 @@ export const SupervisorDashboard = () => {
       {/* Modal สำหรับสร้าง Incident */}
       {showCreateForm && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-3xl p-10 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-3xl font-extrabold text-gray-900">สร้างเหตุการณ์ใหม่</h2>
+          <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-200 animate-fade-in-up">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                <span className="bg-blue-100 p-2 rounded-lg text-blue-600">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </span>
+                สร้างเหตุการณ์ใหม่
+              </h2>
               <button
                 onClick={() => setShowCreateForm(false)}
-                className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+                className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -251,6 +198,6 @@ export const SupervisorDashboard = () => {
           </div>
         </div>
       )}
-    </div>
+    </DashboardLayout>
   );
 };

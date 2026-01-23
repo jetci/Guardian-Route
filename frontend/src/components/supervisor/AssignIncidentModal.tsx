@@ -55,6 +55,18 @@ export const AssignIncidentModal: React.FC<AssignIncidentModalProps> = ({
       setIsFetchingOfficers(true);
       const officers = await usersApi.getFieldOfficers();
       setFieldOfficers(officers);
+
+      // ✅ Validate: Check if field officers list is empty
+      if (!officers || officers.length === 0) {
+        toast({
+          title: 'ไม่มีเจ้าหน้าที่ภาคสนาม',
+          description: 'กรุณาเพิ่มเจ้าหน้าที่ภาคสนามก่อนมอบหมายงาน',
+          status: 'warning',
+          duration: 5000,
+          isClosable: true,
+        });
+        onClose(); // Close modal automatically
+      }
     } catch (error) {
       console.error('Error fetching field officers:', error);
       const err = error as { response?: { data?: { message?: string } } };
@@ -65,6 +77,7 @@ export const AssignIncidentModal: React.FC<AssignIncidentModalProps> = ({
         duration: 5000,
         isClosable: true,
       });
+      onClose(); // Close modal on error
     } finally {
       setIsFetchingOfficers(false);
     }

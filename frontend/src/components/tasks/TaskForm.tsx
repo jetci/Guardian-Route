@@ -36,8 +36,14 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
     try {
       const data = await incidentsApi.getAll({});
       setIncidents(data);
+
+      // ✅ Validate: Check if incidents list is empty
+      if (!data || data.length === 0) {
+        toast.error('ไม่มีเหตุการณ์ในระบบ \nกรุณาสร้างเหตุการณ์ก่อนมอบหมายงาน');
+      }
     } catch (error) {
       console.error('Error loading incidents:', error);
+      toast.error('ไม่สามารถโหลดข้อมูลเหตุการณ์ได้');
     }
   };
 
@@ -45,12 +51,29 @@ export const TaskForm = ({ onSuccess, onCancel }: TaskFormProps) => {
     try {
       const data = await usersApi.getAll({ role: 'FIELD_OFFICER' as Role });
       setUsers(data);
+
+      // ✅ Validate: Check if field officers list is empty
+      if (!data || data.length === 0) {
+        toast.error('ไม่มีเจ้าหน้าที่ภาคสนามในระบบ \nกรุณาเพิ่มเจ้าหน้าที่ก่อนมอบหมายงาน');
+      }
     } catch (error) {
       console.error('Error loading users:', error);
+      toast.error('ไม่สามารถโหลดข้อมูลเจ้าหน้าที่ได้');
     }
   };
 
   const onSubmit = async (data: TaskFormData) => {
+    // ✅ Validate before submit
+    if (!data.incidentId) {
+      toast.error('กรุณาเลือกเหตุการณ์');
+      return;
+    }
+
+    if (!data.assignedToId) {
+      toast.error('กรุณาเลือกผู้รับผิดชอบ');
+      return;
+    }
+
     setLoading(true);
     try {
       const createData: CreateTaskDto = {

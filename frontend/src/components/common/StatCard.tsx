@@ -42,12 +42,7 @@ export const StatCard: React.FC<StatCardProps> = ({
         <div
             className={`relative overflow-hidden rounded-2xl p-6 text-white shadow-xl bg-gradient-to-br ${getGradientClass()} ${className} transition-all duration-300 hover:shadow-2xl`}
         >
-            {/* Background Decoration */}
-            <div className="absolute -top-2 -right-2 p-2 opacity-10 transform rotate-12 scale-150 pointer-events-none">
-                {icon}
-            </div>
-
-            <div className="relative z-10 flex flex-col h-full justify-between">
+            <div className="flex flex-col justify-between min-h-[160px]">
                 <div className="flex justify-between items-start mb-4">
                     <div className={`${getIconBgClass()} w-12 h-12 rounded-xl flex items-center justify-center shadow-inner`}>
                         <span className="text-2xl">{icon}</span>
