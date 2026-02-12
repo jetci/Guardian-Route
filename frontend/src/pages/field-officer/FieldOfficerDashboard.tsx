@@ -79,37 +79,41 @@ export default function FieldOfficerDashboard() {
 
   // --- MOBILE COMPONENT: ACTION BUTTON ---
   const ActionButton = ({ icon: Icon, label, subLabel, colorStart, colorEnd, onClick }: any) => (
-    <motion.button
+    <motion.div
       whileTap={{ scale: 0.96 }}
-      onClick={onClick}
-      style={{
-        flex: 1,
-        cursor: 'pointer',
-        background: `linear-gradient(135deg, ${colorStart} 0%, ${colorEnd} 100%)`,
-        borderRadius: '20px',
-        padding: '24px 16px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: `0 10px 20px -5px ${colorStart}60`,
-        color: 'white',
-        position: 'relative',
-        overflow: 'hidden',
-        minHeight: '140px',
-        border: 'none', // Reset button style
-        outline: 'none', // Reset focus style preference
-        fontFamily: 'inherit'
-      }}
+      style={{ flex: 1 }}
     >
-      <div style={{
-        position: 'absolute', top: -20, right: -20, width: 80, height: 80,
-        background: 'rgba(255,255,255,0.1)', borderRadius: '50%'
-      }} />
-      <Icon size={36} style={{ marginBottom: '12px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
-      <span style={{ fontSize: '18px', fontWeight: '800', lineHeight: 1.2, marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>{label}</span>
-      <span style={{ fontSize: '12px', fontWeight: '500', opacity: 0.9 }}>{subLabel}</span>
-    </motion.button>
+      <button
+        onClick={onClick}
+        style={{
+          width: '100%',
+          cursor: 'pointer',
+          background: `linear-gradient(135deg, ${colorStart} 0%, ${colorEnd} 100%)`,
+          borderRadius: '20px',
+          padding: '24px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: `0 10px 20px -5px ${colorStart}60`,
+          color: 'white',
+          position: 'relative',
+          overflow: 'hidden',
+          minHeight: '140px',
+          border: 'none', // Reset button style
+          outline: 'none', // Reset focus style preference
+          fontFamily: 'inherit'
+        }}
+      >
+        <div style={{
+          position: 'absolute', top: -20, right: -20, width: 80, height: 80,
+          background: 'rgba(255,255,255,0.1)', borderRadius: '50%'
+        }} />
+        <Icon size={36} style={{ marginBottom: '12px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
+        <span style={{ fontSize: '18px', fontWeight: '800', lineHeight: 1.2, marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>{label}</span>
+        <span style={{ fontSize: '12px', fontWeight: '500', opacity: 0.9 }}>{subLabel}</span>
+      </button>
+    </motion.div>
   );
 
   // --- MOBILE COMPONENT: TASK CARD (REFINED) ---

@@ -201,8 +201,7 @@ export function TaskDetailPageNew() {
                 {/* --- BOTTOM ACTIONS --- */}
                 <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: 'white', padding: '16px 20px', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', boxShadow: '0 -4px 20px rgba(0,0,0,0.05)', zIndex: 100 }}>
                     {task.status === 'PENDING' && (
-                        <motion.button
-                            whileTap={{ scale: 0.95 }}
+                        <button
                             onClick={handleAcceptTask}
                             disabled={accepting}
                             style={{
@@ -211,13 +210,12 @@ export function TaskDetailPageNew() {
                                 fontWeight: '700', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer'
                             }}
                         >
-                            {accepting ? <LoadingSpinner size="sm" color="white" /> : <><CheckCircle2 size={20} /> รับทราบและเริ่มงาน</>}
-                        </motion.button>
+                            {accepting ? <LoadingSpinner size="sm" /> : <><CheckCircle2 size={20} /> รับทราบและเริ่มงาน</>}
+                        </button>
                     )}
 
                     {task.status === 'IN_PROGRESS' && (
-                        <motion.button
-                            whileTap={{ scale: 0.95 }}
+                        <button
                             onClick={handleStartSurvey}
                             style={{
                                 width: '100%', padding: '16px', borderRadius: '16px', border: 'none',
@@ -226,7 +224,7 @@ export function TaskDetailPageNew() {
                             }}
                         >
                             <Navigation size={20} /> เริ่มสำรวจพื้นที่
-                        </motion.button>
+                        </button>
                     )}
 
                     {task.status === 'COMPLETED' && (

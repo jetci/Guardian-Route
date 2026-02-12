@@ -142,12 +142,11 @@ export const MyTasksPage = () => {
               const config = getStatusConfig(status);
               const Icon = config.icon;
               return (
-                <motion.button
+                <button
                   key={status}
-                  whileTap={{ scale: 0.95 }}
                   onClick={() => setActiveTab(status as any)}
                   style={{
-                    padding: '10px 18px', borderRadius: '100px', border: 'none',
+                    padding: '10px 18px', borderRadius: '100px',
                     background: isActive ? config.color : 'white',
                     color: isActive ? 'white' : '#64748b',
                     boxShadow: isActive ? `0 8px 16px -4px ${config.color}80` : '0 2px 8px rgba(0,0,0,0.04)',
@@ -161,7 +160,7 @@ export const MyTasksPage = () => {
                   {isActive && <span style={{ background: 'rgba(255,255,255,0.25)', padding: '2px 8px', borderRadius: '12px', fontSize: '11px' }}>
                     {tasks.filter(t => t.status === status).length}
                   </span>}
-                </motion.button>
+                </button>
               );
             })}
           </div>
@@ -189,11 +188,9 @@ export const MyTasksPage = () => {
                 filteredTasks.map(task => {
                   const theme = getStatusConfig(task.status);
                   return (
-                    <motion.div
+                    <div
                       key={task.id}
-                      layout
                       onClick={() => navigate(`/tasks/${task.id}`)}
-                      whileTap={{ scale: 0.98 }}
                       style={{
                         background: 'white',
                         borderRadius: '24px',
@@ -267,9 +264,8 @@ export const MyTasksPage = () => {
 
                         <div style={{ display: 'flex', gap: '12px' }}>
                           {task.status === 'PENDING' && (
-                            <motion.button
-                              whileTap={{ scale: 0.95 }}
-                              onClick={(e) => handleAcceptTask(task.id, e)}
+                            <button
+                              onClick={(e: React.MouseEvent) => handleAcceptTask(task.id, e)}
                               style={{
                                 flex: 2, padding: '16px', borderRadius: '16px', border: 'none',
                                 background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
@@ -279,10 +275,9 @@ export const MyTasksPage = () => {
                               }}
                             >
                               <CheckCircle2 size={18} /> รับงานนี้
-                            </motion.button>
+                            </button>
                           )}
-                          <motion.button
-                            whileTap={{ scale: 0.95 }}
+                          <button
                             style={{
                               flex: 1, padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0',
                               background: 'white', color: '#1e293b', fontWeight: '700', fontSize: '15px',
@@ -290,10 +285,10 @@ export const MyTasksPage = () => {
                             }}
                           >
                             รายละเอียด <ChevronRight size={18} />
-                          </motion.button>
+                          </button>
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   );
                 })
               )}

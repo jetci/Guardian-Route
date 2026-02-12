@@ -21,7 +21,6 @@ import {
 } from '@nestjs/swagger';
 import { IncidentsService } from './incidents.service';
 import { PhotosService } from './photos.service';
-import { Optional } from '@nestjs/common';
 import { CreateIncidentDto } from './dto/create-incident.dto';
 import { UpdateIncidentDto } from './dto/update-incident.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -40,8 +39,8 @@ import { IdempotencyInterceptor } from '../common/interceptors/idempotency.inter
 @Controller('incidents')
 export class IncidentsController {
   constructor(
-    @Optional() private readonly incidentsService?: IncidentsService,
-    @Optional() private readonly photosService?: PhotosService,
+    private readonly incidentsService: IncidentsService,
+    private readonly photosService: PhotosService,
   ) { }
 
   @Get('statistics')

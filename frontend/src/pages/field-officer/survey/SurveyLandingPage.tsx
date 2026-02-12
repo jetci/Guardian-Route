@@ -158,9 +158,8 @@ export default function SurveyLandingPage() {
                         ].map((tab) => {
                             const isActive = filter === tab.key;
                             return (
-                                <motion.button
+                                <button
                                     key={tab.key}
-                                    whileTap={{ scale: 0.95 }}
                                     onClick={() => setFilter(tab.key as any)}
                                     style={{
                                         padding: '8px 16px', borderRadius: '100px', border: 'none',
@@ -180,7 +179,7 @@ export default function SurveyLandingPage() {
                                     }}>
                                         {tab.count}
                                     </span>
-                                </motion.button>
+                                </button>
                             );
                         })}
                     </div>
@@ -208,11 +207,9 @@ export default function SurveyLandingPage() {
                                 filteredTasks.map(task => {
                                     const theme = getStatusConfig(task.status);
                                     return (
-                                        <motion.div
+                                        <div
                                             key={task.id}
-                                            layout
                                             onClick={() => handleSelectTask(task.id)}
-                                            whileTap={{ scale: 0.98 }}
                                             style={{
                                                 background: 'white',
                                                 borderRadius: '24px',
@@ -289,7 +286,7 @@ export default function SurveyLandingPage() {
                                                     <ChevronRight size={18} />
                                                 </button>
                                             </div>
-                                        </motion.div>
+                                        </div>
                                     );
                                 })
                             )}

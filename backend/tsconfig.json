@@ -22,5 +22,16 @@
     "strictBindCallApply": false,
     "noFallthroughCasesInSwitch": false
   },
-  "exclude": ["prisma/seed.ts", "prisma/seed-*.ts"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "**/*spec.ts",
+    "prisma/**/*.ts",
+    "*.ts",
+    "*.js"
+  ]
 }

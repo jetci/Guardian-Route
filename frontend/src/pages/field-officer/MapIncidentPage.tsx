@@ -208,16 +208,13 @@ export function MapIncidentPage() {
 
         {/* --- RIGHT CONTROLS --- */}
         <div style={{ position: 'absolute', top: 80, right: 16, zIndex: 10, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <motion.div role="button" tabIndex={0} whileTap={{ scale: 0.9 }} onClick={() => mapRef.current?.zoomIn()} style={fabStyle}><Plus size={24} /></motion.div>
-          <motion.div role="button" tabIndex={0} whileTap={{ scale: 0.9 }} onClick={() => mapRef.current?.locate({ setView: true })} style={fabStyle}><Navigation size={24} /></motion.div>
-          <motion.div role="button" tabIndex={0} whileTap={{ scale: 0.9 }} onClick={() => setSheetOpen(true)} style={{ ...fabStyle, background: '#2563eb', color: 'white' }}><Layers size={24} /></motion.div>
+          <button onClick={() => mapRef.current?.zoomIn()} style={{ ...fabStyle, border: 'none' }}><Plus size={24} /></button>
+          <button onClick={() => mapRef.current?.locate({ setView: true })} style={{ ...fabStyle, border: 'none' }}><Navigation size={24} /></button>
+          <button onClick={() => setSheetOpen(true)} style={{ ...fabStyle, background: '#2563eb', color: 'white', border: 'none' }}><Layers size={24} /></button>
         </div>
 
         {/* --- FLOATING ACTION BUTTON (ADD) --- */}
-        <motion.div
-          role="button"
-          tabIndex={0}
-          whileTap={{ scale: 0.9 }}
+        <button
           onClick={() => navigate('/create-incident')}
           style={{
             position: 'absolute', bottom: sheetOpen ? 340 : 100, right: 16, zIndex: 20,
@@ -227,7 +224,7 @@ export function MapIncidentPage() {
           }}
         >
           <Plus size={32} strokeWidth={3} />
-        </motion.div>
+        </button>
 
         {/* --- BOTTOM SHEET (Incident List) --- */}
         <motion.div

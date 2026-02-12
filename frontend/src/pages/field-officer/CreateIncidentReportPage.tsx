@@ -396,9 +396,9 @@ export function CreateIncidentReportPage() {
 
                   {/* Controls */}
                   <div style={{ position: 'absolute', top: 16, right: 16, zIndex: 10, display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <motion.button whileTap={{ scale: 0.9 }} onClick={getCurrentLocation} style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'white', border: 'none', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
+                    <button onClick={getCurrentLocation} style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'white', border: 'none', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb', cursor: 'pointer' }}>
                       <Navigation size={24} />
-                    </motion.button>
+                    </button>
                   </div>
 
                   {/* Status Pill */}
@@ -409,7 +409,7 @@ export function CreateIncidentReportPage() {
                 <div style={{ marginTop: '16px', padding: '16px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                   <div style={{ fontSize: '14px', color: '#64748b', marginBottom: '8px' }}>พิกัดที่เลือก:</div>
                   <div style={{ fontSize: '16px', fontWeight: '700', color: '#1e293b' }}>
-                    {latitude ? `${latitude.toFixed(6)}, ${longitude.toFixed(6)}` : '- ยังไม่ได้ระบุ -'}
+                    {latitude && longitude ? `${latitude.toFixed(6)}, ${longitude.toFixed(6)}` : '- ยังไม่ได้ระบุ -'}
                   </div>
                 </div>
               </motion.div>
@@ -434,7 +434,7 @@ export function CreateIncidentReportPage() {
 
                   <div className="form-group">
                     <label style={{ fontSize: '14px', fontWeight: '700', color: '#1e293b', marginBottom: '8px', display: 'block' }}>วันที่เกิดเหตุ</label>
-                    <ThaiDatePicker value={incidentDate} onChange={setIncidentDate} />
+                    <ThaiDatePicker id="incident-date" value={incidentDate} onChange={setIncidentDate} />
                   </div>
 
                   <div className="form-group">
@@ -506,7 +506,7 @@ export function CreateIncidentReportPage() {
                 fontWeight: '700', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer'
               }}
             >
-              {isSubmitting ? <LoadingSpinner size="sm" color="white" /> : <><Save size={20} /> ยืนยันการแจ้งเหตุ</>}
+              {isSubmitting ? <LoadingSpinner size="sm" /> : <><Save size={20} /> ยืนยันการแจ้งเหตุ</>}
             </button>
           )}
         </div>

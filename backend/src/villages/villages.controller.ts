@@ -2,7 +2,6 @@ import { Controller, Get, Post, Patch, Delete, Param, UseGuards, UploadedFile, U
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { VillagesService } from './villages.service';
-import { Optional } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -16,7 +15,7 @@ import { UpdateVillageDto } from './dto/update-village.dto';
 @UseGuards(JwtAuthGuard)
 @Controller('villages')
 export class VillagesController {
-  constructor(@Optional() private readonly villagesService?: VillagesService) {}
+  constructor(private readonly villagesService: VillagesService) { }
 
   @Get()
   @ApiOperation({ summary: 'Get all villages' })

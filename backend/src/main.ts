@@ -3,8 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { Response } from 'express';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-// AppModule is imported dynamically inside bootstrap() to avoid side-effects when
-// this file is loaded by tests that only import `createHealthHandler`.
+import { AppModule } from './app.module';
 import { PrismaService } from './database/prisma.service';
 import type { Request, Response as ExResponse } from 'express';
 
@@ -34,7 +33,6 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 
 async function bootstrap() {
-  const { AppModule } = await import('./app.module');
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // UTF-8 encoding middleware - removed to avoid overriding Content-Type for HTML/JS/CSS assets (Swagger UI)
@@ -51,27 +49,27 @@ async function bootstrap() {
       // Enable CSP with directives compatible with environment
       contentSecurityPolicy: isProd
         ? {
-            directives: {
-              defaultSrc: ["'self'"],
-              scriptSrc: ["'self'", 'https:'],
-              styleSrc: ["'self'", 'https:'],
-              imgSrc: ["'self'", 'data:', 'https:'],
-              connectSrc: ["'self'", 'https:'],
-              fontSrc: ["'self'", 'data:'],
-              objectSrc: ["'none'"],
-            },
-          }
-        : {
-            directives: {
-              defaultSrc: ["'self'"],
-              scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https:'],
-              styleSrc: ["'self'", "'unsafe-inline'", 'https:'],
-              imgSrc: ["'self'", 'data:', 'https:'],
-              connectSrc: ["'self'", 'https:'],
-              fontSrc: ["'self'", 'data:'],
-              objectSrc: ["'none'"],
-            },
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", 'https:'],
+            styleSrc: ["'self'", 'https:'],
+            imgSrc: ["'self'", 'data:', 'https:'],
+            connectSrc: ["'self'", 'https:'],
+            fontSrc: ["'self'", 'data:'],
+            objectSrc: ["'none'"],
           },
+        }
+        : {
+          directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https:'],
+            styleSrc: ["'self'", "'unsafe-inline'", 'https:'],
+            imgSrc: ["'self'", 'data:', 'https:'],
+            connectSrc: ["'self'", 'https:'],
+            fontSrc: ["'self'", 'data:'],
+            objectSrc: ["'none'"],
+          },
+        },
       crossOriginResourcePolicy: { policy: 'cross-origin' },
       hidePoweredBy: true,
     }),
