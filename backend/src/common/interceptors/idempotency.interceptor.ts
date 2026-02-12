@@ -5,6 +5,7 @@ import {
     CallHandler,
     Inject,
     ConflictException,
+    Optional,
 } from '@nestjs/common';
 import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -22,7 +23,7 @@ import type { Cache } from 'cache-manager';
  */
 @Injectable()
 export class IdempotencyInterceptor implements NestInterceptor {
-    constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) { }
+    constructor(@Optional() @Inject(CACHE_MANAGER) private cacheManager?: Cache) { }
 
     async intercept(
         context: ExecutionContext,
@@ -54,21 +55,27 @@ export class IdempotencyInterceptor implements NestInterceptor {
         const cacheKey = `idempotency:${userId}:${endpoint}:${idempotencyKey}`;
 
         // Check if request with this key already exists
-        const cachedResponse = await this.cacheManager.get(cacheKey);
-
-        if (cachedResponse) {
-            // Return cached response (idempotent behavior)
-            console.log(`[Idempotency] Returning cached response for key: ${idempotencyKey}`);
-            return of(cachedResponse);
+        if (this.cacheManager) {
+            const cachedResponse = await this.cacheManager.get(cacheKey);
+            if (cachedResponse) {
+                // Return cached response (idempotent behavior)
+                console.log(`[Idempotency] Returning cached response for key: ${idempotencyKey}`);
+                return of(cachedResponse);
+            }
         }
 
         // Process request and cache the result
         return next.handle().pipe(
-            tap(async (response) => {
-                // Cache response for 24 hours (86400 seconds)
-                await this.cacheManager.set(cacheKey, response, 86400);
-                console.log(`[Idempotency] Cached response for key: ${idempotencyKey}`);
-            }),
+                                tap(async (response) => {
+                                if (!this.cacheManager) return;
+                                try {
+                                    // Cache response for 24 hours (86400 seconds)
+                                    await this.cacheManager.set(cacheKey, response, 86400);
+                                    console.log(`[Idempotency] Cached response for key: ${idempotencyKey}`);
+                                } catch (err) {
+                                    console.warn('[Idempotency] Failed to cache response:', err?.message || err);
+                                }
+                        }),
         );
     }
 

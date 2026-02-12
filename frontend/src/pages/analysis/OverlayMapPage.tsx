@@ -5,14 +5,14 @@ import { incidentsApi, type Incident } from '../../api/incidents';
 import { analysisApi, type OverlayAnalysisResult } from '../../api/analysis';
 import { ExportAnalysisButton } from '../../components/analysis/ExportAnalysisButton';
 import toast from 'react-hot-toast';
-import { Layers, MapPin, AlertTriangle, TrendingUp, Download, RotateCcw, Play, CheckSquare, Square } from 'lucide-react';
+import { Layers, MapPin, AlertTriangle, TrendingUp, Download, RotateCcw, Play, CheckSquare, Square, Activity, ShieldAlert, BarChart3, Info, Search } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
 const riskColors = {
-  LOW: '#38A169',
-  MEDIUM: '#D69E2E',
-  HIGH: '#DD6B20',
-  CRITICAL: '#E53E3E',
+  LOW: '#10b981',
+  MEDIUM: '#f59e0b',
+  HIGH: '#f97316',
+  CRITICAL: '#ef4444',
 };
 
 export const OverlayMapPage = () => {
@@ -65,211 +65,487 @@ export const OverlayMapPage = () => {
 
   const center: LatLngExpression = [19.9167, 99.2333]; // ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่
 
+  // --- PREMIUM DESIGN SYSTEM CONSTANTS ---
+  const isMobile = typeof window !== 'undefined' ? window.innerWidth < 1024 : false;
+  const paddingX = window.innerWidth < 768 ? '20px' : '48px';
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 p-6">
-        <div className="flex items-center justify-center h-96">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 font-medium">กำลังโหลดข้อมูล...</p>
-          </div>
+      <div style={{ minHeight: '100vh', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="animate-spin" style={{ width: '64px', height: '64px', border: '4px solid #f1f5f9', borderTopColor: '#2563eb', borderRadius: '50%', margin: '0 auto 24px' }}></div>
+          <p style={{ color: '#64748b', fontWeight: '700', fontSize: '18px' }}>กำลังโหลดศูนย์บริหารข้อมูล...</p>
         </div>
       </div>
     );
   }
 
   return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50 -m-8">
-        <div className="w-full space-y-6 p-4 sm:p-6">
-          {/* Header */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/60">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-violet-600 flex items-center gap-3 mb-2">
-                  <Layers className="text-blue-600" size={32} />
-                  วิเคราะห์ภัยซ้ำซาก
-                </h1>
-                <p className="text-gray-600 font-medium">วิเคราะห์พื้นที่เสี่ยงจากเหตุการณ์ที่เกิดซ้ำ</p>
+    <div style={{
+      minHeight: '100vh',
+      background: '#f8fafc',
+      fontFamily: "'Sarabun', sans-serif",
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
+
+      {/* --- ZONE 1: PREMIUM IDENTITY HEADER --- */}
+      <div style={{ padding: `32px ${paddingX} 0` }}>
+        <div style={{
+          background: 'linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)',
+          padding: window.innerWidth < 768 ? '24px 20px' : '32px 48px',
+          borderRadius: '24px',
+          boxShadow: '0 10px 30px rgba(37, 99, 235, 0.2)',
+          color: 'white',
+          display: 'flex',
+          flexDirection: window.innerWidth < 768 ? 'column' : 'row',
+          justifyContent: 'space-between',
+          alignItems: window.innerWidth < 768 ? 'flex-start' : 'center',
+          gap: '24px'
+        }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <div style={{ background: 'rgba(255,255,255,0.15)', padding: '10px', borderRadius: '14px' }}>
+                <Layers size={window.innerWidth < 768 ? 24 : 32} color="white" />
               </div>
-              <button
-                onClick={fetchIncidents}
-                className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-medium shadow-md text-sm"
-              >
-                <RotateCcw size={18} />
-                รีเฟรช
-              </button>
+              <h1 style={{
+                fontSize: window.innerWidth < 768 ? '24px' : '32px',
+                fontWeight: '900',
+                letterSpacing: '-0.02em',
+                margin: 0
+              }}>
+                ศูนย์วิเคราะห์เชิงพื้นที่และภัยซ้ำซาก
+              </h1>
             </div>
+            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '15px', fontWeight: '600' }}>
+              ตรวจสอบความทับซ้อนของเหตุการณ์ภัยพิบัติเพื่อวางแผนป้องกันเชิงรุก
+            </p>
           </div>
 
-          {/* Main Content */}
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Sidebar */}
-            <div className="lg:w-80 flex-shrink-0 space-y-4">
-              {/* Incident Selection */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-5">
-                <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
-                  <span className="bg-blue-100 p-2 rounded-lg text-blue-600">
-                    <MapPin size={20} />
-                  </span>
-                  เลือกเหตุการณ์
-                </h2>
-                <p className="text-sm text-gray-600 mb-3">เลือกแล้ว: <span className="font-bold text-blue-600">{selectedIds.length}</span> รายการ</p>
-                
-                <div className="space-y-2 max-h-96 overflow-y-auto pr-2">
-                  {incidents.map((incident) => (
-                    <label
-                      key={incident.id}
-                      className="flex items-start gap-3 p-3 bg-slate-50 hover:bg-blue-50 rounded-lg cursor-pointer transition-colors border border-slate-200 hover:border-blue-300"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.includes(incident.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedIds([...selectedIds, incident.id]);
-                          } else {
-                            setSelectedIds(selectedIds.filter(id => id !== incident.id));
-                          }
-                        }}
-                        className="mt-1 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{incident.title}</p>
-                        <span className={`inline-block mt-1 px-2 py-0.5 rounded text-xs font-semibold ${
-                          incident.priority === 'CRITICAL' 
-                            ? 'bg-red-100 text-red-700'
-                            : incident.priority === 'HIGH'
-                            ? 'bg-orange-100 text-orange-700'
-                            : 'bg-yellow-100 text-yellow-700'
-                        }`}>
-                          {incident.priority}
-                        </span>
-                      </div>
-                    </label>
-                  ))}
-                </div>
+          <button
+            onClick={fetchIncidents}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '12px 24px',
+              background: 'rgba(255,255,255,1)',
+              color: '#1e40af',
+              borderRadius: '14px',
+              fontWeight: '800',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              fontSize: '14px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <RotateCcw size={18} /> รีเฟรชข้อมูล
+          </button>
+        </div>
+      </div>
+
+      {/* --- ZONE 2: TACTICAL INFO PULSE (STATS) --- */}
+      <div style={{
+        padding: `24px ${paddingX}`,
+        display: 'grid',
+        gridTemplateColumns: window.innerWidth < 768 ? 'repeat(auto-fit, minmax(140px, 1fr))' : 'repeat(3, 1fr)',
+        gap: '20px'
+      }}>
+        <div style={{
+          background: 'white',
+          padding: '20px',
+          borderRadius: '20px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+          borderLeft: '5px solid #2563eb',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>เหตุการณ์พร้อมใช้</div>
+            <div style={{ fontSize: '24px', fontWeight: '900', color: '#1e293b' }}>{incidents.length}</div>
+          </div>
+          <Activity size={24} color="#2563eb" />
+        </div>
+
+        <div style={{
+          background: 'white',
+          padding: '20px',
+          borderRadius: '20px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+          borderLeft: '5px solid #f59e0b',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>พบจุดทับซ้อน</div>
+            <div style={{ fontSize: '24px', fontWeight: '900', color: '#1e293b' }}>{analysisResult?.overlappingAreas.length || 0}</div>
+          </div>
+          <AlertTriangle size={24} color="#f59e0b" />
+        </div>
+
+        <div style={{
+          background: 'white',
+          padding: '20px',
+          borderRadius: '20px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
+          borderLeft: analysisResult ? '5px solid #ef4444' : '5px solid #94a3b8',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div>
+            <div style={{ fontSize: '12px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase' }}>ระดับความเสี่ยง (Risk Score)</div>
+            <div style={{ fontSize: '24px', fontWeight: '900', color: analysisResult ? '#ef4444' : '#1e293b' }}>
+              {analysisResult ? `${analysisResult.riskScore}/100` : '--'}
+            </div>
+          </div>
+          <ShieldAlert size={24} color={analysisResult ? "#ef4444" : "#94a3b8"} />
+        </div>
+      </div>
+
+      {/* --- MAIN INTERFACE (ZONE 3 & 4) --- */}
+      <div style={{
+        flex: 1,
+        padding: `0 ${paddingX} 32px`,
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        gap: '24px'
+      }}>
+
+        {/* --- ZONE 3: STRATEGIC SIDE CONTROL --- */}
+        <div style={{
+          width: isMobile ? '100%' : '380px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px',
+          flexShrink: 0
+        }}>
+          {/* Incident Selector */}
+          <div style={{
+            background: 'white',
+            borderRadius: '24px',
+            padding: '24px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+            border: '1px solid #f1f5f9',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: isMobile ? '400px' : '500px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+              <MapPin size={18} color="#2563eb" />
+              <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#1e293b' }}>เลือกเหตุการณ์วิเคราะห์</h3>
+            </div>
+
+            <div style={{ position: 'relative', marginBottom: '12px' }}>
+              <div style={{
+                fontSize: '11px',
+                fontWeight: '900',
+                color: '#64748b',
+                background: '#f8fafc',
+                padding: '4px 12px',
+                borderRadius: '100px',
+                display: 'inline-block'
+              }}>
+                เลือกแล้ว {selectedIds.length} รายการ
               </div>
+            </div>
 
-              {/* Action Buttons */}
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-5 space-y-3">
-                <button
-                  onClick={handleAnalyze}
-                  disabled={analyzing || selectedIds.length < 2}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-violet-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-violet-700 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              paddingRight: '4px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
+            }}>
+              {incidents.map((incident) => (
+                <div
+                  key={incident.id}
+                  onClick={() => {
+                    if (selectedIds.includes(incident.id)) {
+                      setSelectedIds(selectedIds.filter(id => id !== incident.id));
+                    } else {
+                      setSelectedIds([...selectedIds, incident.id]);
+                    }
+                  }}
+                  style={{
+                    padding: '12px',
+                    borderRadius: '14px',
+                    background: selectedIds.includes(incident.id) ? '#eff6ff' : '#f8fafc',
+                    border: '1px solid',
+                    borderColor: selectedIds.includes(incident.id) ? '#2563eb' : '#f1f5f9',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px'
+                  }}
                 >
-                  {analyzing ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      กำลังวิเคราะห์...
-                    </>
-                  ) : (
-                    <>
-                      <Play size={18} />
-                      วิเคราะห์
-                    </>
-                  )}
-                </button>
-
-                <button
-                  onClick={handleReset}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-100 text-slate-700 rounded-xl font-semibold hover:bg-slate-200 transition-all"
-                >
-                  <RotateCcw size={18} />
-                  รีเซ็ต
-                </button>
-
-                {analysisResult && (
-                  <ExportAnalysisButton analysisResult={analysisResult} />
-                )}
-              </div>
-
-              {/* Analysis Results */}
-              {analysisResult && (
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-100 p-5">
-                  <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2 mb-4">
-                    <span className="bg-violet-100 p-2 rounded-lg text-violet-600">
-                      <TrendingUp size={20} />
-                    </span>
-                    ผลการวิเคราะห์
-                  </h3>
-                  
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">จำนวนเหตุการณ์</span>
-                      <span className="text-lg font-bold text-blue-600">{analysisResult.totalIncidents}</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">พื้นที่ซ้ำซาก</span>
-                      <span className="text-lg font-bold text-orange-600">{analysisResult.overlappingAreas.length}</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                      <span className="text-sm font-medium text-gray-700">ระดับความเสี่ยง</span>
-                      <span className={`text-lg font-bold ${
-                        analysisResult.riskScore > 70 ? 'text-red-600' : 
-                        analysisResult.riskScore > 50 ? 'text-orange-600' : 'text-green-600'
-                      }`}>
-                        {analysisResult.riskScore}/100
+                  <div style={{
+                    width: '18px',
+                    height: '18px',
+                    borderRadius: '4px',
+                    border: '2px solid',
+                    borderColor: selectedIds.includes(incident.id) ? '#2563eb' : '#cbd5e1',
+                    background: selectedIds.includes(incident.id) ? '#2563eb' : 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginTop: '2px'
+                  }}>
+                    {selectedIds.includes(incident.id) && <Search size={12} color="white" strokeWidth={4} />}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '13px', fontWeight: '700', color: '#1e293b' }}>{incident.title}</div>
+                    <div style={{ display: 'flex', gap: '6px', marginTop: '4px' }}>
+                      <span style={{
+                        fontSize: '10px',
+                        fontWeight: '800',
+                        padding: '2px 6px',
+                        borderRadius: '4px',
+                        background: incident.priority === 'CRITICAL' ? '#fee2e2' : '#fef3c7',
+                        color: incident.priority === 'CRITICAL' ? '#ef4444' : '#d97706'
+                      }}>
+                        {incident.priority}
                       </span>
-                    </div>
-
-                    <div className="pt-3 border-t border-gray-200">
-                      <h4 className="text-sm font-bold text-gray-900 mb-2 flex items-center gap-2">
-                        <AlertTriangle size={16} />
-                        คำแนะนำ
-                      </h4>
-                      <ul className="space-y-2">
-                        {analysisResult.recommendations.map((rec, index) => (
-                          <li key={index} className="text-xs text-gray-600 flex items-start gap-2">
-                            <span className="text-blue-600 mt-0.5">•</span>
-                            <span>{rec}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      <span style={{ fontSize: '10px', color: '#94a3b8', fontWeight: '600' }}>
+                        {new Date(incident.createdAt).toLocaleDateString('th-TH')}
+                      </span>
                     </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Action Group */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <button
+              onClick={handleAnalyze}
+              disabled={analyzing || selectedIds.length < 2}
+              style={{
+                width: '100%',
+                padding: '16px',
+                background: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '18px',
+                fontWeight: '900',
+                fontSize: '15px',
+                cursor: (analyzing || selectedIds.length < 2) ? 'not-allowed' : 'pointer',
+                opacity: (analyzing || selectedIds.length < 2) ? 0.6 : 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '12px',
+                boxShadow: '0 6px 20px rgba(37, 99, 235, 0.2)',
+                transition: 'all 0.2s'
+              }}
+              onMouseOver={(e) => !analyzing && selectedIds.length >= 2 && (e.currentTarget.style.transform = 'translateY(-3px)')}
+              onMouseOut={(e) => !analyzing && selectedIds.length >= 2 && (e.currentTarget.style.transform = 'translateY(0)')}
+            >
+              {analyzing ? (
+                <>
+                  <div className="animate-spin" style={{ width: '18px', height: '18px', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%' }}></div>
+                  กำลังวิมเคราะห์ทางยุทธวิธี...
+                </>
+              ) : (
+                <>
+                  <Activity size={20} /> เริ่มการวิเคราะห์ความทับซ้อน
+                </>
               )}
-            </div>
+            </button>
 
-            {/* Map */}
-            <div className="flex-1 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden" style={{ height: 'calc(100vh - 200px)' }}>
-              <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%' }}>
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
+            <button
+              onClick={handleReset}
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: 'white',
+                color: '#64748b',
+                border: '1px solid #f1f5f9',
+                borderRadius: '16px',
+                fontWeight: '800',
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              <RotateCcw size={16} /> รีเซ็ตค่าการวิเคราะห์
+            </button>
 
-                {/* Draw overlapping areas */}
-                {analysisResult?.overlappingAreas.map((area, index) => (
-                  <Polygon
-                    key={index}
-                    positions={area.coordinates[0].map(([lng, lat]) => [lat, lng] as LatLngExpression)}
-                    pathOptions={{
-                      color: riskColors[area.riskLevel],
-                      fillColor: riskColors[area.riskLevel],
-                      fillOpacity: 0.3,
-                      weight: 2,
-                    }}
-                  >
-                    <Popup>
-                      <div className="p-2">
-                        <p className="font-bold text-gray-900 mb-2">พื้นที่ซ้ำซาก</p>
-                        <p className="text-sm text-gray-600">จำนวนเหตุการณ์: <strong>{area.incidentCount}</strong></p>
-                        <p className="text-sm text-gray-600">พื้นที่: <strong>{area.area.toFixed(2)}</strong> ตร.กม.</p>
-                        <p className="text-sm text-gray-600">ระดับ: <span className={`font-bold ${
-                          area.riskLevel === 'CRITICAL' ? 'text-red-600' :
-                          area.riskLevel === 'HIGH' ? 'text-orange-600' : 'text-yellow-600'
-                        }`}>{area.riskLevel}</span></p>
+            {analysisResult && (
+              <ExportAnalysisButton analysisResult={analysisResult} />
+            )}
+          </div>
+
+          {/* Results Summary */}
+          {analysisResult && (
+            <div style={{
+              background: 'white',
+              borderRadius: '24px',
+              padding: '24px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+              border: '1px solid #f1f5f9'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                <TrendingUp size={18} color="#8b5cf6" />
+                <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#1e293b' }}>รายงานสรุปผลลัพธ์</h3>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: '700', color: '#64748b' }}>คะแนนความเสี่ยง</span>
+                  <span style={{
+                    fontSize: '18px',
+                    fontWeight: '900',
+                    color: analysisResult.riskScore > 70 ? '#ef4444' : '#10b981'
+                  }}>
+                    {analysisResult.riskScore}
+                  </span>
+                </div>
+
+                <div style={{ padding: '4px' }}>
+                  <div style={{ fontSize: '12px', fontWeight: '800', color: '#475569', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Info size={14} /> คำแนะนำทางยุทธวิธี
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {analysisResult.recommendations.map((rec, idx) => (
+                      <div key={idx} style={{
+                        fontSize: '11px',
+                        lineHeight: 1.5,
+                        color: '#475569',
+                        padding: '10px',
+                        background: '#f0f9ff',
+                        borderRadius: '10px',
+                        borderLeft: '4px solid #0ea5e9',
+                        fontWeight: '600'
+                      }}>
+                        {rec}
                       </div>
-                    </Popup>
-                  </Polygon>
-                ))}
-              </MapContainer>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
+          )}
+        </div>
+
+        {/* --- ZONE 4: INTELLIGENCE VISUALIZER (MAP) --- */}
+        <div style={{
+          flex: 1,
+          background: 'white',
+          borderRadius: '32px',
+          boxShadow: '0 8px 30px rgba(0,0,0,0.04)',
+          border: '4px solid white',
+          position: 'relative',
+          overflow: 'hidden',
+          minHeight: '600px'
+        }}>
+          <MapContainer center={center} zoom={13} style={{ height: '100%', width: '100%', zIndex: 1 }}>
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+
+            {analysisResult?.overlappingAreas.map((area, index) => (
+              <Polygon
+                key={index}
+                positions={area.coordinates[0].map(([lng, lat]) => [lat, lng] as LatLngExpression)}
+                pathOptions={{
+                  color: riskColors[area.riskLevel],
+                  fillColor: riskColors[area.riskLevel],
+                  fillOpacity: 0.4,
+                  weight: 3,
+                  dashArray: '5, 10'
+                }}
+              >
+                <Popup>
+                  <div style={{
+                    padding: '8px',
+                    fontFamily: "'Sarabun', sans-serif",
+                    minWidth: '200px'
+                  }}>
+                    <div style={{
+                      fontSize: '11px',
+                      fontWeight: '900',
+                      color: riskColors[area.riskLevel],
+                      textTransform: 'uppercase',
+                      marginBottom: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <ShieldAlert size={12} /> พื้นที่ความทับซ้อนทางยุทธวิธี
+                    </div>
+                    <div style={{
+                      fontSize: '16px',
+                      fontWeight: '800',
+                      color: '#1e293b',
+                      marginBottom: '12px',
+                      lineHeight: 1.2
+                    }}>
+                      ตรวจพบระดับความเสี่ยง <span style={{ color: riskColors[area.riskLevel] }}>{area.riskLevel}</span>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                        <span style={{ color: '#64748b' }}>จำนวนเหตุการณ์พ่วง:</span>
+                        <span style={{ fontWeight: '800', color: '#1e293b' }}>{area.incidentCount}</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                        <span style={{ color: '#64748b' }}>ขนาดพื้นที่:</span>
+                        <span style={{ fontWeight: '800', color: '#1e293b' }}>{area.area.toFixed(2)} ตร.กม.</span>
+                      </div>
+                    </div>
+
+                    <div style={{
+                      marginTop: '12px',
+                      padding: '8px 12px',
+                      background: '#f8fafc',
+                      borderRadius: '8px',
+                      fontSize: '11px',
+                      fontWeight: '700',
+                      color: '#475569',
+                      border: '1px solid #f1f5f9'
+                    }}>
+                      ระบบแนะนำให้ขยายแผนการระวังภัยในพื้นที่นี้เป็นพิเศษ
+                    </div>
+                  </div>
+                </Popup>
+              </Polygon>
+            ))}
+          </MapContainer>
+
+          {/* Map Overlay Badge */}
+          <div style={{
+            position: 'absolute',
+            bottom: '24px',
+            right: '24px',
+            background: 'rgba(255,255,255,0.95)',
+            backdropFilter: 'blur(12px)',
+            padding: '12px 16px',
+            borderRadius: '16px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            zIndex: 1000,
+            border: '1px solid rgba(255,255,255,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}>
+            <div style={{ width: '10px', height: '10px', background: '#22c55e', borderRadius: '50%', boxShadow: '0 0 10px #22c55e' }}></div>
+            <span style={{ fontSize: '12px', fontWeight: '800', color: '#1e293b' }}>Geospatial Engine Active</span>
           </div>
         </div>
       </div>
+    </div>
   );
 };

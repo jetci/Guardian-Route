@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { weatherService, getWeatherDescription } from '../../services/weatherService';
 import type { WeatherData } from '../../services/weatherService';
+import { CloudRain, Wind, Droplets } from 'lucide-react';
 
 export const WeatherWidget = () => {
     const [weather, setWeather] = useState<WeatherData | null>(null);
@@ -22,16 +23,16 @@ export const WeatherWidget = () => {
 
     if (loading) {
         return (
-            <div className="bg-white rounded-xl shadow-sm p-6 h-full flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div style={{ background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '150px', width: '100%' }}>
+                <div className="animate-spin" style={{ width: '24px', height: '24px', border: '2px solid #e2e8f0', borderTopColor: '#2563eb', borderRadius: '50%' }}></div>
             </div>
         );
     }
 
     if (!weather) {
         return (
-            <div className="bg-white rounded-xl shadow-sm p-6 h-full flex items-center justify-center text-gray-500">
-                ไม่สามารถโหลดข้อมูลสภาพอากาศได้
+            <div style={{ background: 'white', padding: '16px', textAlign: 'center', color: '#64748b', fontSize: '13px' }}>
+                ไม่สามารถโหลดข้อมูล
             </div>
         );
     }
@@ -39,50 +40,63 @@ export const WeatherWidget = () => {
     const currentCondition = getWeatherDescription(weather.current.weatherCode);
 
     return (
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-sm p-6 text-white h-full relative overflow-hidden">
-            {/* Background Pattern */}
-            <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-white opacity-10 rounded-full blur-xl"></div>
-            <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-white opacity-10 rounded-full blur-xl"></div>
+        <div style={{
+            background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+            color: 'white',
+            position: 'relative',
+            overflow: 'hidden',
+            fontFamily: "'Sarabun', sans-serif",
+            height: '100%',
+            minHeight: '150px', // Reduced height for mobile
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
+        }}>
+            {/* Background Decor */}
+            <div style={{ position: 'absolute', top: '-20%', right: '-20%', width: '120px', height: '120px', background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%' }} />
 
-            <div className="relative z-10 h-full flex flex-col justify-between">
+            <div style={{ position: 'relative', zIndex: 10, padding: '16px' }}>
                 {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                     <div>
-                        <h3 className="text-lg font-bold">สภาพอากาศวันนี้</h3>
-                        <p className="text-sm opacity-90">ต.เวียง อ.ฝาง จ.เชียงใหม่</p>
-                    </div>
-                    <div className="text-left md:text-right">
-                        <div className="text-sm opacity-90">{new Date().toLocaleDateString('th-TH', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
+                        <h3 style={{ fontSize: '14px', fontWeight: '700', margin: 0, textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>สภาพอากาศวันนี้</h3>
+                        <p style={{ fontSize: '11px', margin: '2px 0 0', opacity: 0.9 }}>ต.เวียง อ.ฝาง จ.เชียงใหม่</p>
                     </div>
                 </div>
 
-                {/* Main Weather Info */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 my-4">
-                    <div className="flex items-center gap-4">
-                        <div className="text-6xl">{currentCondition.icon}</div>
+                {/* Main Content */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+
+                    {/* Left: Temp & Icon */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ fontSize: '42px', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' }}>
+                            {currentCondition.icon}
+                        </div>
                         <div>
-                            <div className="text-5xl font-bold tracking-tight">
+                            <div style={{ fontSize: '36px', fontWeight: '800', lineHeight: 1, textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                                 {Math.round(weather.current.temperature)}°
                             </div>
-                            <p className="text-lg font-medium opacity-90">{currentCondition.label}</p>
+                            <div style={{ fontSize: '13px', fontWeight: '500', opacity: 0.95 }}>
+                                {currentCondition.label}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Details */}
-                    <div className="flex flex-row md:flex-col gap-4 md:gap-2 text-sm bg-white/10 p-3 rounded-lg backdrop-blur-sm w-full md:w-auto justify-center md:justify-start">
-                        <div className="flex items-center gap-2">
-                            <span>💧</span>
-                            <span className="opacity-90">ความชื้น: {weather.current.humidity}%</span>
+                    {/* Right: Details */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', background: 'rgba(0,0,0,0.2)', padding: '4px 8px', borderRadius: '6px' }}>
+                            <Droplets size={12} color="#60a5fa" fill="#60a5fa" />
+                            <span>{weather.current.humidity}%</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <span>💨</span>
-                            <span className="opacity-90">ลม: {weather.current.windSpeed} km/h</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', background: 'rgba(0,0,0,0.2)', padding: '4px 8px', borderRadius: '6px' }}>
+                            <Wind size={12} color="#a5b4fc" />
+                            <span>{weather.current.windSpeed} km/h</span>
                         </div>
                     </div>
                 </div>
 
-                {/* 3-Day Forecast */}
-                <div className="grid grid-cols-3 gap-2 pt-4 border-t border-white/20">
+                {/* Forecast - Tiny Version */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '4px', marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: '8px' }}>
                     {weather.daily.time.slice(1, 4).map((date, index) => {
                         const code = weather.daily.weatherCode[index + 1];
                         const maxTemp = weather.daily.maxTemp[index + 1];
@@ -91,18 +105,19 @@ export const WeatherWidget = () => {
                         const dayName = new Date(date).toLocaleDateString('th-TH', { weekday: 'short' });
 
                         return (
-                            <div key={date} className="flex flex-col items-center p-2 rounded-lg hover:bg-white/5 transition-colors">
-                                <span className="text-sm font-medium opacity-90">{dayName}</span>
-                                <span className="text-2xl my-1">{condition.icon}</span>
-                                <div className="text-sm">
-                                    <span className="font-bold">{Math.round(maxTemp)}°</span>
-                                    <span className="mx-1 opacity-60">/</span>
-                                    <span className="opacity-80">{Math.round(minTemp)}°</span>
+                            <div key={date} style={{ textAlign: 'center', flex: 1 }}>
+                                <div style={{ fontSize: '10px', fontWeight: '600', opacity: 0.9 }}>{dayName}</div>
+                                <div style={{ fontSize: '16px', margin: '2px 0' }}>{condition.icon}</div>
+                                <div style={{ fontSize: '10px' }}>
+                                    <span style={{ fontWeight: '700' }}>{Math.round(maxTemp)}°</span>
+                                    <span style={{ opacity: 0.7 }}>/</span>
+                                    <span style={{ opacity: 0.9 }}>{Math.round(minTemp)}°</span>
                                 </div>
                             </div>
                         );
                     })}
                 </div>
+
             </div>
         </div>
     );

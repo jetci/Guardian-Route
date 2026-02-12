@@ -23,8 +23,10 @@ async function main() {
         alternateNames: villageData.alternateNames,
         area: villageData.area,
         description: villageData.description,
+        // Update coordinates to fix missing data issues
+        centerPoint: villageData.centerPoint,
+        boundary: villageData.boundary as any,
         // DO NOT UPDATE: households, population, populationMale, populationFemale
-        // DO NOT UPDATE: centerPoint, boundary (user may have corrected these)
       },
       create: {
         villageNo: villageData.villageNo,

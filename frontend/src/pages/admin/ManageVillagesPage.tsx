@@ -414,10 +414,9 @@ export default function ManageVillagesPage() {
                       value={formData.province}
                       onChange={(e) => setFormData({ ...formData, province: e.target.value })}
                       required
+                      disabled={editingVillage !== null}
                     >
                       <option value="เชียงใหม่">เชียงใหม่</option>
-                      <option value="เชียงราย">เชียงราย</option>
-                      <option value="ลำปาง">ลำปาง</option>
                     </select>
                   </div>
 
@@ -427,10 +426,9 @@ export default function ManageVillagesPage() {
                       value={formData.district}
                       onChange={(e) => setFormData({ ...formData, district: e.target.value })}
                       required
+                      disabled={editingVillage !== null}
                     >
                       <option value="ฝาง">ฝาง</option>
-                      <option value="เมือง">เมือง</option>
-                      <option value="แม่อาย">แม่อาย</option>
                     </select>
                   </div>
 
@@ -440,10 +438,9 @@ export default function ManageVillagesPage() {
                       value={formData.subdistrict}
                       onChange={(e) => setFormData({ ...formData, subdistrict: e.target.value })}
                       required
+                      disabled={editingVillage !== null}
                     >
                       <option value="เวียง">เวียง</option>
-                      <option value="แม่ข่า">แม่ข่า</option>
-                      <option value="สันทราย">สันทราย</option>
                     </select>
                   </div>
 

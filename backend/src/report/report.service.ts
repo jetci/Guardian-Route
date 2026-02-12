@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { PdfGeneratorService } from './pdf-generator.service'; // ✅ Enabled
+import { Optional } from '@nestjs/common';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { CreateReportDto } from './dto/create-report.dto';
@@ -19,7 +20,7 @@ import { ReportStatus, ReportType, Role } from '@prisma/client';
 export class ReportService {
   constructor(
     private prisma: PrismaService,
-    private pdfGeneratorService: PdfGeneratorService, // ✅ Enabled
+    @Optional() private pdfGeneratorService?: PdfGeneratorService, // optional for tests
   ) { }
 
   /**
@@ -430,6 +431,9 @@ export class ReportService {
       });
 
       // Generate PDF using PdfGeneratorService
+      if (!this.pdfGeneratorService) {
+        throw new Error('PdfGeneratorService not available');
+      }
       const pdfBuffer = await this.pdfGeneratorService.generateReportPdf(report);
 
       // Save PDF to file system

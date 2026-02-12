@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UploadService } from './upload.service';
+import { MalwareScannerService } from './malware-scanner.service';
 import { BadRequestException } from '@nestjs/common';
 
 // Mock uuid to avoid ES module issues
@@ -20,8 +21,15 @@ describe('UploadService', () => {
     let service: UploadService;
 
     beforeEach(async () => {
+        const mockMalwareScanner = {
+            scanBuffer: jest.fn().mockResolvedValue({ isInfected: false, viruses: [] }),
+        };
+
         const module: TestingModule = await Test.createTestingModule({
-            providers: [UploadService],
+            providers: [
+                UploadService,
+                { provide: MalwareScannerService, useValue: mockMalwareScanner },
+            ],
         }).compile();
 
         service = module.get<UploadService>(UploadService);

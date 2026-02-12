@@ -22,7 +22,7 @@ export interface IncidentFormData {
   notes: string;
   latitude: number | null;
   longitude: number | null;
-  polygonData: any;
+  polygonData: Record<string, any> | null;
   markersCount?: number; // [NEW] Number of markers placed on map
   incidentDate: Date | null;
 }
@@ -160,7 +160,7 @@ export function getAllErrors(errors: IncidentValidationErrors): string[] {
  */
 export function validateField(
   fieldName: keyof IncidentFormData,
-  value: any,
+  value: string | number | boolean | Date | null | Record<string, any>,
   allData: Partial<IncidentFormData>
 ): string | undefined {
   const tempData: IncidentFormData = {

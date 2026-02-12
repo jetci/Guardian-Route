@@ -559,14 +559,14 @@ export function InitialSurveyPage() {
         villageBoundaryLayerRef.current = null;
       }
 
-      map.setView([19.9422, 99.2195], 13);
+      map.setView([19.9169, 99.2145], 13);
     }
   }, [village, villages]);
 
   // Initialize map
   useEffect(() => {
     if (!mapRef.current) {
-      const map = L.map('survey-map').setView([19.9422, 99.2195], 13);
+      const map = L.map('survey-map').setView([19.9169, 99.2145], 13);
 
       const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors'

@@ -29,81 +29,81 @@ export default function HeatmapVisualization({ height = '400px' }: HeatmapVisual
       [20.02, 99.25, 0.9],
       [20.025, 99.252, 0.85],
       [20.018, 99.248, 0.8],
-      
+
       // ป่าบง (high density - central)
       [19.95, 99.28, 0.9],
       [19.952, 99.282, 0.85],
       [19.948, 99.278, 0.8],
-      
+
       // หนองอึ่ง/เวียงสุทโธ (medium-high density)
       [19.92, 99.30, 0.75],
       [19.922, 99.302, 0.7],
-      
+
       // สวนดอก (medium density)
       [19.88, 99.32, 0.65],
       [19.882, 99.322, 0.6],
-      
+
       // ต้นหนุน (medium density - eastern)
       [19.90, 99.35, 0.65],
       [19.902, 99.352, 0.6],
-      
+
       // สันทรายคองน้อย (medium density)
       [19.85, 99.28, 0.6],
       [19.852, 99.282, 0.55],
-      
+
       // แม่ใจใต้ (medium-high density)
       [19.93, 99.20, 0.7],
       [19.932, 99.202, 0.65],
-      
+
       // แม่ใจเหนือ (medium density)
       [19.98, 99.18, 0.6],
       [19.982, 99.182, 0.55],
-      
+
       // สันป่าไหน (high density - western)
       [19.96, 99.12, 0.85],
       [19.962, 99.122, 0.8],
       [19.958, 99.118, 0.75],
-      
+
       // สันป่ายาง (medium density)
       [19.87, 99.15, 0.6],
       [19.872, 99.152, 0.55],
-      
+
       // ท่าสะแล (medium-high density - southern)
       [19.82, 99.22, 0.7],
       [19.822, 99.222, 0.65],
-      
+
       // โป่งถืบ (high density)
       [19.94, 99.25, 0.85],
       [19.942, 99.252, 0.8],
-      
+
       // ห้วยบอน (medium density)
       [19.86, 99.25, 0.6],
       [19.862, 99.252, 0.55],
-      
+
       // เสาหิน (low-medium density)
       [19.80, 99.30, 0.5],
       [19.802, 99.302, 0.45],
-      
+
       // โป่งถืบใน (medium density)
       [19.91, 99.23, 0.6],
       [19.912, 99.232, 0.55],
-      
+
       // ปางผึ้ง (low-medium density - eastern edge)
       [19.89, 99.36, 0.5],
       [19.892, 99.362, 0.45],
-      
+
       // ใหม่คองน้อย (medium density)
       [19.84, 99.26, 0.6],
       [19.842, 99.262, 0.55],
-      
+
       // ศรีดอนชัย (low-medium density)
       [19.81, 99.28, 0.5],
       [19.812, 99.282, 0.45],
-      
+
       // ใหม่ชยาราม (medium density)
       [19.88, 99.24, 0.6],
       [19.882, 99.242, 0.55],
-      
+
       // สระนิคม (low-medium density - southern edge)
       [19.79, 99.25, 0.5],
       [19.792, 99.252, 0.45],
@@ -186,56 +186,14 @@ export default function HeatmapVisualization({ height = '400px' }: HeatmapVisual
   }, []);
 
   return (
-    <div style={{
-      background: 'white',
-      padding: '30px',
-      borderRadius: '16px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-      border: '1px solid #e2e8f0'
-    }}>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: '20px' 
-      }}>
-        <div>
-          <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', color: '#1a202c' }}>
-            🗺️ แผนที่ความหนาแน่น
-          </h3>
-          <p style={{ margin: 0, fontSize: '13px', color: '#718096' }}>
-            ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่ (20 หมู่บ้าน)
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '16px', fontSize: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ width: '16px', height: '16px', background: '#3b82f6', borderRadius: '3px' }} />
-            <span style={{ color: '#718096' }}>ต่ำ</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ width: '16px', height: '16px', background: '#10b981', borderRadius: '3px' }} />
-            <span style={{ color: '#718096' }}>ปานกลาง</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ width: '16px', height: '16px', background: '#f59e0b', borderRadius: '3px' }} />
-            <span style={{ color: '#718096' }}>สูง</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <div style={{ width: '16px', height: '16px', background: '#ef4444', borderRadius: '3px' }} />
-            <span style={{ color: '#718096' }}>สูงมาก</span>
-          </div>
-        </div>
-      </div>
-      <div 
-        ref={mapRef} 
-        style={{ 
-          height, 
-          width: '100%', 
-          borderRadius: '12px',
-          overflow: 'hidden',
-          border: '1px solid #e2e8f0'
-        }} 
-      />
-    </div>
+    <div
+      ref={mapRef}
+      style={{
+        height,
+        width: '100%',
+        borderRadius: '20px',
+        overflow: 'hidden'
+      }}
+    />
   );
 }

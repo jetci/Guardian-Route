@@ -24,6 +24,9 @@ describe('IncidentsService', () => {
     user: {
       findUnique: jest.fn(),
     },
+    village: {
+      findUnique: jest.fn(),
+    },
   };
 
   const mockActivityLogService = {
@@ -74,6 +77,8 @@ describe('IncidentsService', () => {
         ...createDto,
         createdById: 'user-1',
       });
+
+      mockPrisma.village.findUnique.mockResolvedValue({ id: 'village-1' });
 
       const result = await service.create(createDto, 'user-1');
 

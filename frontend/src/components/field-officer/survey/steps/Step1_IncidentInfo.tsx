@@ -7,6 +7,7 @@ import { type SurveyData } from '../../../../types/survey';
 import { TAMBON_INFO } from '../../../../data/villages';
 import { villagesApi } from '../../../../api/villages';
 import toast from 'react-hot-toast';
+import { MapPin, Calendar, AlertTriangle, Info, ImagePlus, X } from 'lucide-react';
 
 interface Props {
     data: SurveyData;
@@ -56,7 +57,6 @@ export default function Step1_IncidentInfo({ data, updateData }: Props) {
                   <span style="font-size: 18px; line-height: 1;">⛶</span>
                 </a>
               `;
-
             div.onclick = function (e: any) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -65,9 +65,7 @@ export default function Step1_IncidentInfo({ data, updateData }: Props) {
                     if (!document.fullscreenElement) {
                         mapContainer.requestFullscreen().then(() => {
                             setTimeout(() => map.invalidateSize(), 100);
-                        }).catch(err => {
-                            console.error('Error attempting to enable fullscreen:', err);
-                        });
+                        }).catch(err => console.error('Error attempting to enable fullscreen:', err));
                     } else {
                         document.exitFullscreen().then(() => {
                             setTimeout(() => map.invalidateSize(), 100);
@@ -75,7 +73,6 @@ export default function Step1_IncidentInfo({ data, updateData }: Props) {
                     }
                 }
             };
-
             return div;
         };
         fullscreenControl.addTo(map);
@@ -84,7 +81,6 @@ export default function Step1_IncidentInfo({ data, updateData }: Props) {
         const CancelDrawControl = L.Control.extend({
             onAdd: function () {
                 const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control cancel-draw-control');
-
                 const button = L.DomUtil.create('button', 'cancel-draw-btn', container);
                 button.innerHTML = `
             <span style="font-size: 20px;">❌</span>
@@ -92,90 +88,47 @@ export default function Step1_IncidentInfo({ data, updateData }: Props) {
           `;
                 button.title = 'ยกเลิกการวาด (กด ESC)';
                 button.style.cssText = `
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            cursor: pointer;
-            border-radius: 4px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            font-family: 'Sarabun', sans-serif;
-            display: none;
-            align-items: center;
-            gap: 6px;
-            font-weight: 500;
+            background: #ef4444; color: white; border: none; padding: 10px 16px;
+            cursor: pointer; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            font-family: 'Sarabun', sans-serif; display: none; align-items: center;
+            gap: 6px; font-weight: 500;
           `;
-
                 L.DomEvent.on(button, 'click', function (e) {
                     L.DomEvent.preventDefault(e);
                     L.DomEvent.stopPropagation(e);
-
-                    console.log('🔴 Cancel button clicked');
                     map.pm.disableDraw();
                     button.style.display = 'none';
                     toast('ยกเลิกการวาด', { icon: 'ℹ️' });
                 });
 
-                // Show/hide button based on draw mode
-                map.on('pm:drawstart', () => {
-                    button.style.display = 'flex';
-                });
-
-                map.on('pm:drawend', () => {
-                    button.style.display = 'none';
-                });
-
-                // Also hide when draw mode is disabled
-                map.on('pm:globaldrawmodetoggled', (e: any) => {
-                    if (!e.enabled) {
-                        button.style.display = 'none';
-                    }
-                });
-
+                map.on('pm:drawstart', () => { button.style.display = 'flex'; });
+                map.on('pm:drawend', () => { button.style.display = 'none'; });
+                map.on('pm:globaldrawmodetoggled', (e: any) => { if (!e.enabled) button.style.display = 'none'; });
                 return container;
             }
         });
-
         map.addControl(new CancelDrawControl({ position: 'topright' }));
 
         // Add Geoman controls
         map.pm.addControls({
             position: 'topleft',
-            drawCircle: false,
-            drawCircleMarker: false,
-            drawPolyline: false,
-            drawRectangle: true,
-            drawPolygon: true,
-            drawMarker: true,
-            editMode: true,
-            dragMode: true,
-            cutPolygon: true,
-            removalMode: true,
-            rotateMode: true,
+            drawCircle: false, drawCircleMarker: false, drawPolyline: false,
+            drawRectangle: true, drawPolygon: true, drawMarker: true,
+            editMode: true, dragMode: true, cutPolygon: true,
+            removalMode: true, rotateMode: true,
         });
-
         map.pm.setGlobalOptions({ layerGroup: drawnItems });
 
         // Handle Draw Events
         map.on('pm:create', (e: any) => {
             const layer = e.layer;
-
-            // If Marker (GPS Location)
             if (layer instanceof L.Marker) {
                 const { lat, lng } = layer.getLatLng();
                 updateData({ gpsLocation: { lat, lng } });
-
-                // Remove other markers (single point only for now, or keep multiple if needed)
-                // For this requirement, let's assume one main location, but we can support multiple if needed.
-                // If we want single marker:
                 map.eachLayer((l: any) => {
-                    if (l instanceof L.Marker && l !== layer) {
-                        map.removeLayer(l);
-                    }
+                    if (l instanceof L.Marker && l !== layer) map.removeLayer(l);
                 });
             }
-
-            // If Polygon (Area)
             if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
                 const geojson = layer.toGeoJSON();
                 updateData({ polygon: geojson });
@@ -183,17 +136,21 @@ export default function Step1_IncidentInfo({ data, updateData }: Props) {
         });
 
         map.on('pm:remove', (e: any) => {
-            // Clear data if removed
-            // This is tricky if multiple layers. For now, simple logic.
-            if (e.layer instanceof L.Marker) {
-                updateData({ gpsLocation: null });
-            }
-            if (e.layer instanceof L.Polygon) {
-                updateData({ polygon: null });
-            }
+            if (e.layer instanceof L.Marker) updateData({ gpsLocation: null });
+            if (e.layer instanceof L.Polygon) updateData({ polygon: null });
         });
 
         mapInstanceRef.current = map;
+
+        // Force map update after render to fix grey area issue
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 100);
+
+        // Another update just in case with transition
+        setTimeout(() => {
+            map.invalidateSize();
+        }, 500);
 
         return () => {
             map.remove();
@@ -201,26 +158,21 @@ export default function Step1_IncidentInfo({ data, updateData }: Props) {
         };
     }, []);
 
-    // Sync Data to Map (if returning to step)
+    // Sync Data to Map
     useEffect(() => {
         const map = mapInstanceRef.current;
         const drawnItems = drawnItemsRef.current;
         if (!map || !drawnItems) return;
 
-        // Clear existing to avoid dupes
         drawnItems.clearLayers();
-
         if (data.gpsLocation) {
             L.marker([data.gpsLocation.lat, data.gpsLocation.lng]).addTo(drawnItems);
             map.setView([data.gpsLocation.lat, data.gpsLocation.lng], 15);
         }
-
         if (data.polygon) {
-            L.geoJSON(data.polygon).eachLayer((l: any) => {
-                l.addTo(drawnItems);
-            });
+            L.geoJSON(data.polygon).eachLayer((l: any) => l.addTo(drawnItems));
         }
-    }, [data.gpsLocation, data.polygon]); // Only run if these change externally or on mount
+    }, [data.gpsLocation, data.polygon]);
 
     // Display Village Boundary
     useEffect(() => {
@@ -229,24 +181,18 @@ export default function Step1_IncidentInfo({ data, updateData }: Props) {
 
         const village = villages.find(v => v.id.toString() === data.villageId);
         if (village && village.boundary) {
-            // Remove old boundary
             map.eachLayer((l: any) => {
-                if (l.options?.className === 'village-boundary') {
-                    map.removeLayer(l);
-                }
+                if (l.options?.className === 'village-boundary') map.removeLayer(l);
             });
-
-            // Add new boundary
             const boundaryLayer = L.geoJSON({
                 type: 'Feature',
                 geometry: {
                     type: 'Polygon',
-                    coordinates: [village.boundary.map((c: any) => [c[1], c[0]])] // Swap lat/lng if needed
+                    coordinates: [village.boundary.map((c: any) => [c[1], c[0]])]
                 }
             } as any, {
                 style: { color: 'orange', fillOpacity: 0.1, weight: 2, dashArray: '5,5' },
-                className: 'village-boundary',
-                interactive: false
+                className: 'village-boundary', interactive: false
             } as any).addTo(map);
 
             if (!data.gpsLocation && !data.polygon) {
@@ -270,77 +216,111 @@ export default function Step1_IncidentInfo({ data, updateData }: Props) {
     const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const files = Array.from(e.target.files);
-            // In a real app, upload immediately or store File objects. 
-            // For now, let's assume we store object URLs for preview and upload later, 
-            // OR we reuse the logic from SurveyAreaPage to upload immediately.
-            // Let's store object URLs for now to keep it simple in UI, but we need to handle upload in Step 8 or here.
-            // Better to upload here if possible, or store File[] in SurveyData (need to update type).
-            // For this demo, let's just show previews.
             const newUrls = files.map(f => URL.createObjectURL(f));
             updateData({ photoUrls: [...data.photoUrls, ...newUrls] });
         }
     };
 
     return (
-        <div className="space-y-6">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', fontFamily: "'Sarabun', sans-serif" }}>
             {/* Read-only Info */}
-            <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                <h3 className="font-bold text-blue-800 mb-2">ข้อมูลงาน</h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                        <span className="text-gray-500 block">หมู่บ้าน</span>
-                        <span className="font-medium">{data.villageName}</span>
+            <div style={{
+                background: '#eff6ff',
+                borderRadius: '16px',
+                padding: '20px',
+                border: '1px solid #dbeafe',
+                boxShadow: '0 2px 6px rgba(37, 99, 235, 0.05)'
+            }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#1e40af', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Info size={18} /> ข้อมูลภารกิจ
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px' }}>
+                    <div style={{ background: 'white', padding: '12px', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
+                        <span style={{ fontSize: '13px', color: '#64748b', display: 'block', marginBottom: '4px' }}>หมู่บ้าน</span>
+                        <span style={{ fontSize: '15px', fontWeight: '600', color: '#1e293b' }}>{data.villageName || '-'}</span>
                     </div>
-                    <div>
-                        <span className="text-gray-500 block">ประเภทภัย</span>
-                        <span className="font-medium">{data.disasterType}</span>
+                    <div style={{ background: 'white', padding: '12px', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
+                        <span style={{ fontSize: '13px', color: '#64748b', display: 'block', marginBottom: '4px' }}>ประเภทภัย</span>
+                        <span style={{ fontSize: '15px', fontWeight: '600', color: '#1e293b' }}>{data.disasterType || '-'}</span>
                     </div>
-                    <div>
-                        <span className="text-gray-500 block">วันที่สำรวจ</span>
-                        <span className="font-medium">{new Date(data.surveyDate).toLocaleDateString('th-TH')}</span>
+                    <div style={{ gridColumn: '1 / -1', background: 'white', padding: '12px', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
+                        <span style={{ fontSize: '13px', color: '#64748b', display: 'block', marginBottom: '4px' }}>วันที่สำรวจ</span>
+                        <span style={{ fontSize: '15px', fontWeight: '600', color: '#1e293b' }}>{new Date(data.surveyDate).toLocaleDateString('th-TH')}</span>
                     </div>
                 </div>
             </div>
 
             {/* Map */}
-            <div className="space-y-2">
-                <label className="font-bold text-gray-700">ระบุพิกัด/ขอบเขตพื้นที่ *</label>
-                <div className="relative h-[400px] rounded-xl overflow-hidden border border-gray-300">
-                    <div ref={mapRef} className="w-full h-full" />
+            <div>
+                <label style={{ display: 'block', fontSize: '15px', fontWeight: '700', color: '#334155', marginBottom: '8px' }}>
+                    ระบุพิกัด/ขอบเขตพื้นที่ <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <div style={{
+                    position: 'relative', height: '600px', borderRadius: '20px', overflow: 'hidden',
+                    border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                }}>
+                    <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
                     <button
                         onClick={getCurrentLocation}
-                        className="absolute top-4 right-4 z-[400] bg-white p-3 rounded-full shadow-lg text-blue-600 hover:bg-blue-50"
-                        title="ตำแหน่งปัจจุบัน"
+                        style={{
+                            position: 'absolute', top: '16px', right: '16px', zIndex: 400,
+                            background: 'white', padding: '10px 14px', borderRadius: '12px',
+                            border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', cursor: 'pointer',
+                            color: '#2563eb', fontWeight: '700', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px',
+                            transition: 'transform 0.1s'
+                        }}
                     >
-                        📍
+                        <MapPin size={16} /> พิกัดฉัน
                     </button>
+                    <div style={{
+                        position: 'absolute', bottom: '16px', left: '16px', zIndex: 400,
+                        background: 'rgba(255,255,255,0.9)', padding: '8px 12px', borderRadius: '8px',
+                        fontSize: '12px', color: '#475569', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.5)'
+                    }}>
+                        ใช้เครื่องมือทางซ้ายบนเพื่อปักหมุดหรือวาดพื้นที่
+                    </div>
                 </div>
-                <p className="text-xs text-gray-500">
-                    ใช้เครื่องมือทางซ้ายบนของแผนที่เพื่อปักหมุด (Marker) หรือวาดขอบเขต (Polygon)
-                </p>
             </div>
 
             {/* Photos */}
-            <div className="space-y-2">
-                <label className="font-bold text-gray-700">รูปถ่ายสถานการณ์</label>
-                <div className="grid grid-cols-4 gap-2">
+            <div>
+                <label style={{ display: 'block', fontSize: '15px', fontWeight: '700', color: '#334155', marginBottom: '8px' }}>
+                    รูปถ่ายสถานการณ์
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: '12px' }}>
                     {data.photoUrls.map((url, idx) => (
-                        <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border">
-                            <img src={url} alt="preview" className="w-full h-full object-cover" />
+                        <div key={idx} style={{
+                            position: 'relative', aspectRatio: '1/1', borderRadius: '16px', overflow: 'hidden',
+                            border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                        }}>
+                            <img src={url} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             <button
                                 onClick={() => {
                                     const newUrls = data.photoUrls.filter((_, i) => i !== idx);
                                     updateData({ photoUrls: newUrls });
                                 }}
-                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                                style={{
+                                    position: 'absolute', top: '4px', right: '4px',
+                                    background: 'rgba(239, 68, 68, 0.9)', color: 'white',
+                                    borderRadius: '50%', width: '24px', height: '24px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    border: 'none', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                }}
                             >
-                                ×
+                                <X size={14} />
                             </button>
                         </div>
                     ))}
-                    <label className="aspect-square rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-50">
-                        <span className="text-2xl">+</span>
-                        <input type="file" multiple accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                    <label style={{
+                        aspectRatio: '1/1', borderRadius: '16px',
+                        border: '2px dashed #cbd5e1',
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', background: '#f8fafc', color: '#94a3b8',
+                        transition: 'all 0.2s'
+                    }}>
+                        <ImagePlus size={24} style={{ marginBottom: '4px' }} />
+                        <span style={{ fontSize: '12px', fontWeight: '600' }}>เพิ่มรูป</span>
+                        <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handlePhotoUpload} />
                     </label>
                 </div>
             </div>

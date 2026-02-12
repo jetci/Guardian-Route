@@ -13,6 +13,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage').then(module => ({ defau
 const UnauthorizedPage = lazy(() => import('./pages/auth/UnauthorizedPage').then(module => ({ default: module.UnauthorizedPage })));
 const AdminDashboardV2 = lazy(() => import('./pages/admin/AdminDashboardV2'));
 const SupervisorDashboard = lazy(() => import('./pages/supervisor/SupervisorDashboard').then(module => ({ default: module.SupervisorDashboard })));
+const SupervisorDashboardPremium = lazy(() => import('./pages/supervisor/SupervisorDashboardPremium'));
 const SupervisorDashboardV5Test = lazy(() => import('./pages/supervisor/SupervisorDashboardV5_NO_LAYOUT'));
 const FieldOfficerDashboardNew = lazy(() => import('./pages/field-officer/FieldOfficerDashboard'));
 const ExecutiveDashboardNew = lazy(() => import('./pages/executive/ExecutiveDashboard'));
@@ -224,7 +225,7 @@ function App() {
                     path="/dashboard/supervisor"
                     element={
                       <ProtectedRoute allowedRoles={['DEVELOPER', 'SUPERVISOR']}>
-                        <SupervisorDashboard key="v5-2026-01-23" />
+                        <SupervisorDashboardPremium />
                       </ProtectedRoute>
                     }
                   />
@@ -437,30 +438,12 @@ function App() {
                       </ProtectedRoute>
                     }
                   />
-                  {/* Supervisor Dashboard V5 - TEST ROUTE (NO LAYOUT) */}
-                  <Route
-                    path="/test-v5"
-                    element={
-                      <ProtectedRoute allowedRoles={['DEVELOPER', 'SUPERVISOR']}>
-                        <SupervisorDashboardV5Test />
-                      </ProtectedRoute>
-                    }
-                  />
-                  {/* Supervisor Dashboard V5 - TEST ROUTE */}
-                  <Route
-                    path="/supervisor-v5"
-                    element={
-                      <ProtectedRoute allowedRoles={['DEVELOPER', 'SUPERVISOR']}>
-                        <SupervisorDashboard key="v5-test" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  {/* Supervisor Dashboard V5 - Alternative route (same as /dashboard/supervisor) */}
+                  {/* Supervisor Dashboard Premium Route */}
                   <Route
                     path="/supervisor"
                     element={
                       <ProtectedRoute allowedRoles={['DEVELOPER', 'SUPERVISOR']}>
-                        <SupervisorDashboard key="v5-2026-01-23" />
+                        <SupervisorDashboardPremium />
                       </ProtectedRoute>
                     }
                   />

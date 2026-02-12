@@ -1,27 +1,35 @@
 /**
- * Field Officer Dashboard
- * แดชบอร์ดสำหรับเจ้าหน้าที่ภาคสนาม
+ * Field Officer Dashboard - Mobile First "ActionOS"
+ * Optimized for Touch, Sunlight Readability, and Speed
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '../../components/layout/DashboardLayout';
 import { WeatherWidget } from '../../components/dashboard/WeatherWidget';
-import { LoadingSpinner, EmptyState } from '../../components/common';
 import toast from 'react-hot-toast';
-import { formatThaiDateShort } from '../../utils/dateFormatter';
 import { TAMBON_INFO } from '../../data/villages';
 import { tasksApi } from '../../api/tasks';
 import { useAuthStore } from '../../stores/authStore';
-import { TASK_STATUS, TASK_STATUS_LABELS, TASK_STATUS_COLORS } from '../../constants/taskStatus';
 import type { Task as ApiTask } from '../../types';
-import './FieldOfficerDashboard.css';
-
-// Using types from API
+import {
+  MapPin,
+  Calendar,
+  ChevronRight,
+  AlertCircle,
+  ClipboardList,
+  CheckCircle2,
+  Clock,
+  Flame,
+  Navigation
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function FieldOfficerDashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [refreshKey, setRefreshKey] = useState(0);
   const [stats, setStats] = useState({
     myTasks: 0,
     acceptedTasks: 0,
@@ -29,354 +37,335 @@ export default function FieldOfficerDashboard() {
     reportsSubmitted: 0
   });
   const [tasks, setTasks] = useState<ApiTask[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+  }, [refreshKey]);
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-
-
-      // Fetch my tasks from API
       const myTasks = await tasksApi.getMyTasks();
-      console.log('✅ Loaded tasks from API:', myTasks.length);
 
-      // Filter only active tasks (exclude completed)
+      // Active tasks logic
       const activeTasks = myTasks.filter(t =>
         t.status === 'PENDING' ||
         t.status === 'IN_PROGRESS' ||
         t.status === 'SURVEYED'
       );
 
-      // Sort by created date (newest first) and take latest 6
       const sortedTasks = activeTasks
         .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-        .slice(0, 6);
+        .slice(0, 10); // Show more on mobile stream
 
       setTasks(sortedTasks);
 
-      // Calculate stats from real data
-      // Note: acceptedTasks = IN_PROGRESS + SURVEYED (tasks that are being worked on)
       setStats({
         myTasks: myTasks.length,
-        acceptedTasks: myTasks.filter(t =>
-          t.status === 'IN_PROGRESS' || t.status === 'SURVEYED'
-        ).length,
+        acceptedTasks: myTasks.filter(t => t.status === 'IN_PROGRESS' || t.status === 'SURVEYED').length,
         completedTasks: myTasks.filter(t => t.status === 'COMPLETED').length,
         reportsSubmitted: myTasks.filter(t => t.completedAt).length
       });
 
-      toast.success('โหลดข้อมูลสำเร็จ');
-    } catch (error: any) {
-      console.error('❌ Failed to load dashboard data:', error);
-
-      // Better error handling with retry option
-      const errorMessage = error.response?.data?.message || 'ไม่สามารถโหลดข้อมูลได้';
-
-      toast.error(
-        (t) => (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <span>{errorMessage}</span>
-            <button
-              onClick={() => {
-                toast.dismiss(t.id);
-                loadDashboardData();
-              }}
-              style={{
-                padding: '6px 12px',
-                background: '#3b82f6',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '600'
-              }}
-            >
-              🔄 ลองใหม่
-            </button>
-          </div>
-        ),
-        { duration: 5000 }
-      );
+    } catch (error) {
+      console.error('Failed', error);
+      toast.error('โหลดข้อมูลไม่สำเร็จ');
     } finally {
       setLoading(false);
     }
   };
 
-  // ✅ Memoize helper functions to prevent recreating on every render
-  const getPriorityColor = useCallback((priority: string) => {
-    switch (priority) {
-      case 'URGENT': return 'red';
-      case 'HIGH': return 'red';
-      case 'MEDIUM': return 'orange';
-      case 'LOW': return 'green';
-      default: return 'gray';
-    }
-  }, []);
+  // --- MOBILE COMPONENT: ACTION BUTTON ---
+  const ActionButton = ({ icon: Icon, label, subLabel, colorStart, colorEnd, onClick }: any) => (
+    <motion.button
+      whileTap={{ scale: 0.96 }}
+      onClick={onClick}
+      style={{
+        flex: 1,
+        cursor: 'pointer',
+        background: `linear-gradient(135deg, ${colorStart} 0%, ${colorEnd} 100%)`,
+        borderRadius: '20px',
+        padding: '24px 16px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: `0 10px 20px -5px ${colorStart}60`,
+        color: 'white',
+        position: 'relative',
+        overflow: 'hidden',
+        minHeight: '140px',
+        border: 'none', // Reset button style
+        outline: 'none', // Reset focus style preference
+        fontFamily: 'inherit'
+      }}
+    >
+      <div style={{
+        position: 'absolute', top: -20, right: -20, width: 80, height: 80,
+        background: 'rgba(255,255,255,0.1)', borderRadius: '50%'
+      }} />
+      <Icon size={36} style={{ marginBottom: '12px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
+      <span style={{ fontSize: '18px', fontWeight: '800', lineHeight: 1.2, marginBottom: '4px', textShadow: '0 1px 2px rgba(0,0,0,0.1)' }}>{label}</span>
+      <span style={{ fontSize: '12px', fontWeight: '500', opacity: 0.9 }}>{subLabel}</span>
+    </motion.button>
+  );
 
-  const getStatusColor = useCallback((status: string) => {
-    switch (status) {
-      case 'PENDING': return 'gray';
-      case 'IN_PROGRESS': return 'orange';
-      case 'SURVEYED': return 'blue';
-      case 'COMPLETED': return 'green';
-      case 'CANCELLED': return 'red';
-      // Legacy statuses
-      case 'ACCEPTED': return 'blue';
-      case 'SUBMITTED': return 'blue';
-      case 'APPROVED': return 'green';
-      case 'REJECTED': return 'red';
-      case 'DRAFT': return 'gray';
-      default: return 'gray';
-    }
-  }, []);
-
-  const getStatusLabel = useCallback((status: string) => {
-    const labels: Record<string, string> = {
-      'PENDING': 'รอดำเนินการ',
-      'IN_PROGRESS': 'กำลังดำเนินการ',
-      'SURVEYED': 'สำรวจเสร็จแล้ว',
-      'COMPLETED': 'เสร็จสิ้น',
-      'CANCELLED': 'ยกเลิก',
-      // Legacy statuses (for backward compatibility)
-      'ACCEPTED': 'รับงานแล้ว',
-      'SUBMITTED': 'ส่งแล้ว',
-      'APPROVED': 'อนุมัติแล้ว',
-      'REJECTED': 'ปฏิเสธ',
-      'DRAFT': 'แบบร่าง'
+  // --- MOBILE COMPONENT: TASK CARD (REFINED) ---
+  const TaskCard = ({ task }: { task: ApiTask }) => {
+    const getStatusTheme = (status: string) => {
+      switch (status) {
+        case 'PENDING': return { color: '#f59e0b', bg: '#fffbeb', border: '#fcd34d', label: 'รอดำเนินการ', icon: Clock };
+        case 'IN_PROGRESS': return { color: '#2563eb', bg: '#eff6ff', border: '#93c5fd', label: 'กำลังดำเนินการ', icon: Navigation };
+        case 'SURVEYED': return { color: '#059669', bg: '#ecfdf5', border: '#6ee7b7', label: 'สำรวจแล้ว', icon: CheckCircle2 };
+        default: return { color: '#64748b', bg: '#f8fafc', border: '#cbd5e1', label: 'อื่นๆ', icon: AlertCircle };
+      }
     };
-    return labels[status] || status;
-  }, []);
 
-  // ✅ Memoize filtered tasks to avoid recalculating on every render
-  const pendingTasks = useMemo(() =>
-    tasks.filter(t => t.status === 'PENDING'),
-    [tasks]
-  );
+    const theme = getStatusTheme(task.status);
+    const StatusIcon = theme.icon;
 
-  const inProgressTasks = useMemo(() =>
-    tasks.filter(t => t.status === 'IN_PROGRESS'),
-    [tasks]
-  );
-
-  const surveyedTasks = useMemo(() =>
-    tasks.filter(t => t.status === 'SURVEYED'),
-    [tasks]
-  );
-
-  const completedTasks = useMemo(() =>
-    tasks.filter(t => t.status === 'COMPLETED'),
-    [tasks]
-  );
-
-  // Active tab state
-  const [activeTab, setActiveTab] = useState<'pending' | 'inProgress' | 'surveyed'>('pending');
-
-  // Get tasks for active tab
-  const getActiveTabTasks = () => {
-    switch (activeTab) {
-      case 'pending':
-        return pendingTasks;
-      case 'inProgress':
-        return inProgressTasks;
-      case 'surveyed':
-        return surveyedTasks;
-      default:
-        return pendingTasks;
-    }
-  };
-
-  if (loading) {
     return (
-      <DashboardLayout>
-        <div className="field-officer-dashboard">
-          <LoadingSpinner
-            size="lg"
-            message="กำลังโหลดข้อมูล..."
-            centered
-          />
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        style={{
+          background: 'white',
+          borderRadius: '24px', // More rounded for modern feel
+          boxShadow: '0 8px 24px rgba(0,0,0,0.04)', // Softer, deeper shadow
+          marginBottom: '20px',
+          border: '1px solid #f1f5f9',
+          overflow: 'hidden',
+          position: 'relative',
+          transition: 'transform 0.2s',
+        }}
+        whileTap={{ scale: 0.98 }}
+      >
+        {/* Status Strip & Header Background */}
+        <div style={{
+          background: `linear-gradient(to right, ${theme.bg}, white)`,
+          padding: '16px 20px',
+          borderBottom: '1px solid #f1f5f9',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <StatusIcon size={16} color={theme.color} />
+            <span style={{ fontSize: '13px', fontWeight: '800', color: theme.color, letterSpacing: '0.02em' }}>
+              {theme.label}
+            </span>
+          </div>
+          {task.priority === 'URGENT' || task.priority === 'HIGH' ? (
+            <div style={{
+              background: '#fef2f2', border: '1px solid #fecaca',
+              padding: '4px 10px', borderRadius: '100px',
+              display: 'flex', alignItems: 'center', gap: '4px'
+            }}>
+              <Flame size={12} fill="#ef4444" color="#ef4444" />
+              <span style={{ fontSize: '11px', fontWeight: '800', color: '#b91c1c' }}>ด่วนมาก</span>
+            </div>
+          ) : (
+            <div style={{ fontSize: '11px', fontWeight: '600', color: '#94a3b8' }}>
+              #{task.id.slice(0, 6)}
+            </div>
+          )}
         </div>
-      </DashboardLayout>
+
+        <div style={{ padding: '20px' }}>
+          <h3 style={{
+            fontSize: '18px', fontWeight: '800', color: '#1e293b',
+            marginBottom: '12px', lineHeight: 1.4,
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'
+          }}>
+            {task.title}
+          </h3>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+              <div style={{ minWidth: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', borderRadius: '6px' }}>
+                <MapPin size={12} color="#64748b" />
+              </div>
+              <span style={{ fontSize: '14px', color: '#475569', fontWeight: '500' }}>
+                {task.village?.name || 'ไม่ระบุพิกัด'}
+              </span>
+            </div>
+
+            {task.dueDate && (
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                <div style={{ minWidth: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', borderRadius: '6px' }}>
+                  <Calendar size={12} color="#64748b" />
+                </div>
+                <span style={{ fontSize: '14px', color: '#475569', fontWeight: '500' }}>
+                  กำหนด: {new Date(task.dueDate).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={() => navigate(`/tasks/${task.id}`)}
+            style={{
+              width: '100%',
+              padding: '16px',
+              background: '#1e293b', // Dark button for contrast
+              color: 'white',
+              border: 'none',
+              borderRadius: '16px',
+              fontSize: '15px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 12px rgba(30, 41, 59, 0.2)'
+            }}
+          >
+            ไปที่ภารกิจ <ChevronRight size={18} />
+          </button>
+        </div>
+      </motion.div>
     );
-  }
+  };
 
   return (
     <DashboardLayout>
-      <div className="field-officer-dashboard">
-        {/* Header with Location Info */}
-        <div className="dashboard-header-wrapper">
-          <div className="dashboard-header">
-            <h1>👨‍🚒 แดชบอร์ดเจ้าหน้าที่ภาคสนาม</h1>
-            <p className="subtitle">ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่</p>
-          </div>
-
-          {/* Location Info - Top Right */}
-          <div className="location-info">
-            <h3>📍 พื้นที่รับผิดชอบ</h3>
-            <p>{TAMBON_INFO.fullName}</p>
-            <p>พิกัด: {TAMBON_INFO.centerLat}°N, {TAMBON_INFO.centerLng}°E</p>
-            <p>จำนวนหมู่บ้าน: {TAMBON_INFO.totalVillages} หมู่บ้าน</p>
-            <p>ประชากรรวม: {TAMBON_INFO.totalPopulation.toLocaleString()} คน</p>
-          </div>
-        </div>
-
-        {/* Weather Widget */}
-        <div className="mb-6 min-h-[250px] h-auto">
-          <WeatherWidget />
-        </div>
-
-        {/* Quick Actions */}
-        <div className="quick-actions mb-6">
-          <button
-            className="btn-quick-action"
-            onClick={() => navigate('/create-incident')}
-          >
-            🚨 แจ้งเหตุใหม่
-          </button>
-          <button
-            className="btn-quick-action"
-            onClick={() => navigate('/report-history')}
-          >
-            📋 ประวัติรายงาน
-          </button>
-        </div>
-
-        {/* KPI Cards */}
-        <div className="kpi-grid">
-          <div className="kpi-card blue">
-            <div className="kpi-icon">📋</div>
-            <div className="kpi-content">
-              <h3>{stats.myTasks}</h3>
-              <p>งานของฉัน</p>
-              <span className="kpi-subtitle">My Tasks</span>
+      <div style={{
+        minHeight: '100vh',
+        background: '#f8fafc',
+        fontFamily: "'Sarabun', sans-serif",
+        paddingBottom: '80px' // Space for bottom nav if any
+      }}>
+        {/* --- ZONE 1: FIELD IDENTITY HEADER --- */}
+        <div style={{
+          background: 'white',
+          padding: '20px 24px 32px',
+          borderBottomLeftRadius: '32px',
+          borderBottomRightRadius: '32px',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
+          position: 'relative',
+          zIndex: 10
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <MapPin size={16} color="#2563eb" />
+                <span style={{ fontSize: '13px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>
+                  พื้นที่รับผิดชอบ
+                </span>
+              </div>
+              <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#1e293b', margin: 0, lineHeight: 1.2 }}>
+                {TAMBON_INFO.fullName}
+              </h1>
+            </div>
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '50%',
+              background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              border: '2px solid #fff', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.1)'
+            }}>
+              <span style={{ fontSize: '16px' }}>👮</span>
             </div>
           </div>
 
-          <div className="kpi-card orange">
-            <div className="kpi-icon">✅</div>
-            <div className="kpi-content">
-              <h3>{stats.acceptedTasks}</h3>
-              <p>งานที่รับแล้ว</p>
-              <span className="kpi-subtitle">Accepted</span>
-            </div>
-          </div>
-
-          <div className="kpi-card green">
-            <div className="kpi-icon">🎉</div>
-            <div className="kpi-content">
-              <h3>{stats.completedTasks}</h3>
-              <p>งานเสร็จแล้ว</p>
-              <span className="kpi-subtitle">Completed</span>
-            </div>
-          </div>
-
-          <div className="kpi-card purple">
-            <div className="kpi-icon">📄</div>
-            <div className="kpi-content">
-              <h3>{stats.reportsSubmitted}</h3>
-              <p>รายงานส่งแล้ว</p>
-              <span className="kpi-subtitle">Reports Submitted</span>
-            </div>
+          {/* Integrated Weather Compact */}
+          <div style={{ borderRadius: '20px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.04)', border: '1px solid #f1f5f9' }}>
+            <WeatherWidget />
           </div>
         </div>
 
-
-
-        {/* Main Content Grid */}
-        <div className="content-grid">
-          {/* My Tasks List - Full Width with Tabs */}
-          <div className="content-card tasks-card full-width">
-            <div className="card-header">
-              <h2>📋 งานของฉัน</h2>
-              <button
-                className="btn-view-all"
-                onClick={() => navigate('/tasks/my-tasks')}
-              >
-                ดูทั้งหมด ({stats.myTasks})
-              </button>
-            </div>
-
-            {/* Task Status Tabs */}
-            <div className="task-tabs">
-              <button
-                className={`task-tab ${activeTab === 'pending' ? 'active' : ''}`}
-                onClick={() => setActiveTab('pending')}
-              >
-                <span className="tab-icon">⏳</span>
-                <span className="tab-label">รอดำเนินการ</span>
-                <span className="tab-count">{pendingTasks.length}</span>
-              </button>
-              <button
-                className={`task-tab ${activeTab === 'inProgress' ? 'active' : ''}`}
-                onClick={() => setActiveTab('inProgress')}
-              >
-                <span className="tab-icon">🔄</span>
-                <span className="tab-label">กำลังดำเนินการ</span>
-                <span className="tab-count">{inProgressTasks.length}</span>
-              </button>
-              <button
-                className={`task-tab ${activeTab === 'surveyed' ? 'active' : ''}`}
-                onClick={() => setActiveTab('surveyed')}
-              >
-                <span className="tab-icon">✅</span>
-                <span className="tab-label">สำรวจแล้ว</span>
-                <span className="tab-count">{surveyedTasks.length}</span>
-              </button>
-            </div>
-
-            <div className="tasks-grid">
-              {getActiveTabTasks().length === 0 ? (
-                <EmptyState
-                  icon="clipboard"
-                  title={`ไม่มีงาน${activeTab === 'pending' ? 'รอดำเนินการ' : activeTab === 'inProgress' ? 'กำลังดำเนินการ' : 'สำรวจแล้ว'}`}
-                  description="คุณไม่มีงานในสถานะนี้ในขณะนี้"
-                />
-              ) : (
-                getActiveTabTasks().slice(0, 6).map(task => (
-                  <div key={task.id} className="task-item">
-                    <div className="task-header">
-                      <span className="task-id">{task.id.substring(0, 8)}</span>
-                      <span className={`priority-badge ${getPriorityColor(task.priority)}`}>
-                        {task.priority}
-                      </span>
-                    </div>
-
-                    <h3 className="task-title">{task.title}</h3>
-                    <p className="task-description">{task.description || 'ไม่มีรายละเอียด'}</p>
-
-                    <div className="task-meta">
-                      <span className="meta-item">
-                        📍 {task.village?.name || 'ไม่ระบุ'}
-                      </span>
-                      {task.dueDate && (
-                        <span className="meta-item">
-                          📅 ครบกำหนด: {formatThaiDateShort(task.dueDate)}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="task-footer">
-                      <span className={`status-badge ${getStatusColor(task.status)}`}>
-                        {getStatusLabel(task.status)}
-                      </span>
-                      <button
-                        className="btn-view-task"
-                        onClick={() => navigate(`/tasks/${task.id}`)}
-                      >
-                        ดูรายละเอียด
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+        <div style={{ padding: '0 20px', marginTop: '-20px', position: 'relative', zIndex: 20 }}>
+          {/* --- ZONE 2: RAPID ACTION GRID (THUMB ZONE) --- */}
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
+            <ActionButton
+              icon={AlertCircle}
+              label="แจ้งเหตุ"
+              subLabel="ฉุกเฉิน / ใหม่"
+              colorStart="#ef4444"
+              colorEnd="#dc2626"
+              onClick={() => navigate('/create-incident')}
+            />
+            <ActionButton
+              icon={ClipboardList}
+              label="งานของฉัน"
+              subLabel={`${stats.myTasks} งานคงค้าง`}
+              colorStart="#2563eb"
+              colorEnd="#1d4ed8"
+              onClick={() => navigate('/tasks/my-tasks')}
+            />
           </div>
 
+          {/* --- ZONE 3: MISSION STATUS (KPIs) --- */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: '12px',
+            marginBottom: '32px'
+          }}>
+            {[
+              { label: 'รอดำเนินการ', value: stats.myTasks - stats.acceptedTasks, color: '#f59e0b' },
+              { label: 'กำลังทำ', value: stats.acceptedTasks, color: '#3b82f6' },
+              { label: 'เสร็จสิ้น', value: stats.completedTasks, color: '#10b981' }
+            ].map((stat, idx) => (
+              <div key={idx} style={{
+                background: 'white', padding: '16px 12px', borderRadius: '16px',
+                textAlign: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', border: '1px solid #f1f5f9'
+              }}>
+                <div style={{ fontSize: '24px', fontWeight: '800', color: stat.color, marginBottom: '4px' }}>
+                  {stat.value}
+                </div>
+                <div style={{ fontSize: '11px', fontWeight: '600', color: '#94a3b8' }}>
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
 
+          {/* --- ZONE 4: ACTIVE TASK STREAM --- */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#1e293b', margin: 0 }}>
+              ภารกิจล่าสุด
+            </h2>
+            <button
+              onClick={() => navigate('/tasks/my-tasks')}
+              style={{
+                background: 'none', border: 'none', color: '#64748b',
+                fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px'
+              }}
+            >
+              ดูทั้งหมด <ChevronRight size={14} />
+            </button>
+          </div>
+
+          {loading ? (
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+              <div className="animate-spin" style={{ width: '32px', height: '32px', border: '3px solid #e2e8f0', borderTopColor: '#2563eb', borderRadius: '50%' }}></div>
+            </div>
+          ) : tasks.length === 0 ? (
+            <div style={{
+              textAlign: 'center', padding: '60px 20px', background: 'white', borderRadius: '24px',
+              border: '2px dashed #e2e8f0'
+            }}>
+              <div style={{
+                width: '64px', height: '64px', background: '#f8fafc', borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px'
+              }}>
+                <CheckCircle2 size={32} color="#94a3b8" />
+              </div>
+              <h3 style={{ fontSize: '16px', fontWeight: '700', color: '#64748b', marginBottom: '8px' }}>ไม่มีภารกิจค้าง</h3>
+              <p style={{ fontSize: '13px', color: '#94a3b8' }}>คุณจัดการงานทั้งหมดเรียบร้อยแล้ว</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <AnimatePresence>
+                {tasks.map(task => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

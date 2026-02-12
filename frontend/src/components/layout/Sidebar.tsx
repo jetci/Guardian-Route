@@ -52,7 +52,7 @@ export function Sidebar() {
         return [
           { icon: '🖥️', label: 'แดชบอร์ดบัญชาการ (Command Dashboard)', path: '/dashboard/supervisor' },
           { icon: '⚠️', label: 'จัดการเหตุการณ์ (Manage Incidents)', path: '/manage-incidents' },
-          { icon: '👥', label: 'ภาพรวมทีม (Team Overview)', path: '/team-overview' },
+          { icon: '👥', label: 'ศูนย์บัญชาการกำลังพล', path: '/team-overview' },
           { icon: '📄', label: 'รายงานการปฏิบัติงาน (Operational Reports)', path: '/operational-reports' },
           { icon: '📊', label: 'วิเคราะห์ข้อมูลสำรวจ (Survey Analysis)', path: '/survey-analysis' },
         ];

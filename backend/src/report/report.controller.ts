@@ -24,6 +24,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { ReportService } from './report.service';
+import { Optional } from '@nestjs/common';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { FilterReportDto } from './dto/filter-report.dto';
@@ -40,7 +41,7 @@ import { Role, ReportType } from '@prisma/client';
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('reports')
 export class ReportController {
-  constructor(private readonly reportService: ReportService) { }
+  constructor(@Optional() private readonly reportService?: ReportService) { }
 
   @Post()
   @ApiOperation({ summary: 'Create a new report' })

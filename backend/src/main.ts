@@ -3,12 +3,38 @@ import { NestFactory } from '@nestjs/core';
 import { Response } from 'express';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { AppModule } from './app.module';
+// AppModule is imported dynamically inside bootstrap() to avoid side-effects when
+// this file is loaded by tests that only import `createHealthHandler`.
+import { PrismaService } from './database/prisma.service';
+import type { Request, Response as ExResponse } from 'express';
+
+export function createHealthHandler(prisma: PrismaService) {
+  return async (req: Request, res: ExResponse) => {
+    const result: any = {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      port: process.env.PORT || 3001,
+      db: { ok: false },
+    };
+    try {
+      // simple lightweight check
+      // @ts-ignore - use raw query for a fast DB ping
+      await prisma.$queryRawUnsafe('SELECT 1');
+      result.db.ok = true;
+    } catch (err) {
+      result.status = 'degraded';
+      result.db.ok = false;
+      result.db.error = err?.message || String(err);
+    }
+    res.json(result);
+  };
+}
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import helmet from 'helmet';
 
 async function bootstrap() {
+  const { AppModule } = await import('./app.module');
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // UTF-8 encoding middleware - removed to avoid overriding Content-Type for HTML/JS/CSS assets (Swagger UI)
@@ -133,13 +159,8 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   // Health check endpoint - ADD THIS!
-  app.getHttpAdapter().get('/api/health', (req, res: Response) => {
-    res.json({
-      status: 'ok',
-      timestamp: new Date().toISOString(),
-      port: process.env.PORT || 3001,
-    });
-  });
+  const prisma = app.get(PrismaService);
+  app.getHttpAdapter().get('/api/health', createHealthHandler(prisma));
 
   // Start server
   const port = process.env.PORT || 3001; // Default to 3001
@@ -154,4 +175,8 @@ async function bootstrap() {
   console.log('');
 }
 
-bootstrap();
+// Only auto-start when executed directly (prevents side effects during tests)
+declare const require: any;
+if (typeof require !== 'undefined' && require.main === module) {
+  bootstrap();
+}
