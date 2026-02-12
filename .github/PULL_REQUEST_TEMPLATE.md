@@ -1,3 +1,25 @@
+# Pull Request — Guardian Route
+
+สรุปการเปลี่ยนแปลง
+- ลบ `backend/.env` ที่มีข้อมูลความลับ
+- เพิ่ม `backend/.env.example`
+- เพิ่ม `SECURITY.md` และสคริปต์ `scripts/rotate-db-password.sh`
+- เพิ่ม CI workflow (`.github/workflows/ci.yml`) ให้รันทดสอบและ `prisma generate` (ใช้ GitHub Secrets)
+- ปรับ `backend/Dockerfile` เป็น multi-stage และ non-root
+- เพิ่ม healthcheck สำหรับ backend ใน `docker-compose.yml`
+- เพิ่ม `vercel.json`, `DEPLOYMENT.md`, และตัวอย่าง `deploy/` สำหรับ k8s/Render
+
+ผลกระทบ
+- ไม่มีฟีเจอร์ใหม่ต่อผู้ใช้ปลายทาง
+- จำเป็นต้องตั้งค่า Secrets ใน GitHub (DATABASE_URL, JWT_SECRET)
+
+การตรวจสอบก่อน Merge
+- [ ] CI (backend tests) ผ่าน
+- [ ] Secrets ถูกตั้งค่าใน repository (Settings → Secrets)
+- [ ] เจ้าของระบบยืนยันการ rotate credential แล้ว
+
+คำแนะนำเพิ่มเติม
+- ดู `SECURITY.md` สำหรับขั้นตอน rotate และ `DEPLOYMENT.md` สำหรับการ deploy production
 ## 📋 Pull Request Summary
 
 **Issue:** Closes #[issue_number]  

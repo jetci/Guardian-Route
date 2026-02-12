@@ -37,6 +37,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build frontend
+        run: |
+          npm --prefix frontend ci
+          npm --prefix frontend run build
+
+      - name: Run frontend tests
+        run: |
+          npm --prefix frontend ci
+          npm --prefix frontend run test --silent
+
       - name: Generate Prisma client
         run: npx prisma generate
         env:

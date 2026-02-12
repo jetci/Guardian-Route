@@ -45,7 +45,7 @@ services:
     container_name: guardian_route_backend
     restart: unless-stopped
     env_file:
-      - ./backend/.env
+      - ./backend/.env # create locally from backend/.env.example or supply env vars in your host
     ports:
       - "3001:3001"
     depends_on:
@@ -53,6 +53,11 @@ services:
       - redis
     networks:
       - guardian_network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- --timeout=2 http://localhost:3001/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
