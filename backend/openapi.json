@@ -1,0 +1,6593 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "AppController_getHello",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/security/csrf-token": {
+      "get": {
+        "operationId": "SecurityController_getCsrfToken",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "CSRF token retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "csrfToken": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get CSRF token",
+        "tags": [
+          "security"
+        ]
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully"
+          },
+          "400": {
+            "description": "Email already exists"
+          }
+        },
+        "summary": "Register new user",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/register-by-admin": {
+      "post": {
+        "operationId": "AuthController_registerByAdmin",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Register new user by admin (can set role)",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    "user": {
+                      "id": "uuid",
+                      "email": "user@example.com",
+                      "firstName": "John",
+                      "lastName": "Doe",
+                      "role": "FIELD_OFFICER"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        },
+        "summary": "User login",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token refreshed successfully"
+          },
+          "401": {
+            "description": "Invalid refresh token"
+          }
+        },
+        "summary": "Refresh access token",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Logged out successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "User logout",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "operationId": "AuthController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Current user profile"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current user profile",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/auth/verify": {
+      "post": {
+        "operationId": "AuthController_verifyToken",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Token is valid"
+          },
+          "401": {
+            "description": "Invalid token"
+          }
+        },
+        "summary": "Verify JWT token",
+        "tags": [
+          "Authentication"
+        ]
+      }
+    },
+    "/users/profile": {
+      "get": {
+        "operationId": "UsersController_getProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current user profile",
+        "tags": [
+          "Users"
+        ]
+      },
+      "put": {
+        "operationId": "UsersController_updateProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update current user profile",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/change-password": {
+      "post": {
+        "operationId": "UsersController_changePassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Change password",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/profile/image": {
+      "post": {
+        "operationId": "UsersController_uploadProfileImage",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload profile image",
+        "tags": [
+          "Users"
+        ]
+      },
+      "delete": {
+        "operationId": "UsersController_deleteProfileImage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete profile image",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/activity-logs": {
+      "get": {
+        "operationId": "UsersController_getActivityLogs",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get user activity logs",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users": {
+      "post": {
+        "operationId": "UsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create new user (Admin only)",
+        "tags": [
+          "Users"
+        ]
+      },
+      "get": {
+        "operationId": "UsersController_findAll",
+        "parameters": [
+          {
+            "name": "role",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all users",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/statistics": {
+      "get": {
+        "operationId": "UsersController_getStatistics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get user statistics",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "operationId": "UsersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get user by ID",
+        "tags": [
+          "Users"
+        ]
+      },
+      "patch": {
+        "operationId": "UsersController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update user",
+        "tags": [
+          "Users"
+        ]
+      },
+      "delete": {
+        "operationId": "UsersController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Deactivate user",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/{id}/toggle-status": {
+      "patch": {
+        "operationId": "UsersController_toggleStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Toggle user active/inactive status (Admin only)",
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/villages": {
+      "get": {
+        "operationId": "VillagesController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Return all villages"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all villages",
+        "tags": [
+          "villages"
+        ]
+      },
+      "post": {
+        "operationId": "VillagesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVillageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Village created successfully"
+          },
+          "409": {
+            "description": "Village number already exists"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new village (ADMIN only)",
+        "tags": [
+          "villages"
+        ]
+      }
+    },
+    "/villages/statistics": {
+      "get": {
+        "operationId": "VillagesController_getStatistics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Return statistics summary"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get villages statistics",
+        "tags": [
+          "villages"
+        ]
+      }
+    },
+    "/villages/no/{villageNo}": {
+      "get": {
+        "operationId": "VillagesController_findByVillageNo",
+        "parameters": [
+          {
+            "name": "villageNo",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return village by number"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get village by village number",
+        "tags": [
+          "villages"
+        ]
+      }
+    },
+    "/villages/{id}": {
+      "get": {
+        "operationId": "VillagesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return village by ID"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get village by ID",
+        "tags": [
+          "villages"
+        ]
+      },
+      "patch": {
+        "operationId": "VillagesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVillageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Village updated successfully"
+          },
+          "404": {
+            "description": "Village not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update village (ADMIN only)",
+        "tags": [
+          "villages"
+        ]
+      },
+      "delete": {
+        "operationId": "VillagesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Village deleted successfully"
+          },
+          "400": {
+            "description": "Cannot delete village with related data"
+          },
+          "404": {
+            "description": "Village not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete village (ADMIN only)",
+        "tags": [
+          "villages"
+        ]
+      }
+    },
+    "/villages/upload/geojson/validate": {
+      "post": {
+        "operationId": "VillagesController_validateGeoJson",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "village_boundary",
+                      "district_boundary",
+                      "risk_zone",
+                      "infrastructure"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Validate GeoJSON file without saving",
+        "tags": [
+          "villages"
+        ]
+      }
+    },
+    "/villages/upload/geojson": {
+      "post": {
+        "operationId": "VillagesController_uploadGeoJson",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "village_boundary",
+                      "district_boundary",
+                      "risk_zone",
+                      "infrastructure"
+                    ]
+                  },
+                  "description": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload and save GeoJSON file",
+        "tags": [
+          "villages"
+        ]
+      }
+    },
+    "/incidents/statistics": {
+      "get": {
+        "operationId": "IncidentsController_getStatistics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Statistics retrieved successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get incident statistics",
+        "tags": [
+          "incidents"
+        ]
+      }
+    },
+    "/incidents": {
+      "post": {
+        "operationId": "IncidentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateIncidentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Incident created successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "429": {
+            "description": "Too many requests"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new incident",
+        "tags": [
+          "incidents"
+        ]
+      },
+      "get": {
+        "operationId": "IncidentsController_findAll",
+        "parameters": [
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "PENDING",
+                "IN_PROGRESS",
+                "RESOLVED",
+                "CLOSED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "priority",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "CRITICAL"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "disasterType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "FLOOD",
+                "LANDSLIDE",
+                "FIRE",
+                "STORM",
+                "EARTHQUAKE",
+                "DROUGHT",
+                "OTHER"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "villageId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (default: 1)",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page (default: 20, max: 100)",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return paginated incidents"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all incidents with optional filters and pagination",
+        "tags": [
+          "incidents"
+        ]
+      }
+    },
+    "/incidents/my": {
+      "get": {
+        "operationId": "IncidentsController_findMy",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Return incidents created by current user"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get my incidents",
+        "tags": [
+          "incidents"
+        ]
+      }
+    },
+    "/incidents/unassigned": {
+      "get": {
+        "operationId": "IncidentsController_findUnassigned",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Return unassigned incidents"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get unassigned incidents (Supervisor only)",
+        "tags": [
+          "incidents"
+        ]
+      }
+    },
+    "/incidents/{id}/assign": {
+      "patch": {
+        "operationId": "IncidentsController_assign",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignIncidentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Incident assigned successfully"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Incident or field officer not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Assign incident to field officer (Supervisor only)",
+        "tags": [
+          "incidents"
+        ]
+      }
+    },
+    "/incidents/{id}/review": {
+      "patch": {
+        "operationId": "IncidentsController_review",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewIncidentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Incident reviewed successfully"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Incident not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Review incident (Supervisor only)",
+        "tags": [
+          "incidents"
+        ]
+      }
+    },
+    "/incidents/{id}": {
+      "get": {
+        "operationId": "IncidentsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return incident details"
+          },
+          "404": {
+            "description": "Incident not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get incident by ID",
+        "tags": [
+          "incidents"
+        ]
+      },
+      "patch": {
+        "operationId": "IncidentsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateIncidentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Incident updated successfully"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Incident not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update incident",
+        "tags": [
+          "incidents"
+        ]
+      },
+      "delete": {
+        "operationId": "IncidentsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Incident deleted successfully"
+          },
+          "403": {
+            "description": "Forbidden - Admin only"
+          },
+          "404": {
+            "description": "Incident not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete incident (Admin only)",
+        "tags": [
+          "incidents"
+        ]
+      }
+    },
+    "/incidents/{id}/photos": {
+      "post": {
+        "operationId": "IncidentsController_uploadPhoto",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Photo uploaded successfully"
+          },
+          "400": {
+            "description": "Bad request"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload photo to incident",
+        "tags": [
+          "incidents"
+        ]
+      },
+      "get": {
+        "operationId": "IncidentsController_getPhotos",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return all photos"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all photos of an incident",
+        "tags": [
+          "incidents"
+        ]
+      }
+    },
+    "/incidents/{id}/photos/{photoId}": {
+      "delete": {
+        "operationId": "IncidentsController_deletePhoto",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "photoId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Photo deleted successfully"
+          },
+          "404": {
+            "description": "Photo not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a photo from incident",
+        "tags": [
+          "incidents"
+        ]
+      }
+    },
+    "/notifications": {
+      "post": {
+        "operationId": "NotificationsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateNotificationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new notification (Admin/Supervisor only)",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications/my": {
+      "get": {
+        "operationId": "NotificationsController_findMy",
+        "parameters": [
+          {
+            "name": "includeRead",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get my notifications",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications/my/unread-count": {
+      "get": {
+        "operationId": "NotificationsController_getUnreadCount",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get unread notification count",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications/mark-read": {
+      "patch": {
+        "operationId": "NotificationsController_markAsRead",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkReadDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark notifications as read",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications/mark-all-read": {
+      "patch": {
+        "operationId": "NotificationsController_markAllAsRead",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark all notifications as read",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/notifications/{id}": {
+      "delete": {
+        "operationId": "NotificationsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a notification (Admin only)",
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/tasks": {
+      "post": {
+        "operationId": "TasksController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaskDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new task",
+        "tags": [
+          "tasks"
+        ]
+      },
+      "get": {
+        "operationId": "TasksController_findAll",
+        "parameters": [
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "priority",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "incidentId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assignedToId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all tasks with optional filters",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/tasks/my-tasks": {
+      "get": {
+        "operationId": "TasksController_getMyTasks",
+        "parameters": [
+          {
+            "name": "status",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns tasks assigned to current user"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get tasks assigned to current user",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/tasks/statistics": {
+      "get": {
+        "operationId": "TasksController_getStatistics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get task statistics",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/tasks/{id}": {
+      "get": {
+        "operationId": "TasksController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a task by ID",
+        "tags": [
+          "tasks"
+        ]
+      },
+      "patch": {
+        "operationId": "TasksController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTaskDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a task",
+        "tags": [
+          "tasks"
+        ]
+      },
+      "delete": {
+        "operationId": "TasksController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a task (Admin only)",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/tasks/{id}/accept": {
+      "post": {
+        "operationId": "TasksController_acceptTask",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Task accepted and status changed to IN_PROGRESS"
+          },
+          "400": {
+            "description": "Task is not in PENDING status"
+          },
+          "403": {
+            "description": "Not assigned to this task"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Accept a task (Field Officer)",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/tasks/{id}/survey": {
+      "post": {
+        "operationId": "TasksController_submitSurveyData",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSurveyDataDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Survey data submitted and status changed to SURVEYED"
+          },
+          "400": {
+            "description": "Task is not in IN_PROGRESS status"
+          },
+          "403": {
+            "description": "Not assigned to this task"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit field survey data",
+        "tags": [
+          "tasks"
+        ]
+      }
+    },
+    "/upload/image": {
+      "post": {
+        "operationId": "UploadController_uploadImage",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Upload single image",
+        "tags": [
+          "upload"
+        ]
+      }
+    },
+    "/upload/images": {
+      "post": {
+        "operationId": "UploadController_uploadImages",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Upload multiple images (max 5)",
+        "tags": [
+          "upload"
+        ]
+      }
+    },
+    "/upload/survey-images": {
+      "post": {
+        "operationId": "UploadController_uploadSurveyImages",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "images": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Upload survey images (max 10)",
+        "tags": [
+          "upload"
+        ]
+      }
+    },
+    "/surveys": {
+      "post": {
+        "operationId": "SurveyController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSurveyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The survey has been successfully created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new survey instance for an incident or village",
+        "tags": [
+          "Surveys"
+        ]
+      }
+    },
+    "/surveys/incident/{incidentId}": {
+      "get": {
+        "operationId": "SurveyController_findByIncident",
+        "parameters": [
+          {
+            "name": "incidentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of surveys for the incident",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all surveys for a specific incident",
+        "tags": [
+          "Surveys"
+        ]
+      }
+    },
+    "/surveys/{id}": {
+      "get": {
+        "operationId": "SurveyController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The found survey",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Survey not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a survey by ID",
+        "tags": [
+          "Surveys"
+        ]
+      }
+    },
+    "/surveys/{surveyId}/response": {
+      "post": {
+        "operationId": "SurveyController_submitResponse",
+        "parameters": [
+          {
+            "name": "surveyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSurveyResponseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The response has been successfully submitted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or survey already completed"
+          },
+          "404": {
+            "description": "Survey not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit a response to a survey",
+        "tags": [
+          "Surveys"
+        ]
+      }
+    },
+    "/surveys/{surveyId}/responses": {
+      "get": {
+        "operationId": "SurveyController_findResponses",
+        "parameters": [
+          {
+            "name": "surveyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of survey responses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Survey not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all responses for a specific survey",
+        "tags": [
+          "Surveys"
+        ]
+      }
+    },
+    "/surveys/{surveyId}/complete": {
+      "patch": {
+        "operationId": "SurveyController_completeSurvey",
+        "parameters": [
+          {
+            "name": "surveyId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The survey has been successfully completed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Survey already completed"
+          },
+          "404": {
+            "description": "Survey not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark a survey as completed",
+        "tags": [
+          "Surveys"
+        ]
+      }
+    },
+    "/survey-templates": {
+      "post": {
+        "operationId": "SurveyTemplateController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSurveyTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The template has been successfully created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyTemplateDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new survey template",
+        "tags": [
+          "Survey Templates"
+        ]
+      },
+      "get": {
+        "operationId": "SurveyTemplateController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of all survey templates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyTemplateDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all survey templates",
+        "tags": [
+          "Survey Templates"
+        ]
+      }
+    },
+    "/survey-templates/{id}": {
+      "get": {
+        "operationId": "SurveyTemplateController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The found template",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyTemplateDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Template not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a survey template by ID",
+        "tags": [
+          "Survey Templates"
+        ]
+      },
+      "patch": {
+        "operationId": "SurveyTemplateController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSurveyTemplateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The template has been successfully updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyTemplateDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Template not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an existing survey template",
+        "tags": [
+          "Survey Templates"
+        ]
+      },
+      "delete": {
+        "operationId": "SurveyTemplateController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The template has been successfully deleted."
+          },
+          "404": {
+            "description": "Template not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a survey template",
+        "tags": [
+          "Survey Templates"
+        ]
+      }
+    },
+    "/field-officer/surveys": {
+      "post": {
+        "description": "Field officers use this endpoint to submit survey data collected in the field, including GPS coordinates and photos",
+        "operationId": "FieldOfficerSurveyController_submitSurvey",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldOfficerSurveyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Survey submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldOfficerSurveyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data"
+          },
+          "401": {
+            "description": "Unauthorized - Field Officer role required"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit initial survey from field",
+        "tags": [
+          "Field Officer - Surveys"
+        ]
+      }
+    },
+    "/field-officer/surveys/my-surveys": {
+      "get": {
+        "description": "Retrieve all surveys submitted by the current field officer",
+        "operationId": "FieldOfficerSurveyController_getMySurveys",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of submitted surveys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FieldOfficerSurveyResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get my submitted surveys",
+        "tags": [
+          "Field Officer - Surveys"
+        ]
+      }
+    },
+    "/field-officer/surveys/{id}": {
+      "get": {
+        "description": "Retrieve a specific survey by its ID",
+        "operationId": "FieldOfficerSurveyController_getSurvey",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Survey details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldOfficerSurveyResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Survey not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get survey by ID",
+        "tags": [
+          "Field Officer - Surveys"
+        ]
+      }
+    },
+    "/field-officer/comprehensive-surveys": {
+      "post": {
+        "description": "Field officers use this endpoint to submit detailed survey data collected through the 8-step survey wizard",
+        "operationId": "ComprehensiveSurveyController_submitSurvey",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ComprehensiveSurveyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Comprehensive survey submitted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComprehensiveSurveyResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input data"
+          },
+          "401": {
+            "description": "Unauthorized - Field Officer role required"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit comprehensive survey (8 steps)",
+        "tags": [
+          "Field Officer - Comprehensive Surveys"
+        ]
+      }
+    },
+    "/field-officer/comprehensive-surveys/my-surveys": {
+      "get": {
+        "description": "Retrieve all comprehensive surveys submitted by the current field officer",
+        "operationId": "ComprehensiveSurveyController_getMySurveys",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List of comprehensive surveys",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ComprehensiveSurveyResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get my comprehensive surveys",
+        "tags": [
+          "Field Officer - Comprehensive Surveys"
+        ]
+      }
+    },
+    "/field-officer/comprehensive-surveys/{id}": {
+      "get": {
+        "description": "Retrieve a specific comprehensive survey by its ID",
+        "operationId": "ComprehensiveSurveyController_getSurvey",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Comprehensive survey details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComprehensiveSurveyResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Survey not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get comprehensive survey by ID",
+        "tags": [
+          "Field Officer - Comprehensive Surveys"
+        ]
+      }
+    },
+    "/reports": {
+      "post": {
+        "operationId": "ReportController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Report created successfully"
+          },
+          "400": {
+            "description": "Bad request - validation failed"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new report",
+        "tags": [
+          "reports"
+        ]
+      },
+      "get": {
+        "operationId": "ReportController_findAll",
+        "parameters": [
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by report type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "INCIDENT",
+                "INCIDENT_SUMMARY",
+                "TASK",
+                "TASK_PROGRESS",
+                "SURVEY",
+                "SURVEY_RESULTS",
+                "MONTHLY",
+                "MONTHLY_SUMMARY",
+                "CUSTOM"
+              ]
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by report status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "GENERATING",
+                "READY",
+                "ERROR",
+                "SUBMITTED",
+                "UNDER_REVIEW",
+                "REVISION_REQUIRED",
+                "APPROVED",
+                "REJECTED"
+              ]
+            }
+          },
+          {
+            "name": "incidentId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by incident ID",
+            "schema": {
+              "example": "123e4567-e89b-12d3-a456-426614174000",
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by author ID",
+            "schema": {
+              "example": "123e4567-e89b-12d3-a456-426614174000",
+              "type": "string"
+            }
+          },
+          {
+            "name": "periodStartFrom",
+            "required": false,
+            "in": "query",
+            "description": "Filter by period start date (from)",
+            "schema": {
+              "example": "2025-01-01T00:00:00Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "periodStartTo",
+            "required": false,
+            "in": "query",
+            "description": "Filter by period start date (to)",
+            "schema": {
+              "example": "2025-01-31T23:59:59Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "createdFrom",
+            "required": false,
+            "in": "query",
+            "description": "Filter by creation date (from)",
+            "schema": {
+              "example": "2025-01-01T00:00:00Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "createdTo",
+            "required": false,
+            "in": "query",
+            "description": "Filter by creation date (to)",
+            "schema": {
+              "example": "2025-01-31T23:59:59Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number for pagination",
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Number of items per page",
+            "schema": {
+              "default": 10,
+              "example": 10,
+              "type": "number"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sort field",
+            "schema": {
+              "default": "createdAt",
+              "example": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "default": "desc",
+              "example": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reports retrieved successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all reports with filtering and pagination",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/reports/statistics": {
+      "get": {
+        "operationId": "ReportController_getStatistics",
+        "parameters": [
+          {
+            "name": "periodStart",
+            "required": false,
+            "in": "query",
+            "description": "Start date for statistics",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "periodEnd",
+            "required": false,
+            "in": "query",
+            "description": "End date for statistics",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by report type",
+            "schema": {
+              "enum": [
+                "INCIDENT",
+                "INCIDENT_SUMMARY",
+                "TASK",
+                "TASK_PROGRESS",
+                "SURVEY",
+                "SURVEY_RESULTS",
+                "MONTHLY",
+                "MONTHLY_SUMMARY",
+                "CUSTOM"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statistics retrieved successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get report statistics",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/reports/{id}": {
+      "get": {
+        "operationId": "ReportController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Report ID",
+            "schema": {
+              "example": "123e4567-e89b-12d3-a456-426614174000",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Report retrieved successfully"
+          },
+          "404": {
+            "description": "Report not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a report by ID",
+        "tags": [
+          "reports"
+        ]
+      },
+      "patch": {
+        "operationId": "ReportController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Report ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Report updated successfully"
+          },
+          "403": {
+            "description": "Forbidden - can only update own reports"
+          },
+          "404": {
+            "description": "Report not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a report",
+        "tags": [
+          "reports"
+        ]
+      },
+      "delete": {
+        "operationId": "ReportController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Report ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Report deleted successfully"
+          },
+          "403": {
+            "description": "Forbidden - can only delete own reports"
+          },
+          "404": {
+            "description": "Report not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a report",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/reports/{id}/submit": {
+      "post": {
+        "operationId": "ReportControllerExtension_submitFullReport",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Report submitted successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit full report for review",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/reports/{id}/review": {
+      "post": {
+        "operationId": "ReportController_review",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Report ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Report reviewed successfully"
+          },
+          "400": {
+            "description": "Bad request - report cannot be reviewed"
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Review a report (SUPERVISOR, EXECUTIVE, ADMIN only)",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/reports/{id}/generate-pdf": {
+      "post": {
+        "operationId": "ReportController_generatePdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Report ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeneratePdfDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "PDF generation started successfully"
+          },
+          "404": {
+            "description": "Report not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Generate PDF for a report",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/reports/{id}/pdf": {
+      "get": {
+        "operationId": "ReportController_downloadPdf",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Report ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF file",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "404": {
+            "description": "Report or PDF not found"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download PDF of a report",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/reports/full": {
+      "post": {
+        "operationId": "ReportControllerExtension_createFullReport",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFullReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Full report created successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create full report with AI analysis",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/reports/ai-analysis": {
+      "post": {
+        "operationId": "ReportControllerExtension_requestAIAnalysis",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "AI analysis generated"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Request AI analysis for report data",
+        "tags": [
+          "reports"
+        ]
+      }
+    },
+    "/admin/geojson": {
+      "get": {
+        "operationId": "AdminController_getAllBoundaries",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Return all boundaries"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all GeoJSON boundaries",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/geojson/{id}": {
+      "get": {
+        "operationId": "AdminController_getBoundary",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return boundary by ID"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get specific GeoJSON boundary",
+        "tags": [
+          "admin"
+        ]
+      },
+      "patch": {
+        "operationId": "AdminController_updateBoundary",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Boundary updated"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update GeoJSON boundary (partial update)",
+        "tags": [
+          "admin"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminController_deleteBoundary",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Boundary deleted"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete GeoJSON boundary",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/geojson/upload": {
+      "post": {
+        "operationId": "AdminController_uploadGeoJSON",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Boundary created"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload GeoJSON file",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/boundaries/draw": {
+      "post": {
+        "operationId": "AdminController_saveDrawnBoundary",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Boundary saved"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Save drawn boundary",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/villages/boundaries": {
+      "get": {
+        "operationId": "AdminController_getVillageBoundaries",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Return village boundaries"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all village boundaries",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/villages/{villageId}/boundary": {
+      "patch": {
+        "operationId": "AdminController_updateVillageBoundary",
+        "parameters": [
+          {
+            "name": "villageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Village boundary updated"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update village boundary (partial update)",
+        "tags": [
+          "admin"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminController_deleteVillageBoundary",
+        "parameters": [
+          {
+            "name": "villageId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Village boundary deleted"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete village boundary",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/admin/tambon/boundary": {
+      "get": {
+        "operationId": "AdminController_getTambonBoundary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Return tambon boundary"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get tambon boundary",
+        "tags": [
+          "admin"
+        ]
+      },
+      "post": {
+        "operationId": "AdminController_saveTambonBoundary",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Tambon boundary saved"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Save or update tambon boundary",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/settings": {
+      "get": {
+        "operationId": "SettingsController_getSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns current settings"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get current system settings",
+        "tags": [
+          "settings"
+        ]
+      },
+      "put": {
+        "operationId": "SettingsController_updateSettings",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSettingsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Settings updated successfully"
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update system settings",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/settings/backup": {
+      "post": {
+        "operationId": "SettingsController_triggerBackup",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Backup triggered successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Trigger manual backup",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/settings/purge": {
+      "delete": {
+        "operationId": "SettingsController_purgeOldData",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Old data purged successfully"
+          },
+          "500": {
+            "description": "Purge operation failed"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Purge old data based on retention policy",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/settings/backups": {
+      "get": {
+        "operationId": "SettingsController_getBackups",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Returns list of backups"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List available backups",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/settings/backups/{filename}": {
+      "get": {
+        "operationId": "SettingsController_downloadBackup",
+        "parameters": [
+          {
+            "name": "filename",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns backup file stream"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Download backup file",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/settings/reset": {
+      "post": {
+        "operationId": "SettingsController_factoryReset",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Factory reset completed"
+          },
+          "500": {
+            "description": "Reset operation failed"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Factory reset - restore all settings to default",
+        "tags": [
+          "settings"
+        ]
+      }
+    },
+    "/analytics/tasks/status": {
+      "get": {
+        "operationId": "AnalyticsController_getTaskStatusOverview",
+        "parameters": [
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "description": "Start date (ISO 8601)",
+            "schema": {
+              "example": "2024-01-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "description": "End date (ISO 8601)",
+            "schema": {
+              "example": "2024-12-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "granularity",
+            "required": false,
+            "in": "query",
+            "description": "Data granularity",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DAILY",
+                "WEEKLY",
+                "MONTHLY",
+                "QUARTERLY",
+                "YEARLY"
+              ]
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by user ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by team ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by task status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "IN_PROGRESS",
+                "SURVEYED",
+                "COMPLETED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "priority",
+            "required": false,
+            "in": "query",
+            "description": "Filter by task priority",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "URGENT"
+              ]
+            }
+          },
+          {
+            "name": "villageId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by village ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tambonId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by tambon ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns task count by status with percentages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskStatusResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get task status overview",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/analytics/tasks/trend": {
+      "get": {
+        "operationId": "AnalyticsController_getTaskTrend",
+        "parameters": [
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "description": "Start date (ISO 8601)",
+            "schema": {
+              "example": "2024-01-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "description": "End date (ISO 8601)",
+            "schema": {
+              "example": "2024-12-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "granularity",
+            "required": false,
+            "in": "query",
+            "description": "Data granularity",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DAILY",
+                "WEEKLY",
+                "MONTHLY",
+                "QUARTERLY",
+                "YEARLY"
+              ]
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by user ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by team ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by task status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "IN_PROGRESS",
+                "SURVEYED",
+                "COMPLETED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "priority",
+            "required": false,
+            "in": "query",
+            "description": "Filter by task priority",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "URGENT"
+              ]
+            }
+          },
+          {
+            "name": "villageId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by village ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tambonId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by tambon ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Returns time-series data of task creation and completion",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskTrendResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get task trend over time",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/analytics/incidents/overview": {
+      "get": {
+        "operationId": "AnalyticsController_getIncidentOverview",
+        "parameters": [
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "description": "Start date (ISO 8601)",
+            "schema": {
+              "example": "2024-01-01T00:00:00.000Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "description": "End date (ISO 8601)",
+            "schema": {
+              "example": "2024-12-31T23:59:59.999Z",
+              "type": "string"
+            }
+          },
+          {
+            "name": "granularity",
+            "required": false,
+            "in": "query",
+            "description": "Data granularity",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DAILY",
+                "WEEKLY",
+                "MONTHLY",
+                "QUARTERLY",
+                "YEARLY"
+              ]
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by user ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by team ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by task status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "IN_PROGRESS",
+                "SURVEYED",
+                "COMPLETED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "priority",
+            "required": false,
+            "in": "query",
+            "description": "Filter by task priority",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH",
+                "URGENT"
+              ]
+            }
+          },
+          {
+            "name": "villageId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by village ID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tambonId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by tambon ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get incident overview statistics",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/analytics/incidents/trend": {
+      "get": {
+        "operationId": "AnalyticsController_getIncidentTrend",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get incident trend over time",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/analytics/incidents/by-type": {
+      "get": {
+        "operationId": "AnalyticsController_getIncidentsByType",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get incidents by type",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/analytics/incidents/by-severity": {
+      "get": {
+        "operationId": "AnalyticsController_getIncidentsBySeverity",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get incidents by severity",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/analytics/performers/top": {
+      "get": {
+        "operationId": "AnalyticsController_getTopPerformers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get top performers",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/admin/audit-logs": {
+      "get": {
+        "operationId": "AuditLogController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetType",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDate",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Return all audit logs."
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all audit logs",
+        "tags": [
+          "audit-logs"
+        ]
+      }
+    },
+    "/admin/audit-logs/export/csv": {
+      "get": {
+        "operationId": "AuditLogController_exportCsv",
+        "parameters": [
+          {
+            "name": "action",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "targetType",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDate",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Export audit logs to CSV",
+        "tags": [
+          "audit-logs"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "HealthController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "System is healthy"
+          }
+        },
+        "summary": "Health check endpoint",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/health/system-stats": {
+      "get": {
+        "operationId": "HealthController_getSystemStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Return system statistics"
+          }
+        },
+        "summary": "Get system statistics",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/health/database": {
+      "get": {
+        "operationId": "HealthController_getDatabaseHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Database connection status"
+          }
+        },
+        "summary": "Check database connection",
+        "tags": [
+          "health"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Guardian Route API",
+    "description": "\n      Guardian Route - ระบบบริหารจัดการภัยพิบัติ\n      ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่\n      \n      ## Authentication\n      Most endpoints require JWT Bearer token authentication.\n      Use the /api/auth/login endpoint to obtain a token.\n      \n      ## Roles\n      - DEVELOPER: Full system access\n      - ADMIN: System administration\n      - SUPERVISOR: Command and control\n      - EXECUTIVE: Strategic oversight\n      - FIELD_OFFICER: Field operations\n      \n      ## Base URL\n      - Development: http://localhost:3001/api\n      - Production: https://api.guardian-route.example.com/api\n    ",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Guardian Route Team",
+      "url": "https://github.com/jetci/Guardian-Route",
+      "email": "support@guardian-route.example.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "tags": [
+    {
+      "name": "Authentication",
+      "description": "User authentication and authorization"
+    },
+    {
+      "name": "Users",
+      "description": "User management"
+    },
+    {
+      "name": "incidents",
+      "description": "Incident management"
+    },
+    {
+      "name": "reports",
+      "description": "Report management"
+    },
+    {
+      "name": "tasks",
+      "description": "Task management"
+    },
+    {
+      "name": "villages",
+      "description": "Village and boundary data"
+    },
+    {
+      "name": "analytics",
+      "description": "Analytics and statistics"
+    },
+    {
+      "name": "Notifications",
+      "description": "Notification system"
+    },
+    {
+      "name": "settings",
+      "description": "System settings"
+    },
+    {
+      "name": "Surveys",
+      "description": "Survey management"
+    },
+    {
+      "name": "Survey Templates",
+      "description": "Survey template management"
+    },
+    {
+      "name": "upload",
+      "description": "File upload"
+    }
+  ],
+  "servers": [
+    {
+      "url": "http://localhost:3001",
+      "description": "Development server"
+    },
+    {
+      "url": "https://api.guardian-route.example.com",
+      "description": "Production server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "JWT-auth": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "name": "Authorization",
+        "description": "Enter JWT token",
+        "in": "header"
+      }
+    },
+    "schemas": {
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "john.doe@obtwiang.go.th"
+          },
+          "password": {
+            "type": "string",
+            "example": "SecurePassword123!"
+          },
+          "firstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "phone": {
+            "type": "string",
+            "example": "081-234-5678"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "FIELD_OFFICER",
+              "SUPERVISOR",
+              "EXECUTIVE",
+              "ADMIN",
+              "DEVELOPER"
+            ],
+            "example": "FIELD_OFFICER",
+            "description": "User role (only ADMIN can set this)"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "firstName",
+          "lastName"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "admin@obtwiang.go.th"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "RefreshTokenDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "UpdateProfileDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "สมชาย",
+            "description": "First name"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "ใจดี",
+            "description": "Last name"
+          },
+          "phone": {
+            "type": "string",
+            "example": "0812345678",
+            "description": "Phone number"
+          },
+          "department": {
+            "type": "string",
+            "example": "สำนักปลัด",
+            "description": "Department"
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName"
+        ]
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "example": "oldpassword123",
+            "description": "Current password"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "newpassword123",
+            "description": "New password (min 6 characters)"
+          },
+          "confirmPassword": {
+            "type": "string",
+            "example": "newpassword123",
+            "description": "Confirm new password"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword",
+          "confirmPassword"
+        ]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@obtwiang.go.th"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123",
+            "minLength": 8
+          },
+          "firstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "phone": {
+            "type": "string",
+            "example": "081-234-5678"
+          },
+          "department": {
+            "type": "string",
+            "example": "สำนักปลัด"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "FIELD_OFFICER",
+              "SUPERVISOR",
+              "EXECUTIVE",
+              "ADMIN",
+              "DEVELOPER"
+            ],
+            "example": "FIELD_OFFICER"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "firstName",
+          "lastName",
+          "role"
+        ]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@obtwiang.go.th"
+          },
+          "password": {
+            "type": "string",
+            "example": "password123",
+            "minLength": 8
+          },
+          "firstName": {
+            "type": "string",
+            "example": "John"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Doe"
+          },
+          "phone": {
+            "type": "string",
+            "example": "081-234-5678"
+          },
+          "department": {
+            "type": "string",
+            "example": "สำนักปลัด"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "FIELD_OFFICER",
+              "SUPERVISOR",
+              "EXECUTIVE",
+              "ADMIN",
+              "DEVELOPER"
+            ],
+            "example": "FIELD_OFFICER"
+          }
+        }
+      },
+      "CreateVillageDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "บ้านสันทราย",
+            "description": "ชื่อหมู่บ้าน"
+          },
+          "villageNo": {
+            "type": "number",
+            "example": 1,
+            "description": "หมู่ที่"
+          },
+          "lat": {
+            "type": "number",
+            "example": 19.9167,
+            "description": "Latitude (will be converted to centerPoint)"
+          },
+          "lng": {
+            "type": "number",
+            "example": 99.2333,
+            "description": "Longitude (will be converted to centerPoint)"
+          },
+          "population": {
+            "type": "number",
+            "example": 1500,
+            "description": "จำนวนประชากรรวม"
+          },
+          "malePopulation": {
+            "type": "number",
+            "example": 750,
+            "description": "จำนวนประชากรชาย (will be saved as populationMale)"
+          },
+          "femalePopulation": {
+            "type": "number",
+            "example": 750,
+            "description": "จำนวนประชากรหญิง (will be saved as populationFemale)"
+          },
+          "households": {
+            "type": "number",
+            "example": 350,
+            "description": "จำนวนครัวเรือน"
+          },
+          "province": {
+            "type": "string",
+            "example": "เชียงใหม่",
+            "description": "จังหวัด (stored in alternateNames)"
+          },
+          "district": {
+            "type": "string",
+            "example": "ฝาง",
+            "description": "อำเภอ (stored in alternateNames)"
+          },
+          "subdistrict": {
+            "type": "string",
+            "example": "เวียง",
+            "description": "ตำบล (stored in alternateNames)"
+          }
+        },
+        "required": [
+          "name",
+          "villageNo"
+        ]
+      },
+      "UpdateVillageDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "บ้านสันทราย",
+            "description": "ชื่อหมู่บ้าน"
+          },
+          "villageNo": {
+            "type": "number",
+            "example": 1,
+            "description": "หมู่ที่"
+          },
+          "lat": {
+            "type": "number",
+            "example": 19.9167,
+            "description": "Latitude (will be converted to centerPoint)"
+          },
+          "lng": {
+            "type": "number",
+            "example": 99.2333,
+            "description": "Longitude (will be converted to centerPoint)"
+          },
+          "population": {
+            "type": "number",
+            "example": 1500,
+            "description": "จำนวนประชากรรวม"
+          },
+          "malePopulation": {
+            "type": "number",
+            "example": 750,
+            "description": "จำนวนประชากรชาย (will be saved as populationMale)"
+          },
+          "femalePopulation": {
+            "type": "number",
+            "example": 750,
+            "description": "จำนวนประชากรหญิง (will be saved as populationFemale)"
+          },
+          "households": {
+            "type": "number",
+            "example": 350,
+            "description": "จำนวนครัวเรือน"
+          },
+          "province": {
+            "type": "string",
+            "example": "เชียงใหม่",
+            "description": "จังหวัด (stored in alternateNames)"
+          },
+          "district": {
+            "type": "string",
+            "example": "ฝาง",
+            "description": "อำเภอ (stored in alternateNames)"
+          },
+          "subdistrict": {
+            "type": "string",
+            "example": "เวียง",
+            "description": "ตำบล (stored in alternateNames)"
+          }
+        }
+      },
+      "CreateIncidentDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "น้ำท่วมหมู่ 3 บ้านเต๋าดิน"
+          },
+          "description": {
+            "type": "string",
+            "example": "น้ำท่วมขังบริเวณถนนสายหลัก ระดับน้ำสูงประมาณ 50 ซม."
+          },
+          "disasterType": {
+            "type": "string",
+            "enum": [
+              "FLOOD",
+              "LANDSLIDE",
+              "FIRE",
+              "STORM",
+              "EARTHQUAKE",
+              "DROUGHT",
+              "OTHER"
+            ],
+            "example": "FLOOD"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "CRITICAL"
+            ],
+            "example": "HIGH",
+            "default": "MEDIUM"
+          },
+          "location": {
+            "type": "object",
+            "example": {
+              "type": "Point",
+              "coordinates": [
+                99.2333,
+                19.9167
+              ]
+            },
+            "description": "GeoJSON Point [longitude, latitude]"
+          },
+          "address": {
+            "type": "string",
+            "example": "123 ถนนเชียงใหม่-ฝาง"
+          },
+          "villageId": {
+            "type": "string",
+            "example": "uuid-of-village"
+          },
+          "images": {
+            "example": [
+              "/uploads/image1.webp",
+              "/uploads/image2.webp"
+            ],
+            "description": "Array of image URLs",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "affectedArea": {
+            "type": "object",
+            "example": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    99.2333,
+                    19.9167
+                  ],
+                  [
+                    99.2343,
+                    19.9167
+                  ],
+                  [
+                    99.2343,
+                    19.9157
+                  ],
+                  [
+                    99.2333,
+                    19.9157
+                  ],
+                  [
+                    99.2333,
+                    19.9167
+                  ]
+                ]
+              ]
+            },
+            "description": "GeoJSON Polygon of affected area"
+          },
+          "estimatedHouseholds": {
+            "type": "number",
+            "example": 25,
+            "description": "Estimated number of affected households"
+          },
+          "severity": {
+            "type": "number",
+            "example": 3,
+            "minimum": 1,
+            "maximum": 5,
+            "description": "Severity level (1=Low, 5=Critical)"
+          }
+        },
+        "required": [
+          "title",
+          "disasterType",
+          "priority",
+          "location"
+        ]
+      },
+      "AssignIncidentDto": {
+        "type": "object",
+        "properties": {
+          "fieldOfficerId": {
+            "type": "string",
+            "description": "ID of the field officer to assign",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Optional notes for the assignment",
+            "example": "Please investigate and report back by tomorrow"
+          }
+        },
+        "required": [
+          "fieldOfficerId"
+        ]
+      },
+      "ReviewIncidentDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "New status after review",
+            "enum": [
+              "PENDING",
+              "IN_PROGRESS",
+              "RESOLVED",
+              "CLOSED"
+            ],
+            "example": "RESOLVED"
+          },
+          "reviewNotes": {
+            "type": "string",
+            "description": "Review comments (decision rationale, actions required)",
+            "example": "Approved. Assign two field officers to verify damages and proceed with relief distribution."
+          },
+          "additionalNotes": {
+            "type": "string",
+            "description": "Additional details or instructions for teams (optional)",
+            "example": "Coordinate with local administrative office. Prepare sandbags if water level rises overnight."
+          }
+        },
+        "required": [
+          "status",
+          "reviewNotes"
+        ]
+      },
+      "UpdateIncidentDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "example": "น้ำท่วมหมู่ 3 บ้านเต๋าดิน"
+          },
+          "description": {
+            "type": "string",
+            "example": "น้ำท่วมขังบริเวณถนนสายหลัก ระดับน้ำสูงประมาณ 50 ซม."
+          },
+          "disasterType": {
+            "type": "string",
+            "enum": [
+              "FLOOD",
+              "LANDSLIDE",
+              "FIRE",
+              "STORM",
+              "EARTHQUAKE",
+              "DROUGHT",
+              "OTHER"
+            ],
+            "example": "FLOOD"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "CRITICAL"
+            ],
+            "example": "HIGH",
+            "default": "MEDIUM"
+          },
+          "location": {
+            "type": "object",
+            "example": {
+              "type": "Point",
+              "coordinates": [
+                99.2333,
+                19.9167
+              ]
+            },
+            "description": "GeoJSON Point [longitude, latitude]"
+          },
+          "address": {
+            "type": "string",
+            "example": "123 ถนนเชียงใหม่-ฝาง"
+          },
+          "villageId": {
+            "type": "string",
+            "example": "uuid-of-village"
+          },
+          "images": {
+            "example": [
+              "/uploads/image1.webp",
+              "/uploads/image2.webp"
+            ],
+            "description": "Array of image URLs",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "affectedArea": {
+            "type": "object",
+            "example": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    99.2333,
+                    19.9167
+                  ],
+                  [
+                    99.2343,
+                    19.9167
+                  ],
+                  [
+                    99.2343,
+                    19.9157
+                  ],
+                  [
+                    99.2333,
+                    19.9157
+                  ],
+                  [
+                    99.2333,
+                    19.9167
+                  ]
+                ]
+              ]
+            },
+            "description": "GeoJSON Polygon of affected area"
+          },
+          "estimatedHouseholds": {
+            "type": "number",
+            "example": 25,
+            "description": "Estimated number of affected households"
+          },
+          "severity": {
+            "type": "number",
+            "example": 3,
+            "minimum": 1,
+            "maximum": 5,
+            "description": "Severity level (1=Low, 5=Critical)"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "IN_PROGRESS",
+              "RESOLVED",
+              "CLOSED"
+            ],
+            "example": "IN_PROGRESS"
+          },
+          "resolvedAt": {
+            "type": "string",
+            "example": "2025-11-03T10:30:00Z",
+            "description": "ISO 8601 datetime when incident was resolved"
+          }
+        }
+      },
+      "CreateNotificationDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Notification title"
+          },
+          "message": {
+            "type": "string",
+            "description": "Notification message"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "INCIDENT_CREATED",
+              "INCIDENT_ASSIGNED",
+              "INCIDENT_UPDATED",
+              "INCIDENT_RESOLVED",
+              "TASK_ASSIGNED",
+              "TASK_UPDATED",
+              "TASK_COMPLETED",
+              "REPORT_SUBMITTED",
+              "REPORT_APPROVED",
+              "REPORT_REJECTED",
+              "SYSTEM_ALERT",
+              "SYSTEM_MAINTENANCE"
+            ],
+            "description": "Notification type"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "NORMAL",
+              "HIGH",
+              "URGENT"
+            ],
+            "default": "NORMAL"
+          },
+          "data": {
+            "type": "object",
+            "description": "Additional data as JSON"
+          },
+          "relatedEntityType": {
+            "type": "string",
+            "description": "Related entity type (e.g., incident, task)"
+          },
+          "relatedEntityId": {
+            "type": "string",
+            "description": "Related entity ID"
+          },
+          "userIds": {
+            "description": "User IDs to send notification to",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "message",
+          "type",
+          "userIds"
+        ]
+      },
+      "MarkReadDto": {
+        "type": "object",
+        "properties": {
+          "notificationIds": {
+            "description": "Notification IDs to mark as read",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "notificationIds"
+        ]
+      },
+      "CreateTaskDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Task title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Task description"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "URGENT"
+            ],
+            "description": "Task priority"
+          },
+          "incidentId": {
+            "type": "string",
+            "description": "Related incident ID"
+          },
+          "assignedToId": {
+            "type": "string",
+            "description": "Assigned user ID"
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Due date"
+          }
+        },
+        "required": [
+          "title",
+          "priority",
+          "incidentId"
+        ]
+      },
+      "GeoJSONPoint": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "Point",
+            "description": "GeoJSON type"
+          },
+          "coordinates": {
+            "example": [
+              98.9817,
+              19.9167
+            ],
+            "description": "[longitude, latitude]",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ]
+      },
+      "GeoJSONPolygon": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "Polygon",
+            "description": "GeoJSON type"
+          },
+          "coordinates": {
+            "example": [
+              [
+                [
+                  98.9817,
+                  19.9167
+                ],
+                [
+                  98.9827,
+                  19.9167
+                ],
+                [
+                  98.9827,
+                  19.9177
+                ],
+                [
+                  98.9817,
+                  19.9177
+                ],
+                [
+                  98.9817,
+                  19.9167
+                ]
+              ]
+            ],
+            "description": "Array of linear rings (array of coordinates) following GeoJSON spec",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ]
+      },
+      "UpdateSurveyDataDto": {
+        "type": "object",
+        "properties": {
+          "surveyLocation": {
+            "description": "Survey location (GPS point)",
+            "example": {
+              "type": "Point",
+              "coordinates": [
+                98.9817,
+                19.9167
+              ]
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GeoJSONPoint"
+              }
+            ]
+          },
+          "surveyArea": {
+            "description": "Survey area (drawn polygon)",
+            "example": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    98.9817,
+                    19.9167
+                  ],
+                  [
+                    98.9827,
+                    19.9167
+                  ],
+                  [
+                    98.9827,
+                    19.9177
+                  ],
+                  [
+                    98.9817,
+                    19.9177
+                  ],
+                  [
+                    98.9817,
+                    19.9167
+                  ]
+                ]
+              ]
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GeoJSONPolygon"
+              }
+            ]
+          },
+          "surveyNotes": {
+            "type": "string",
+            "description": "Survey notes and observations",
+            "example": "Water level increased by 15cm since last visit. Noted minor landslide near village entrance."
+          },
+          "surveyPhotos": {
+            "description": "Array of photo URLs",
+            "example": [
+              "https://cdn.guardian-route.example.com/uploads/surveys/IMG_001.jpg",
+              "https://cdn.guardian-route.example.com/uploads/surveys/IMG_002.jpg"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "UpdateTaskDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Task title"
+          },
+          "description": {
+            "type": "string",
+            "description": "Task description"
+          },
+          "priority": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "URGENT"
+            ],
+            "description": "Task priority"
+          },
+          "incidentId": {
+            "type": "string",
+            "description": "Related incident ID"
+          },
+          "assignedToId": {
+            "type": "string",
+            "description": "Assigned user ID"
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Due date"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "IN_PROGRESS",
+              "SURVEYED",
+              "COMPLETED",
+              "CANCELLED"
+            ],
+            "description": "Task status"
+          },
+          "surveyLocation": {
+            "type": "object",
+            "description": "Survey location (GeoJSON Point)"
+          },
+          "surveyArea": {
+            "type": "object",
+            "description": "Survey area (GeoJSON Polygon)"
+          },
+          "surveyNotes": {
+            "type": "string",
+            "description": "Survey notes"
+          },
+          "surveyPhotos": {
+            "description": "Survey photos URLs",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CreateSurveyDto": {
+        "type": "object",
+        "properties": {
+          "templateId": {
+            "type": "string",
+            "description": "ID of the Survey Template to use"
+          },
+          "incidentId": {
+            "type": "string",
+            "description": "ID of the Incident this survey is related to"
+          },
+          "villageId": {
+            "type": "string",
+            "description": "ID of the Village this survey is related to"
+          },
+          "polygon": {
+            "type": "string",
+            "description": "GeoJSON Polygon for the survey area (optional)"
+          }
+        },
+        "required": [
+          "templateId"
+        ]
+      },
+      "SurveyTemplateDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "object"
+          },
+          "formSchema": {
+            "type": "object",
+            "description": "JSON schema of the survey form",
+            "additionalProperties": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "formSchema",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SurveyDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the survey"
+          },
+          "incidentId": {
+            "type": "object",
+            "description": "ID of the Incident this survey is related to"
+          },
+          "villageId": {
+            "type": "object",
+            "description": "ID of the Village this survey is related to"
+          },
+          "templateId": {
+            "type": "string",
+            "description": "ID of the Survey Template used"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "CANCELLED"
+            ],
+            "description": "Current status of the survey"
+          },
+          "completedAt": {
+            "type": "object",
+            "description": "Date and time when the survey was completed"
+          },
+          "polygon": {
+            "type": "object",
+            "description": "GeoJSON Polygon for the survey area (optional)"
+          },
+          "createdById": {
+            "type": "string",
+            "description": "ID of the user who created the survey"
+          },
+          "template": {
+            "description": "Survey Template details",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyTemplateDto"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "templateId",
+          "status",
+          "createdById"
+        ]
+      },
+      "CreateSurveyResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "string",
+            "description": "Actual survey response data (JSON string)"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
+      "SurveyResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the survey response"
+          },
+          "surveyId": {
+            "type": "string",
+            "description": "ID of the Survey this response belongs to"
+          },
+          "data": {
+            "type": "object",
+            "description": "Actual survey response data (key-value pairs)",
+            "additionalProperties": true
+          },
+          "submittedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Date and time when the response was submitted"
+          },
+          "submittedById": {
+            "type": "string",
+            "description": "ID of the user who submitted the response"
+          }
+        },
+        "required": [
+          "id",
+          "surveyId",
+          "data",
+          "submittedAt",
+          "submittedById"
+        ]
+      },
+      "CreateSurveyTemplateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "formSchema": {
+            "type": "object",
+            "description": "JSON schema of the survey form",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "formSchema"
+        ]
+      },
+      "UpdateSurveyTemplateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "formSchema": {
+            "type": "object",
+            "description": "JSON schema of the survey form",
+            "additionalProperties": true
+          }
+        }
+      },
+      "GPSCoordinatesDto": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number",
+            "example": 19.9167,
+            "description": "Latitude"
+          },
+          "lng": {
+            "type": "number",
+            "example": 99.2333,
+            "description": "Longitude"
+          },
+          "accuracy": {
+            "type": "number",
+            "example": 10.5,
+            "description": "GPS accuracy in meters"
+          },
+          "altitude": {
+            "type": "number",
+            "example": 350.5,
+            "description": "Altitude in meters"
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ]
+      },
+      "FieldOfficerSurveyDto": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "example": "uuid-of-task",
+            "description": "Related task ID"
+          },
+          "incidentId": {
+            "type": "string",
+            "example": "uuid-of-incident",
+            "description": "Related incident ID"
+          },
+          "villageId": {
+            "type": "string",
+            "example": "uuid-of-village",
+            "description": "Village ID (optional if village name is provided)"
+          },
+          "villageName": {
+            "type": "string",
+            "example": "บ้านเต๋าดิน หมู่ 3",
+            "description": "Village name"
+          },
+          "disasterType": {
+            "type": "string",
+            "example": "น้ำท่วม",
+            "description": "Disaster type (น้ำท่วม, ดินถ่ม, ไฟป่า, etc.)"
+          },
+          "severity": {
+            "type": "number",
+            "example": 3,
+            "description": "Severity level (1-5)",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "estimatedHouseholds": {
+            "type": "number",
+            "example": 25,
+            "description": "Estimated affected households"
+          },
+          "notes": {
+            "type": "string",
+            "example": "น้ำท่วมขังบริเวณถนนสายหลัก ระดับน้ำประมาณ 50 ซม. ประชาชนต้องการความช่วยเหลือด้านอาหารและน้ำดื่ม",
+            "description": "Survey notes and observations"
+          },
+          "gpsLocation": {
+            "description": "GPS coordinates of survey location",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GPSCoordinatesDto"
+              }
+            ]
+          },
+          "photoUrls": {
+            "example": [
+              "https://example.com/photo1.jpg",
+              "https://example.com/photo2.jpg"
+            ],
+            "description": "Array of photo URLs (uploaded separately)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "polygon": {
+            "type": "object",
+            "example": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    99.8833,
+                    19.9167
+                  ],
+                  [
+                    99.885,
+                    19.9167
+                  ],
+                  [
+                    99.885,
+                    19.915
+                  ],
+                  [
+                    99.8833,
+                    19.915
+                  ],
+                  [
+                    99.8833,
+                    19.9167
+                  ]
+                ]
+              ]
+            },
+            "description": "GeoJSON polygon of affected area (drawn on map)"
+          },
+          "areaSize": {
+            "type": "number",
+            "example": 2.5,
+            "description": "Area size in km² (calculated from polygon)"
+          },
+          "additionalData": {
+            "type": "object",
+            "example": {
+              "weather": "ฝนตก",
+              "temperature": "28°C",
+              "visibility": "ดี"
+            },
+            "description": "Additional survey data (flexible JSON)"
+          }
+        },
+        "required": [
+          "villageName",
+          "disasterType",
+          "severity",
+          "estimatedHouseholds",
+          "notes",
+          "gpsLocation"
+        ]
+      },
+      "FieldOfficerSurveyResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "uuid-of-survey"
+          },
+          "fieldOfficerId": {
+            "type": "string",
+            "example": "uuid-of-user"
+          },
+          "taskId": {
+            "type": "string",
+            "example": "uuid-of-task"
+          },
+          "incidentId": {
+            "type": "string",
+            "example": "uuid-of-incident"
+          },
+          "villageId": {
+            "type": "string",
+            "example": "uuid-of-village"
+          },
+          "villageName": {
+            "type": "string",
+            "example": "บ้านเต๋าดิน หมู่ 3"
+          },
+          "disasterType": {
+            "type": "string",
+            "example": "น้ำท่วม"
+          },
+          "severity": {
+            "type": "number",
+            "example": 3
+          },
+          "estimatedHouseholds": {
+            "type": "number",
+            "example": 25
+          },
+          "notes": {
+            "type": "string",
+            "example": "Survey notes..."
+          },
+          "gpsLocation": {
+            "$ref": "#/components/schemas/GPSCoordinatesDto"
+          },
+          "photoUrls": {
+            "example": [
+              "url1",
+              "url2"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "polygon": {
+            "type": "object",
+            "example": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    99.8833,
+                    19.9167
+                  ]
+                ]
+              ]
+            }
+          },
+          "areaSize": {
+            "type": "number",
+            "example": 2.5
+          },
+          "additionalData": {
+            "type": "object"
+          },
+          "submittedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2025-11-29T14:30:00Z"
+          },
+          "status": {
+            "type": "string",
+            "example": "SUBMITTED"
+          }
+        },
+        "required": [
+          "id",
+          "fieldOfficerId",
+          "taskId",
+          "incidentId",
+          "villageId",
+          "villageName",
+          "disasterType",
+          "severity",
+          "estimatedHouseholds",
+          "notes",
+          "gpsLocation",
+          "photoUrls",
+          "additionalData",
+          "submittedAt",
+          "status"
+        ]
+      },
+      "GPSLocationDto": {
+        "type": "object",
+        "properties": {
+          "lat": {
+            "type": "number",
+            "example": 19.9167,
+            "description": "Latitude"
+          },
+          "lng": {
+            "type": "number",
+            "example": 99.2333,
+            "description": "Longitude"
+          }
+        },
+        "required": [
+          "lat",
+          "lng"
+        ]
+      },
+      "DamageAssessmentDto": {
+        "type": "object",
+        "properties": {
+          "buildings": {
+            "type": "object",
+            "description": "Building damage details"
+          },
+          "agriculture": {
+            "type": "object",
+            "description": "Agriculture damage details"
+          },
+          "utilities": {
+            "type": "object",
+            "description": "Public utilities damage details"
+          }
+        },
+        "required": [
+          "buildings",
+          "agriculture",
+          "utilities"
+        ]
+      },
+      "ComprehensiveSurveyDto": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "example": "uuid-of-task",
+            "description": "Related task ID"
+          },
+          "villageId": {
+            "type": "string",
+            "example": "uuid-of-village",
+            "description": "Village ID"
+          },
+          "villageName": {
+            "type": "string",
+            "example": "บ้านเต๋าดิน หมู่ 3",
+            "description": "Village name"
+          },
+          "disasterType": {
+            "type": "string",
+            "example": "น้ำท่วม",
+            "description": "Disaster type"
+          },
+          "surveyDate": {
+            "type": "string",
+            "example": "2026-01-20",
+            "description": "Survey date (ISO format)"
+          },
+          "gpsLocation": {
+            "description": "GPS coordinates",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GPSLocationDto"
+              }
+            ]
+          },
+          "affectedHouseholds": {
+            "type": "number",
+            "example": 25,
+            "description": "Number of affected households"
+          },
+          "affectedPeople": {
+            "type": "number",
+            "example": 100,
+            "description": "Number of affected people"
+          },
+          "deadCount": {
+            "type": "number",
+            "example": 0,
+            "description": "Number of deaths"
+          },
+          "missingCount": {
+            "type": "number",
+            "example": 0,
+            "description": "Number of missing people"
+          },
+          "injuredCount": {
+            "type": "number",
+            "example": 2,
+            "description": "Number of injured people"
+          },
+          "evacuatedPeople": {
+            "type": "number",
+            "example": 50,
+            "description": "Number of evacuated people"
+          },
+          "evacuatedHouseholds": {
+            "type": "number",
+            "example": 15,
+            "description": "Number of evacuated households"
+          },
+          "damageAssessment": {
+            "description": "Detailed damage assessment",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DamageAssessmentDto"
+              }
+            ]
+          },
+          "reliefOperations": {
+            "type": "string",
+            "example": "ช่วยเหลือด้านอาหารและน้ำดื่ม",
+            "description": "Relief operations description"
+          },
+          "resourcesData": {
+            "type": "object",
+            "description": "Resources used in operations"
+          },
+          "operationsData": {
+            "type": "object",
+            "description": "Involved agencies and operations"
+          },
+          "reportType": {
+            "type": "string",
+            "example": "INFO",
+            "description": "Report type: INFO, DISASTER_ZONE, or ASSISTANCE"
+          },
+          "photoUrls": {
+            "example": [
+              "https://example.com/photo1.jpg"
+            ],
+            "description": "Photo URLs",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "polygon": {
+            "type": "object",
+            "description": "GeoJSON polygon of affected area"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes"
+          }
+        },
+        "required": [
+          "villageId",
+          "villageName",
+          "disasterType",
+          "surveyDate",
+          "gpsLocation",
+          "affectedHouseholds",
+          "affectedPeople",
+          "deadCount",
+          "missingCount",
+          "injuredCount",
+          "damageAssessment",
+          "reportType"
+        ]
+      },
+      "ComprehensiveSurveyResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "fieldOfficerId": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": "string"
+          },
+          "villageId": {
+            "type": "string"
+          },
+          "villageName": {
+            "type": "string"
+          },
+          "disasterType": {
+            "type": "string"
+          },
+          "surveyDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "gpsLocation": {
+            "$ref": "#/components/schemas/GPSLocationDto"
+          },
+          "affectedHouseholds": {
+            "type": "number"
+          },
+          "affectedPeople": {
+            "type": "number"
+          },
+          "deadCount": {
+            "type": "number"
+          },
+          "missingCount": {
+            "type": "number"
+          },
+          "injuredCount": {
+            "type": "number"
+          },
+          "evacuatedPeople": {
+            "type": "number"
+          },
+          "evacuatedHouseholds": {
+            "type": "number"
+          },
+          "damageAssessment": {
+            "type": "object"
+          },
+          "reliefData": {
+            "type": "object"
+          },
+          "resourcesData": {
+            "type": "object"
+          },
+          "operationsData": {
+            "type": "object"
+          },
+          "reportType": {
+            "type": "string"
+          },
+          "photoUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "polygon": {
+            "type": "object"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "fieldOfficerId",
+          "taskId",
+          "villageId",
+          "villageName",
+          "disasterType",
+          "surveyDate",
+          "gpsLocation",
+          "affectedHouseholds",
+          "affectedPeople",
+          "deadCount",
+          "missingCount",
+          "injuredCount",
+          "evacuatedPeople",
+          "evacuatedHouseholds",
+          "damageAssessment",
+          "reliefData",
+          "resourcesData",
+          "operationsData",
+          "reportType",
+          "photoUrls",
+          "polygon",
+          "notes",
+          "status",
+          "submittedAt",
+          "updatedAt"
+        ]
+      },
+      "CreateReportDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Type of report",
+            "enum": [
+              "INCIDENT",
+              "INCIDENT_SUMMARY",
+              "TASK",
+              "TASK_PROGRESS",
+              "SURVEY",
+              "SURVEY_RESULTS",
+              "MONTHLY",
+              "MONTHLY_SUMMARY",
+              "CUSTOM"
+            ],
+            "example": "INCIDENT"
+          },
+          "title": {
+            "type": "string",
+            "description": "Report title",
+            "example": "Flood Damage Assessment - Village 1"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Report summary",
+            "example": "Summary of flood damage in Village 1 affecting 15 households"
+          },
+          "details": {
+            "type": "object",
+            "description": "Structured report data",
+            "example": {
+              "findings": [
+                "Severe flooding in low-lying areas"
+              ],
+              "recommendations": [
+                "Improve drainage system"
+              ]
+            }
+          },
+          "totalDamageEstimate": {
+            "type": "number",
+            "description": "Total damage estimate in THB",
+            "example": 500000
+          },
+          "affectedHouseholds": {
+            "type": "number",
+            "description": "Number of affected households",
+            "example": 15
+          },
+          "affectedPersons": {
+            "type": "number",
+            "description": "Number of affected persons",
+            "example": 45
+          },
+          "aiAnalysis": {
+            "type": "object",
+            "description": "AI analysis results from Gemini API",
+            "example": {
+              "severity": "high",
+              "recommendations": [
+                "Immediate evacuation required"
+              ]
+            }
+          },
+          "photoUrls": {
+            "description": "Array of photo URLs",
+            "example": [
+              "https://example.com/photo1.jpg",
+              "https://example.com/photo2.jpg"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "templateId": {
+            "type": "string",
+            "description": "Template ID for custom reports",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "periodStart": {
+            "type": "string",
+            "description": "Period start date (for monthly/custom reports)",
+            "example": "2025-01-01T00:00:00Z"
+          },
+          "periodEnd": {
+            "type": "string",
+            "description": "Period end date (for monthly/custom reports)",
+            "example": "2025-01-31T23:59:59Z"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata for report generation",
+            "example": {
+              "filters": {
+                "village": "1",
+                "status": "RESOLVED"
+              },
+              "parameters": {
+                "includeImages": true
+              }
+            }
+          },
+          "incidentId": {
+            "type": "string",
+            "description": "Incident ID (required for INCIDENT reports)",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "status": {
+            "type": "string",
+            "description": "Initial status of the report",
+            "enum": [
+              "DRAFT",
+              "GENERATING",
+              "READY",
+              "ERROR",
+              "SUBMITTED",
+              "UNDER_REVIEW",
+              "REVISION_REQUIRED",
+              "APPROVED",
+              "REJECTED"
+            ],
+            "example": "DRAFT",
+            "default": "DRAFT"
+          }
+        },
+        "required": [
+          "type",
+          "title"
+        ]
+      },
+      "UpdateReportDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Type of report",
+            "enum": [
+              "INCIDENT",
+              "INCIDENT_SUMMARY",
+              "TASK",
+              "TASK_PROGRESS",
+              "SURVEY",
+              "SURVEY_RESULTS",
+              "MONTHLY",
+              "MONTHLY_SUMMARY",
+              "CUSTOM"
+            ],
+            "example": "INCIDENT"
+          },
+          "title": {
+            "type": "string",
+            "description": "Report title",
+            "example": "Flood Damage Assessment - Village 1"
+          },
+          "summary": {
+            "type": "string",
+            "description": "Report summary",
+            "example": "Summary of flood damage in Village 1 affecting 15 households"
+          },
+          "details": {
+            "type": "object",
+            "description": "Structured report data",
+            "example": {
+              "findings": [
+                "Severe flooding in low-lying areas"
+              ],
+              "recommendations": [
+                "Improve drainage system"
+              ]
+            }
+          },
+          "totalDamageEstimate": {
+            "type": "number",
+            "description": "Total damage estimate in THB",
+            "example": 500000
+          },
+          "affectedHouseholds": {
+            "type": "number",
+            "description": "Number of affected households",
+            "example": 15
+          },
+          "affectedPersons": {
+            "type": "number",
+            "description": "Number of affected persons",
+            "example": 45
+          },
+          "aiAnalysis": {
+            "type": "object",
+            "description": "AI analysis results from Gemini API",
+            "example": {
+              "severity": "high",
+              "recommendations": [
+                "Immediate evacuation required"
+              ]
+            }
+          },
+          "photoUrls": {
+            "description": "Array of photo URLs",
+            "example": [
+              "https://example.com/photo1.jpg",
+              "https://example.com/photo2.jpg"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "templateId": {
+            "type": "string",
+            "description": "Template ID for custom reports",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "periodStart": {
+            "type": "string",
+            "description": "Period start date (for monthly/custom reports)",
+            "example": "2025-01-01T00:00:00Z"
+          },
+          "periodEnd": {
+            "type": "string",
+            "description": "Period end date (for monthly/custom reports)",
+            "example": "2025-01-31T23:59:59Z"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata for report generation",
+            "example": {
+              "filters": {
+                "village": "1",
+                "status": "RESOLVED"
+              },
+              "parameters": {
+                "includeImages": true
+              }
+            }
+          },
+          "incidentId": {
+            "type": "string",
+            "description": "Incident ID (required for INCIDENT reports)",
+            "example": "123e4567-e89b-12d3-a456-426614174000"
+          },
+          "status": {
+            "type": "string",
+            "description": "Initial status of the report",
+            "enum": [
+              "DRAFT",
+              "GENERATING",
+              "READY",
+              "ERROR",
+              "SUBMITTED",
+              "UNDER_REVIEW",
+              "REVISION_REQUIRED",
+              "APPROVED",
+              "REJECTED"
+            ],
+            "example": "DRAFT",
+            "default": "DRAFT"
+          }
+        }
+      },
+      "SubmitReportDto": {
+        "type": "object",
+        "properties": {
+          "notes": {
+            "type": "string",
+            "description": "Optional notes when submitting the report",
+            "example": "Report ready for review"
+          }
+        }
+      },
+      "ReviewReportDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "New status after review",
+            "enum": [
+              "APPROVED",
+              "REJECTED",
+              "REVISION_REQUIRED"
+            ],
+            "example": "APPROVED"
+          },
+          "reviewNotes": {
+            "type": "string",
+            "description": "Review notes",
+            "example": "Report approved with minor comments"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "GeneratePdfDto": {
+        "type": "object",
+        "properties": {
+          "options": {
+            "type": "object",
+            "description": "PDF generation options",
+            "example": {
+              "includeImages": true,
+              "includeCharts": true,
+              "pageSize": "A4",
+              "orientation": "portrait"
+            }
+          },
+          "forceRegenerate": {
+            "type": "boolean",
+            "description": "Force regeneration even if PDF already exists",
+            "example": false,
+            "default": false
+          }
+        }
+      },
+      "CreateFullReportDto": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "incidentDescription": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH",
+              "CRITICAL"
+            ]
+          },
+          "affectedHouseholds": {
+            "type": "number"
+          },
+          "affectedPopulation": {
+            "type": "number"
+          },
+          "affectedAreaDescription": {
+            "type": "string"
+          },
+          "infrastructureDamage": {
+            "type": "string"
+          },
+          "casualties": {
+            "type": "number"
+          },
+          "injuries": {
+            "type": "number"
+          },
+          "resourcesNeeded": {
+            "type": "string"
+          },
+          "currentResponse": {
+            "type": "string"
+          },
+          "recommendations": {
+            "type": "string"
+          },
+          "photoUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "aiAnalysis": {
+            "type": "string"
+          },
+          "aiAnalysisEdited": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "taskId",
+          "title",
+          "summary",
+          "incidentDescription",
+          "severity",
+          "affectedHouseholds",
+          "affectedPopulation",
+          "affectedAreaDescription",
+          "recommendations"
+        ]
+      },
+      "UpdateSettingsDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "TaskStatusMetricDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "IN_PROGRESS",
+              "SURVEYED",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "count": {
+            "type": "number",
+            "description": "Number of tasks with this status"
+          },
+          "percentage": {
+            "type": "number",
+            "description": "Percentage of total tasks"
+          }
+        },
+        "required": [
+          "status",
+          "count",
+          "percentage"
+        ]
+      },
+      "TaskStatusResponseDto": {
+        "type": "object",
+        "properties": {
+          "metrics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskStatusMetricDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "description": "Total number of tasks"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Timestamp when data was generated"
+          }
+        },
+        "required": [
+          "metrics",
+          "total",
+          "generatedAt"
+        ]
+      },
+      "TaskTrendDataPointDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "description": "Date (ISO 8601)"
+          },
+          "created": {
+            "type": "number",
+            "description": "Number of tasks created"
+          },
+          "completed": {
+            "type": "number",
+            "description": "Number of tasks completed"
+          },
+          "inProgress": {
+            "type": "number",
+            "description": "Number of tasks in progress"
+          },
+          "pending": {
+            "type": "number",
+            "description": "Number of pending tasks"
+          }
+        },
+        "required": [
+          "date",
+          "created",
+          "completed",
+          "inProgress",
+          "pending"
+        ]
+      },
+      "TaskTrendSummaryDto": {
+        "type": "object",
+        "properties": {
+          "totalCreated": {
+            "type": "number",
+            "description": "Total tasks created in period"
+          },
+          "totalCompleted": {
+            "type": "number",
+            "description": "Total tasks completed in period"
+          },
+          "completionRate": {
+            "type": "number",
+            "description": "Completion rate percentage"
+          },
+          "trend": {
+            "type": "string",
+            "enum": [
+              "UP",
+              "DOWN",
+              "STABLE"
+            ],
+            "description": "Trend direction"
+          }
+        },
+        "required": [
+          "totalCreated",
+          "totalCompleted",
+          "completionRate",
+          "trend"
+        ]
+      },
+      "TaskTrendResponseDto": {
+        "type": "object",
+        "properties": {
+          "dataPoints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskTrendDataPointDto"
+            }
+          },
+          "granularity": {
+            "type": "string",
+            "enum": [
+              "DAILY",
+              "WEEKLY",
+              "MONTHLY",
+              "QUARTERLY",
+              "YEARLY"
+            ]
+          },
+          "summary": {
+            "$ref": "#/components/schemas/TaskTrendSummaryDto"
+          },
+          "generatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Timestamp when data was generated"
+          }
+        },
+        "required": [
+          "dataPoints",
+          "granularity",
+          "summary",
+          "generatedAt"
+        ]
+      }
+    }
+  }
+}

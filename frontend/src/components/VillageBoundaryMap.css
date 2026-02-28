@@ -1,0 +1,152 @@
+/* Georeference Marker Styles */
+.georeference-marker {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.georeference-marker img {
+  display: block;
+  cursor: move;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
+.georeference-marker:hover img {
+  cursor: grab;
+}
+
+.georeference-marker:active img {
+  cursor: grabbing;
+}
+
+/* Leaflet Layer Control Styling */
+.leaflet-control-layers {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  padding: 10px;
+}
+
+.leaflet-control-layers-expanded {
+  padding: 12px;
+}
+
+.leaflet-control-layers-toggle {
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xMSA0SDRhMiAyIDAgMCAwLTIgMnY3Ii8+PHBhdGggZD0iTTExIDIwSDRhMiAyIDAgMCAxLTItMnYtN2EyIDIgMCAwIDEgMi0yaDciLz48cGF0aCBkPSJNMjAgMTN2N2EyIDIgMCAwIDEtMiAyaC03Ii8+PHBhdGggZD0iTTIwIDEzVjZhMiAyIDAgMCAwLTItMmgtNyIvPjwvc3ZnPg==');
+  width: 36px;
+  height: 36px;
+}
+
+.leaflet-control-layers label {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.leaflet-control-layers label:hover {
+  color: #4299e1;
+}
+
+.leaflet-control-layers-base {
+  margin-bottom: 8px;
+}
+
+.leaflet-control-layers-separator {
+  border-top: 1px solid #e2e8f0;
+  margin: 8px 0;
+}
+
+/* Fullscreen Control */
+.leaflet-control-fullscreen {
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-control-fullscreen-button {
+  background: white;
+  color: #2d3748;
+  text-decoration: none;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.leaflet-control-fullscreen-button:hover {
+  background: #4299e1;
+  color: white;
+}
+
+/* Fullscreen mode styles */
+.leaflet-container:-webkit-full-screen {
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 99999;
+}
+
+.leaflet-container:-moz-full-screen {
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 99999;
+}
+
+.leaflet-container:fullscreen {
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 99999;
+}
+
+/* Adjust controls in fullscreen */
+.leaflet-container:fullscreen .leaflet-control-zoom,
+.leaflet-container:fullscreen .leaflet-control-layers,
+.leaflet-container:fullscreen .leaflet-control-fullscreen {
+  margin: 10px;
+}
+
+/* ✅ Village Label Tooltip - Permanent labels on map */
+.village-label-tooltip {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 2px solid #3b82f6 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  color: #1e293b !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  padding: 6px 12px !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+  opacity: 0.9 !important;
+}
+
+.village-label-tooltip::before {
+  display: none !important;
+}
+
+/* ✅ Village Boundary Popup - Detailed info on click */
+.village-boundary-popup .leaflet-popup-content-wrapper {
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2) !important;
+  padding: 4px !important;
+}
+
+.village-boundary-popup .leaflet-popup-content {
+  margin: 12px !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+}
+
+.village-boundary-popup .leaflet-popup-tip {
+  background: white !important;
+}
+
+/* Responsive - ซ่อน tooltip บนมือถือเพื่อไม่ให้รกหน้าจอ */
+@media (max-width: 768px) {
+  .village-label-tooltip {
+    display: none !important;
+  }
+}

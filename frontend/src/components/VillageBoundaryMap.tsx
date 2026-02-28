@@ -1,0 +1,1226 @@
+import { useEffect, useRef, useState } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import '@geoman-io/leaflet-geoman-free';
+import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css';
+import toast from 'react-hot-toast';
+import * as turf from '@turf/turf'; // ✅ Import Turf.js for accurate area calculation
+import './VillageBoundaryMap.css';
+import { tambonWiangBoundary, tambonBoundaryStyle } from '../data/mapData';
+import boundariesService from '../services/boundariesService';
+
+// Fix Leaflet default marker icons
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+interface GeoreferenceOverlay {
+  url: string;
+  opacity: number;
+  scale: number;
+  rotation: number;
+  position: [number, number];
+  naturalWidth: number;
+  naturalHeight: number;
+}
+
+interface CoordinateMarker {
+  id: string;
+  lat: number;
+  lng: number;
+  label: string;
+  timestamp: Date;
+}
+
+interface VillageBoundaryMapProps {
+  onBoundaryDrawn?: (geojson: any) => void;
+  existingBoundaries?: any[];
+  center?: [number, number];
+  zoom?: number;
+  georeferenceOverlay?: GeoreferenceOverlay | null;
+  onGeoreferencePositionChange?: (position: [number, number]) => void;
+  loadTambonFromAPI?: boolean;
+  coordinateMarkers?: CoordinateMarker[];
+  flyToMarker?: CoordinateMarker | null;
+  onFlyToComplete?: () => void;
+  mapLayerType?: 'street' | 'satellite' | 'hybrid';
+  showLegendOnMap?: boolean;
+  selectedVillageToView?: any | null;
+  onViewComplete?: () => void;
+  editingBoundaryId?: string | null;
+  onDrawingStateChange?: (isDrawing: boolean) => void;
+}
+
+export default function VillageBoundaryMap({
+  onBoundaryDrawn,
+  existingBoundaries = [],
+  center = [19.9167, 99.2333], // ตำบลเวียง อำเภอฝาง จังหวัดเชียงใหม่ (พื้นที่พัฒนาตามคู่มือ)
+  zoom = 13,
+  georeferenceOverlay,
+  editingBoundaryId = null,
+  onGeoreferencePositionChange,
+  loadTambonFromAPI = true,
+  coordinateMarkers = [],
+  flyToMarker = null,
+  onFlyToComplete,
+  mapLayerType = 'street',
+  showLegendOnMap = true,
+  selectedVillageToView = null,
+  onViewComplete,
+  onDrawingStateChange,
+}: VillageBoundaryMapProps) {
+  const mapRef = useRef<L.Map | null>(null);
+  const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
+  const georeferenceMarkerRef = useRef<L.Marker | null>(null);
+  const tambonLayerRef = useRef<L.GeoJSON | null>(null);
+  const coordinateMarkersLayerRef = useRef<L.LayerGroup | null>(null);
+  const existingBoundariesLayerRef = useRef<L.LayerGroup | null>(null); // For non-editable boundaries
+  const [isReady, setIsReady] = useState(false);
+  const [currentZoom, setCurrentZoom] = useState(zoom);
+  const [tambonBoundaryData, setTambonBoundaryData] = useState<any>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+
+  useEffect(() => {
+    // Initialize map
+    if (!mapRef.current) {
+      const map = L.map('village-boundary-map').setView(center, zoom);
+
+      // Base layers
+      const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 19,
+      });
+
+      const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        maxZoom: 19,
+      });
+
+      const hybridLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles © Esri',
+        maxZoom: 19,
+      });
+
+      const labelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '',
+        maxZoom: 19,
+      });
+
+      // Store layers for external control
+      (map as any)._layers = {
+        osmLayer,
+        satelliteLayer,
+        hybridLayer,
+        labelsLayer,
+      };
+
+      // Add default layer based on mapLayerType
+      if (mapLayerType === 'street') {
+        osmLayer.addTo(map);
+      } else if (mapLayerType === 'satellite') {
+        satelliteLayer.addTo(map);
+      } else if (mapLayerType === 'hybrid') {
+        hybridLayer.addTo(map);
+        labelsLayer.addTo(map);
+      }
+
+      // Add fullscreen control
+      const fullscreenControl = L.Control.extend({
+        options: {
+          position: 'topleft',
+        },
+        onAdd: function () {
+          const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-fullscreen');
+          const button = L.DomUtil.create('a', 'leaflet-control-fullscreen-button', container);
+          button.href = '#';
+          button.title = 'ขยายเต็มหน้าจอ (Fullscreen)';
+          button.innerHTML = '⛶';
+          button.style.fontSize = '20px';
+          button.style.lineHeight = '30px';
+          button.style.width = '30px';
+          button.style.height = '30px';
+          button.style.display = 'flex';
+          button.style.alignItems = 'center';
+          button.style.justifyContent = 'center';
+
+          L.DomEvent.on(button, 'click', function (e) {
+            L.DomEvent.preventDefault(e);
+            const mapContainer = map.getContainer();
+
+            if (!document.fullscreenElement) {
+              // Enter fullscreen
+              if (mapContainer.requestFullscreen) {
+                mapContainer.requestFullscreen();
+              } else if ((mapContainer as any).webkitRequestFullscreen) {
+                (mapContainer as any).webkitRequestFullscreen();
+              } else if ((mapContainer as any).msRequestFullscreen) {
+                (mapContainer as any).msRequestFullscreen();
+              }
+              button.innerHTML = '⛶';
+              button.title = 'ออกจากเต็มหน้าจอ (Exit Fullscreen)';
+            } else {
+              // Exit fullscreen
+              if (document.exitFullscreen) {
+                document.exitFullscreen();
+              } else if ((document as any).webkitExitFullscreen) {
+                (document as any).webkitExitFullscreen();
+              } else if ((document as any).msExitFullscreen) {
+                (document as any).msExitFullscreen();
+              }
+              button.innerHTML = '⛶';
+              button.title = 'ขยายเต็มหน้าจอ (Fullscreen)';
+            }
+          });
+
+          // Listen for fullscreen change events
+          document.addEventListener('fullscreenchange', () => {
+            setTimeout(() => {
+              map.invalidateSize();
+            }, 100);
+          });
+
+          return container;
+        },
+      });
+
+      map.addControl(new fullscreenControl());
+
+      // ✅ Add Cancel Draw Mode Button
+      const CancelDrawControl = L.Control.extend({
+        onAdd: function () {
+          const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control cancel-draw-control');
+
+          const button = L.DomUtil.create('button', 'cancel-draw-btn', container);
+          button.innerHTML = `
+            <span style="font-size: 20px;">❌</span>
+            <span style="font-size: 14px; font-weight: 500;">ยกเลิก</span>
+          `;
+          button.title = 'ยกเลิกการวาด (กด ESC)';
+          button.style.cssText = `
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            font-family: 'Sarabun', sans-serif;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+          `;
+
+          L.DomEvent.on(button, 'click', function (e) {
+            L.DomEvent.preventDefault(e);
+            L.DomEvent.stopPropagation(e);
+
+            console.log('🔴 Cancel button clicked');
+            map.pm.disableDraw();
+            button.style.display = 'none';
+            toast('ยกเลิกการวาด', { icon: 'ℹ️' });
+          });
+
+          // Show/hide button based on draw mode
+          map.on('pm:drawstart', () => {
+            button.style.display = 'flex';
+          });
+
+          map.on('pm:drawend', () => {
+            button.style.display = 'none';
+          });
+
+          // Also hide when draw mode is disabled
+          map.on('pm:globaldrawmodetoggled', (e: any) => {
+            if (!e.enabled) {
+              button.style.display = 'none';
+            }
+          });
+
+          return container;
+        }
+      });
+
+      map.addControl(new CancelDrawControl({ position: 'topright' }));
+
+      // Initialize FeatureGroup for drawn items (editable)
+      const drawnItems = new L.FeatureGroup();
+      map.addLayer(drawnItems);
+      drawnItemsRef.current = drawnItems;
+
+      // Initialize LayerGroup for existing boundaries (non-editable)
+      const existingBoundariesLayer = new L.LayerGroup();
+      map.addLayer(existingBoundariesLayer);
+      existingBoundariesLayerRef.current = existingBoundariesLayer;
+
+      // Add Leaflet-Geoman controls (modern drawing tools)
+      map.pm.addControls({
+        position: 'topleft',
+        drawMarker: true,
+        drawCircle: false,
+        drawCircleMarker: false,
+        drawPolyline: false,
+        drawRectangle: true,
+        drawPolygon: true,
+        editMode: true,
+        dragMode: true,
+        cutPolygon: true,
+        removalMode: true,
+        rotateMode: true,
+      });
+
+      // Set Geoman to work with our feature group
+      map.pm.setGlobalOptions({
+        layerGroup: drawnItems,
+      });
+
+      // ✅ Event: pm:create - FOR POLYGON/RECTANGLE ONLY
+      map.on('pm:create', (e: any) => {
+        const layer = e.layer;
+        const shape = e.shape;
+
+        console.log('✅ pm:create fired:', shape);
+
+        // ✅ CRITICAL: Skip Marker (already handled in pm:drawend)
+        if (shape === 'Marker') {
+          console.log('ℹ️ Marker detected in pm:create - SKIPPING (handled in pm:drawend)');
+          return;
+        }
+
+        // ✅ Process Polygon/Rectangle here
+        if (shape === 'Polygon' || shape === 'Rectangle') {
+          console.log(`🔷 Processing ${shape} in pm:create`);
+
+          // Validate polygon points
+          const latlngs = (layer as any).getLatLngs();
+          const points = Array.isArray(latlngs[0]) ? latlngs[0] : latlngs;
+
+          if (!points || points.length < 3) {
+            console.warn('⚠️ Not enough points:', points?.length);
+            drawnItemsRef.current?.removeLayer(layer);
+            toast.error('❌ ต้องวาดอย่างน้อย 3 จุด');
+
+            // Disable draw mode
+            setTimeout(() => {
+              if (map.pm.globalDrawModeEnabled()) {
+                map.pm.disableDraw();
+              }
+            }, 100);
+            return;
+          }
+
+          console.log(`✅ Valid ${shape}:`, points.length, 'points');
+
+          // Convert to GeoJSON
+          const geojson = (layer as any).toGeoJSON();
+
+          // Send to parent (show popup)
+          if (onBoundaryDrawn) {
+            onBoundaryDrawn(geojson);
+          }
+
+          toast.success(`✅ วาด${shape === 'Polygon' ? 'รูปหลายเหลี่ยม' : 'สี่เหลี่ยม'}สำเร็จ (${points.length} จุด) - สามารถวาดต่อได้`);
+
+          // ✅ FIX: ไม่ปิด draw mode อัตโนมัติ เพื่อให้สามารถวาดหลายขอบเขตได้
+          // ผู้ใช้สามารถปิด draw mode ด้วยตัวเองโดยคลิกปุ่ม "ยกเลิก" หรือกด ESC
+          console.log(`✅ ${shape} drawn successfully - draw mode remains active for multiple boundaries`);
+        }
+      });
+
+      // ✅ CRITICAL FIX: Handle shape edited (when user clicks "Finish" in Geoman)
+      map.on('pm:edit', (e: any) => {
+        console.log('✏️ pm:edit event triggered');
+
+        // ✅ Set isDrawing = false เพื่อให้ปุ่มบันทึกแสดง
+        setIsDrawing(false);
+        if (onDrawingStateChange) {
+          onDrawingStateChange(false);
+        }
+
+        const layer = e.layer;
+        const geojson = layer.toGeoJSON();
+        console.log('✏️ Shape edited:', geojson);
+
+        if (onBoundaryDrawn) {
+          onBoundaryDrawn(geojson);
+        }
+
+        toast.success('✏️ แก้ไขขอบเขตเรียบร้อย - กรุณาคลิก "บันทึก"');
+      });
+
+      // ✅ NEW: Handle vertex changes (when user drags/adds/removes vertices)
+      map.on('pm:markerdragend', (e: any) => {
+        console.log('🔷 Vertex dragged');
+
+        setIsDrawing(false);
+        if (onDrawingStateChange) {
+          onDrawingStateChange(false);
+        }
+
+        const layer = e.layer;
+        const geojson = layer.toGeoJSON();
+
+        if (onBoundaryDrawn) {
+          onBoundaryDrawn(geojson);
+        }
+      });
+
+      map.on('pm:vertexadded', (e: any) => {
+        console.log('➕ Vertex added');
+
+        setIsDrawing(false);
+        if (onDrawingStateChange) {
+          onDrawingStateChange(false);
+        }
+
+        const layer = e.layer;
+        const geojson = layer.toGeoJSON();
+
+        if (onBoundaryDrawn) {
+          onBoundaryDrawn(geojson);
+        }
+      });
+
+      map.on('pm:vertexremoved', (e: any) => {
+        console.log('➖ Vertex removed');
+
+        setIsDrawing(false);
+        if (onDrawingStateChange) {
+          onDrawingStateChange(false);
+        }
+
+        const layer = e.layer;
+        const geojson = layer.toGeoJSON();
+
+        if (onBoundaryDrawn) {
+          onBoundaryDrawn(geojson);
+        }
+      });
+
+      // Handle shape removed
+      map.on('pm:remove', (e: any) => {
+        toast.success('🗑️ ลบขอบเขตเรียบร้อย');
+        console.log('🗑️ Shape removed:', e.layer);
+      });
+
+      // Handle shape cut
+      map.on('pm:cut', (e: any) => {
+        toast.success('✂️ ตัดขอบเขตเรียบร้อย');
+        console.log('✂️ Shape cut:', e);
+      });
+
+      // Handle shape rotated
+      map.on('pm:rotate', (e: any) => {
+        toast.success('↻ หมุนขอบเขตเรียบร้อย');
+        console.log('↻ Shape rotated:', e.layer);
+
+        const geojson = e.layer.toGeoJSON();
+        if (onBoundaryDrawn) {
+          onBoundaryDrawn(geojson);
+        }
+      });
+
+      // Handle shape dragged
+      map.on('pm:dragend', (e: any) => {
+        toast.success('⊕ ย้ายขอบเขตเรียบร้อย');
+        console.log('⊕ Shape dragged:', e.layer);
+
+        const geojson = e.layer.toGeoJSON();
+        if (onBoundaryDrawn) {
+          onBoundaryDrawn(geojson);
+        }
+      });
+
+      // ✅ CRITICAL FIX: Handle when user clicks "Finish" in Geoman toolbar
+      map.on('pm:globaleditmodetoggled', (e: any) => {
+        console.log('🏁 Global edit mode toggled:', e.enabled);
+
+        // When edit mode is disabled (user clicked "Finish")
+        if (!e.enabled && drawnItemsRef.current) {
+          setIsDrawing(false);
+          if (onDrawingStateChange) {
+            onDrawingStateChange(false);
+          }
+
+          // Get the last edited layer and update drawnBoundary
+          const layers = drawnItemsRef.current.getLayers();
+          if (layers.length > 0) {
+            const lastLayer = layers[layers.length - 1];
+            const geojson = (lastLayer as any).toGeoJSON();
+            console.log('✅ Finish editing - updating boundary:', geojson);
+
+            if (onBoundaryDrawn) {
+              onBoundaryDrawn(geojson);
+            }
+          }
+        }
+      });
+
+      mapRef.current = map;
+      setIsReady(true);
+    }
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
+  // ✅ ESC Key Handler - Cancel draw mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mapRef.current) {
+        const map = mapRef.current;
+        if (map.pm.globalDrawModeEnabled()) {
+          map.pm.disableDraw();
+          toast('ยกเลิกการวาด (กด ESC)', { icon: 'ℹ️' });
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Load tambon boundary from API
+  useEffect(() => {
+    if (!loadTambonFromAPI) {
+      setTambonBoundaryData(tambonWiangBoundary);
+      return;
+    }
+
+    const loadTambonBoundary = async () => {
+      try {
+        const data = await boundariesService.getTambonBoundary();
+        if (data && data.geojson) {
+          // Convert GeoBoundary to TambonBoundaryFeature format
+          const tambonFeature = {
+            type: 'Feature',
+            properties: {
+              name: data.name || 'ตำบลเวียง',
+              type: 'tambon',
+              ...data.properties,
+            },
+            geometry: data.geojson.geometry || data.geojson,
+          };
+          setTambonBoundaryData(tambonFeature);
+        } else {
+          // Fallback to hardcoded data
+          setTambonBoundaryData(tambonWiangBoundary);
+        }
+      } catch (error) {
+        console.error('Error loading tambon boundary:', error);
+        // Fallback to hardcoded data
+        setTambonBoundaryData(tambonWiangBoundary);
+      }
+    };
+
+    loadTambonBoundary();
+  }, [loadTambonFromAPI]);
+
+  // Add Tambon Wiang boundary layer
+  // ปิดการแสดงชั่วคราว เพื่อให้สามารถวาดและแก้ไขขอบเขตตำบลได้
+  // ขอบเขตตำบลจะแสดงหลังจากวาดและบันทึกลงฐานข้อมูลแล้วเท่านั้น
+  useEffect(() => {
+    // DISABLED: ปิดการแสดงขอบเขตตำบล hardcoded
+    // เหตุผล: ทำให้แก้ไขไม่ได้ เพราะเป็น read-only layer
+    // วิธีใช้: ให้วาดขอบเขตใหม่ด้วยเครื่องมือ Polygon แล้วบันทึก
+
+    /* COMMENTED OUT - ให้วาดใหม่แทน
+    if (!isReady || !mapRef.current || !tambonBoundaryData) return;
+
+    const map = mapRef.current;
+
+    // Add tambon boundary layer
+    const tambonLayer = L.geoJSON(tambonBoundaryData as any, {
+      style: tambonBoundaryStyle,
+    }).addTo(map);
+
+    // Add popup with tambon info
+    const properties = tambonBoundaryData.properties || {};
+    tambonLayer.bindPopup(`
+      <div style="font-family: sans-serif;">
+        <strong style="font-size: 16px; color: #e53e3e;">
+          ${properties.name || 'ตำบลเวียง'}
+        </strong><br>
+        <span style="font-size: 14px; color: #4a5568;">
+          ${properties.district || 'อำเภอฝาง'}<br>
+          ${properties.province || 'จังหวัดเชียงใหม่'}
+        </span><br>
+        <hr style="margin: 8px 0; border: none; border-top: 1px solid #e2e8f0;">
+        <span style="font-size: 13px; color: #718096;">
+          ${properties.area ? `📍 พื้นที่: ${properties.area} ตร.กม.<br>` : ''}
+          ${properties.population ? `👥 ประชากร: ~${properties.population?.toLocaleString()} คน<br>` : ''}
+          ${properties.villages ? `🏘️ หมู่บ้าน: ${properties.villages} หมู่` : ''}
+        </span>
+      </div>
+    `);
+
+    tambonLayerRef.current = tambonLayer;
+
+    return () => {
+      if (tambonLayerRef.current && mapRef.current) {
+        mapRef.current.removeLayer(tambonLayerRef.current);
+        tambonLayerRef.current = null;
+      }
+    };
+    */
+  }, [isReady, tambonBoundaryData]);
+
+  // Function to get distinct color for each village (20 colors)
+  // ✅ ใช้สีที่แตกต่างกันชัดเจน ไม่ซ้ำกัน (Maximum Contrast Colors)
+  const getVillageColor = (villageNo: number): string => {
+    const colors = [
+      '#FF1744', // 1 - Bright Red (แดงสด)
+      '#2196F3', // 2 - Blue (น้ำเงิน)
+      '#4CAF50', // 3 - Green (เขียว)
+      '#FF9800', // 4 - Orange (ส้ม)
+      '#9C27B0', // 5 - Purple (ม่วง)
+      '#00BCD4', // 6 - Cyan (ฟ้าอมเขียว)
+      '#FFEB3B', // 7 - Yellow (เหลือง)
+      '#E91E63', // 8 - Pink (ชมพู)
+      '#009688', // 9 - Teal (เขียวอมฟ้า)
+      '#FF5722', // 10 - Deep Orange (ส้มเข้ม)
+      '#673AB7', // 11 - Deep Purple (ม่วงเข้ม)
+      '#03A9F4', // 12 - Light Blue (ฟ้าอ่อน)
+      '#8BC34A', // 13 - Light Green (เขียวอ่อน)
+      '#FFC107', // 14 - Amber (เหลืองอำพัน)
+      '#F44336', // 15 - Red (แดง)
+      '#3F51B5', // 16 - Indigo (คราม)
+      '#CDDC39', // 17 - Lime (เหลืองมะนาว)
+      '#00E676', // 18 - Green Accent (เขียวสะท้อน)
+      '#FF4081', // 19 - Pink Accent (ชมพูสะท้อน)
+      '#536DFE', // 20 - Indigo Accent (ครามสะท้อน)
+    ];
+    return colors[(villageNo - 1) % colors.length];
+  };
+
+  // Load existing boundaries with color-coded villages
+  useEffect(() => {
+    if (!isReady || !drawnItemsRef.current || !existingBoundariesLayerRef.current) return;
+
+    // Clear all existing layers first
+    drawnItemsRef.current.clearLayers();
+    existingBoundariesLayerRef.current.clearLayers();
+
+    // If no boundaries, exit early
+    if (existingBoundaries.length === 0) return;
+
+    try {
+      existingBoundaries.forEach((boundary) => {
+        // Validate boundary data
+        if (!boundary.boundary && !boundary.geojson) {
+          console.warn('Boundary missing geojson data:', boundary);
+          return;
+        }
+
+        const geojson = boundary.boundary || boundary.geojson;
+        const villageColor = boundary.villageNo ? getVillageColor(boundary.villageNo) : '#3388ff';
+
+        // Check if this is the boundary being edited
+        const isCurrentlyEditing = editingBoundaryId === boundary.id;
+
+        // ✅ Improved opacity logic:
+        // - Normal state: All boundaries visible (opacity 1.0)
+        // - Editing state: Selected boundary highlighted, others visible but dimmed
+        const boundaryStyle = {
+          color: isCurrentlyEditing ? '#ef4444' : villageColor, // Red for editing, village color for normal
+          weight: isCurrentlyEditing ? 3.5 : 2.5,
+          opacity: editingBoundaryId
+            ? (isCurrentlyEditing ? 1 : 0.5)  // ✅ Increased from 0.15 to 0.5 for better visibility
+            : 1,                               // ✅ Normal state: full opacity
+          fillColor: isCurrentlyEditing ? '#ef4444' : villageColor,
+          fillOpacity: editingBoundaryId
+            ? (isCurrentlyEditing ? 0.4 : 0.15) // ✅ Increased from 0.05 to 0.15 for better visibility
+            : 0.2,                               // ✅ Normal state: visible fill
+          className: isCurrentlyEditing ? 'village-boundary-editing' : 'village-boundary-layer',
+        };
+
+        // Create layer with improved styling
+        // Create layer with improved styling
+        const layer = L.geoJSON(geojson, {
+          style: boundaryStyle,
+        });
+
+        // ✅ Tag layer with boundary ID for lookup
+        (layer as any).boundaryId = boundary.id;
+
+        // Add layer to appropriate group
+        if (isCurrentlyEditing && drawnItemsRef.current) {
+          // Add to editable group (drawnItems) - will show edit handles
+          layer.eachLayer((l: any) => {
+            // ✅ Tag individual layer with boundary ID
+            (l as any).boundaryId = boundary.id;
+
+            drawnItemsRef.current!.addLayer(l);
+
+            // ✅ CRITICAL FIX: Enable edit mode for the layer
+            if (l.pm) {
+              l.pm.enable();
+              console.log('✅ Edit mode enabled for boundary:', boundary.id);
+            }
+          });
+        } else if (existingBoundariesLayerRef.current) {
+          // Add to non-editable group - no edit handles
+          layer.eachLayer((l: any) => {
+            // ✅ Tag individual layer with boundary ID
+            (l as any).boundaryId = boundary.id;
+
+            // ✅ ปิดการแก้ไขโดยตรงสำหรับขอบเขตที่ไม่ได้แก้ไข
+            if (l.pm) {
+              l.pm.disable();
+              l.options.pmIgnore = true;
+            }
+            existingBoundariesLayerRef.current!.addLayer(l);
+          });
+        }
+
+        // ✅ Calculate area using Turf.js (accurate geodesic calculation)
+        let areaText = '';
+        let areaKm2 = '0.00';
+        let pointCount = 0;
+
+        try {
+          if (geojson) {
+            // Calculate area using Turf.js (returns square meters)
+            const areaInSquareMeters = turf.area(geojson);
+            // Convert to square kilometers
+            const areaInSquareKm = areaInSquareMeters / 1_000_000;
+            areaKm2 = areaInSquareKm.toFixed(2);
+
+            // Count points
+            if (boundary.boundary?.coordinates && Array.isArray(boundary.boundary.coordinates) && boundary.boundary.coordinates.length > 0) {
+              const coords = boundary.boundary.coordinates[0];
+              pointCount = coords ? coords.length : 0;
+            }
+
+            areaText = `<div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+              <span style="color: #718096; font-size: 13px;">📏 พื้นที่: ${areaKm2} ตร.กม.</span><br>
+              <span style="color: #718096; font-size: 13px;">📍 จำนวนจุด: ${pointCount} จุด</span>
+            </div>`;
+          }
+        } catch (e) {
+          console.warn('Error calculating area:', e);
+        }
+
+        // ✅ Add permanent tooltip (always visible) with village name
+        if (boundary.name) {
+          const tooltipContent = boundary.villageNo
+            ? `<strong>หมู่ ${boundary.villageNo}</strong>: ${boundary.name}`
+            : `<strong>${boundary.name}</strong>`;
+
+          layer.bindTooltip(tooltipContent, {
+            permanent: true,
+            direction: 'center',
+            className: 'village-label-tooltip',
+            opacity: 0.9
+          });
+
+          // ✅ Add enhanced popup with detailed village info (on click)
+          layer.bindPopup(`
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; min-width: 220px;">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <div style="width: 20px; height: 20px; background: ${villageColor}; border-radius: 4px; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); flex-shrink: 0;"></div>
+                <div>
+                  <strong style="font-size: 16px; color: #2d3748;">${boundary.name}</strong>
+                  ${boundary.villageNo ? `<div style="color: #718096; font-size: 13px; margin-top: 2px;">หมู่ ${boundary.villageNo}</div>` : ''}
+                </div>
+              </div>
+              ${boundary.centerPoint?.coordinates && boundary.centerPoint.coordinates.length >= 2 ? `
+                <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+                  <span style="color: #718096; font-size: 12px;">📍 พิกัดกลาง:</span><br>
+                  <span style="color: #4a5568; font-size: 12px; font-family: monospace;">
+                    ${boundary.centerPoint.coordinates[1].toFixed(6)}, ${boundary.centerPoint.coordinates[0].toFixed(6)}
+                  </span>
+                </div>
+              ` : ''}
+              ${areaText}
+            </div>
+          `, {
+            maxWidth: 300,
+            className: 'village-boundary-popup'
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Error loading boundaries:', error);
+      toast.error('เกิดข้อผิดพลาดในการแสดงขอบเขต');
+    }
+  }, [isReady, existingBoundaries, editingBoundaryId]);
+
+  // Georeference overlay effect
+  useEffect(() => {
+    if (!mapRef.current || !georeferenceOverlay) {
+      // Remove marker if overlay is removed
+      if (georeferenceMarkerRef.current && mapRef.current) {
+        mapRef.current.removeLayer(georeferenceMarkerRef.current);
+        georeferenceMarkerRef.current = null;
+      }
+      return;
+    }
+
+    const map = mapRef.current;
+
+    // Calculate pixel size based on zoom and scale
+    const calculatePixelSize = (zoom: number) => {
+      const baseSize = 200; // Base size at zoom 13
+      const zoomDiff = zoom - 13;
+      return baseSize * Math.pow(2, zoomDiff) * georeferenceOverlay.scale;
+    };
+
+    const pixelSize = calculatePixelSize(currentZoom);
+    const aspectRatio = georeferenceOverlay.naturalHeight / georeferenceOverlay.naturalWidth;
+    const pixelHeight = pixelSize * aspectRatio;
+
+    // Create custom icon with image
+    const customIcon = L.divIcon({
+      className: 'georeference-marker',
+      html: `
+        <img 
+          src="${georeferenceOverlay.url}" 
+          style="
+            width: ${pixelSize}px;
+            height: ${pixelHeight}px;
+            opacity: ${georeferenceOverlay.opacity};
+            transform: rotate(${georeferenceOverlay.rotation}deg);
+            pointer-events: none;
+            display: block;
+          "
+          alt="Georeference overlay"
+        />
+      `,
+      iconSize: [pixelSize, pixelHeight],
+      iconAnchor: [pixelSize / 2, pixelHeight / 2],
+    });
+
+    // Remove existing marker
+    if (georeferenceMarkerRef.current) {
+      map.removeLayer(georeferenceMarkerRef.current);
+    }
+
+    // Create draggable marker
+    const marker = L.marker(georeferenceOverlay.position, {
+      icon: customIcon,
+      draggable: true,
+    }).addTo(map);
+
+    // Handle drag end
+    marker.on('dragend', () => {
+      const pos = marker.getLatLng();
+      if (onGeoreferencePositionChange) {
+        onGeoreferencePositionChange([pos.lat, pos.lng]);
+      }
+    });
+
+    georeferenceMarkerRef.current = marker;
+
+    // Update on zoom
+    const handleZoom = () => {
+      const newZoom = map.getZoom();
+      setCurrentZoom(newZoom);
+    };
+
+    map.on('zoom', handleZoom);
+
+    return () => {
+      map.off('zoom', handleZoom);
+      if (georeferenceMarkerRef.current) {
+        map.removeLayer(georeferenceMarkerRef.current);
+        georeferenceMarkerRef.current = null;
+      }
+    };
+  }, [georeferenceOverlay, currentZoom, onGeoreferencePositionChange]);
+
+  // Add coordinate markers to map
+  useEffect(() => {
+    if (!isReady || !mapRef.current) return;
+
+    const map = mapRef.current;
+
+    // Remove existing markers layer
+    if (coordinateMarkersLayerRef.current) {
+      map.removeLayer(coordinateMarkersLayerRef.current);
+    }
+
+    // Create new markers layer
+    const markersLayer = L.layerGroup();
+
+    // Custom red pin icon
+    const redPinIcon = L.divIcon({
+      className: 'custom-marker-icon',
+      html: `<div style="
+        background: #ef4444;
+        width: 32px;
+        height: 32px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        <div style="
+          transform: rotate(45deg);
+          color: white;
+          font-size: 16px;
+          font-weight: bold;
+        ">📍</div>
+      </div>`,
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -32],
+    });
+
+    // Add markers
+    coordinateMarkers.forEach((marker) => {
+      const leafletMarker = L.marker([marker.lat, marker.lng], {
+        icon: redPinIcon,
+      });
+
+      leafletMarker.bindPopup(`
+        <div style="font-family: sans-serif; min-width: 200px;">
+          <strong style="font-size: 14px; color: #ef4444;">
+            📍 ${marker.label}
+          </strong><br>
+          <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
+            <strong>Latitude:</strong> ${marker.lat.toFixed(6)}<br>
+            <strong>Longitude:</strong> ${marker.lng.toFixed(6)}
+          </div>
+        </div>
+      `);
+
+      markersLayer.addLayer(leafletMarker);
+    });
+
+    markersLayer.addTo(map);
+    coordinateMarkersLayerRef.current = markersLayer;
+
+    return () => {
+      if (coordinateMarkersLayerRef.current && mapRef.current) {
+        mapRef.current.removeLayer(coordinateMarkersLayerRef.current);
+        coordinateMarkersLayerRef.current = null;
+      }
+    };
+  }, [isReady, coordinateMarkers]);
+
+  // Handle fly to marker
+  useEffect(() => {
+    if (!isReady || !mapRef.current || !flyToMarker) return;
+
+    const map = mapRef.current;
+    map.flyTo([flyToMarker.lat, flyToMarker.lng], 17, {
+      duration: 1.5,
+    });
+
+    // Call completion callback after animation
+    const timeout = setTimeout(() => {
+      if (onFlyToComplete) {
+        onFlyToComplete();
+      }
+    }, 1500);
+
+    return () => clearTimeout(timeout);
+  }, [flyToMarker, isReady, onFlyToComplete]);
+
+  // Handle selected village to view
+  useEffect(() => {
+    if (!isReady || !mapRef.current || !selectedVillageToView) return;
+
+    const map = mapRef.current;
+    const village = selectedVillageToView;
+
+    console.log('🗺️ VillageBoundaryMap: Attempting to zoom to village:', village);
+
+    // ✅ NEW LOGIC: Try to find existing layer for this village first
+    let targetLayer: L.Layer | null = null;
+
+    // Search in existing boundaries
+    if (existingBoundariesLayerRef.current) {
+      existingBoundariesLayerRef.current.eachLayer((layer: any) => {
+        if (layer.boundaryId === village.id) {
+          targetLayer = layer;
+        }
+      });
+    }
+
+    // Search in drawn items (if editing)
+    if (!targetLayer && drawnItemsRef.current) {
+      drawnItemsRef.current.eachLayer((layer: any) => {
+        if (layer.boundaryId === village.id) {
+          targetLayer = layer;
+        }
+      });
+    }
+
+    // ✅ Case 1: Layer found - Zoom to bounds (Robust Implementation)
+    if (targetLayer) {
+      console.log('View on map — boundaryId:', village.id);
+
+      try {
+        const layer = targetLayer as L.FeatureGroup; // Cast to FeatureGroup/GeoJSON
+        const bounds = layer.getBounds();
+        const container = map.getContainer();
+
+        // Function to execute pan/zoom
+        const executePan = () => {
+          console.log('🚀 Executing Pan Logic...');
+          console.log('  map container size:', container.clientWidth, container.clientHeight);
+
+          // ✅ Deep Diagnostic Logs
+          console.log('📊 Map State BEFORE:', {
+            center: map.getCenter(),
+            zoom: map.getZoom(),
+            minZoom: map.getMinZoom(),
+            maxZoom: map.getMaxZoom(),
+            // @ts-ignore
+            maxBounds: map.options.maxBounds,
+            bounds: map.getBounds()
+          });
+
+          if (bounds.isValid()) {
+            map.invalidateSize();
+
+            setTimeout(() => {
+              if (!map.hasLayer(layer)) {
+                console.warn('⚠️ Layer no longer on map, re-adding...');
+                layer.addTo(map);
+              }
+
+              // Check layer visibility/state
+              console.log('🧐 Layer State:', {
+                hasLayer: map.hasLayer(layer),
+                // @ts-ignore
+                visible: layer._path ? layer._path.style.display !== 'none' : 'unknown',
+                bounds: bounds
+              });
+
+              console.log('  calling flyToBounds with:', bounds);
+
+              // ✅ TEST: Try direct setView if flyToBounds fails (Comment out one or the other to test)
+              // map.setView(bounds.getCenter(), 16); 
+
+              map.flyToBounds(bounds, {
+                padding: [60, 60],
+                maxZoom: 18,
+                animate: true,
+                duration: 1.5
+              });
+
+              setTimeout(() => {
+                console.log('📊 Map State AFTER:', {
+                  center: map.getCenter(),
+                  zoom: map.getZoom()
+                });
+                layer.openPopup();
+                onViewComplete?.();
+              }, 1600);
+            }, 200);
+          } else {
+            console.warn('❌ Bounds invalid during execution. Fallback to center.');
+          }
+        };
+
+        // ✅ Check if container is visible/sized
+        if (container.clientWidth > 0 && container.clientHeight > 0) {
+          executePan();
+        } else {
+          console.warn('⚠️ Map container has 0 size. Waiting for ResizeObserver...');
+
+          // ✅ Use ResizeObserver to wait for container to be visible
+          const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+              if (entry.contentRect.width > 0 && entry.contentRect.height > 0) {
+                console.log('✅ Map container resized/visible:', entry.contentRect.width, entry.contentRect.height);
+                resizeObserver.disconnect(); // Stop observing once valid
+                executePan();
+              }
+            }
+          });
+
+          resizeObserver.observe(container);
+
+          // Safety timeout to stop observing if it never resizes (e.g. 5 seconds)
+          setTimeout(() => {
+            resizeObserver.disconnect();
+            console.warn('❌ ResizeObserver timed out. Map container never became visible.');
+          }, 5000);
+
+          return; // Exit and wait for observer
+        }
+
+      } catch (e) {
+        console.warn('⚠️ Error getting bounds from layer:', e);
+        // Fallback to standard coordinate logic
+      }
+    }
+
+    // ✅ Case 2: Layer not found or invalid - Fallback to center point logic
+    // Get coordinates from centerPoint or boundary
+    let lat, lng, zoomLevel = 15;
+
+    console.log('🔍 Checking village data (Fallback):', {
+      hasCenterPoint: !!village.centerPoint,
+      centerPoint: village.centerPoint,
+      hasBoundary: !!village.boundary,
+      boundary: village.boundary
+    });
+
+    if (village.centerPoint?.coordinates && village.centerPoint.coordinates.length >= 2) {
+      // GeoJSON format: [lng, lat]
+      lng = village.centerPoint.coordinates[0];
+      lat = village.centerPoint.coordinates[1];
+      console.log('✅ Using centerPoint:', { lat, lng });
+    } else if (village.boundary) {
+      // Calculate center from boundary (support both GeoJSON and plain object)
+      console.log('📍 Processing boundary:', village.boundary);
+
+      let coords;
+      if (village.boundary.type === 'Polygon' && village.boundary.coordinates) {
+        // GeoJSON Polygon format
+        coords = village.boundary.coordinates[0];
+      } else if (Array.isArray(village.boundary.coordinates) && village.boundary.coordinates.length > 0) {
+        // Plain object with coordinates array
+        coords = village.boundary.coordinates[0];
+      } else if (Array.isArray(village.boundary)) {
+        // Direct array of coordinates
+        coords = village.boundary;
+      }
+
+      console.log('📍 Extracted coords:', coords);
+
+      if (coords && coords.length > 0) {
+        const lats = coords.map((c: number[]) => c[1]).filter((v: number) => v !== undefined && !isNaN(v));
+        const lngs = coords.map((c: number[]) => c[0]).filter((v: number) => v !== undefined && !isNaN(v));
+
+        console.log('📍 Extracted lats/lngs:', { lats, lngs });
+
+        if (lats.length > 0 && lngs.length > 0) {
+          lat = (Math.min(...lats) + Math.max(...lats)) / 2;
+          lng = (Math.min(...lngs) + Math.max(...lngs)) / 2;
+          console.log('✅ Calculated center from boundary:', { lat, lng });
+        } else {
+          console.warn('❌ Village boundary has invalid coordinates:', village);
+          onViewComplete?.();
+          return;
+        }
+      } else {
+        console.warn('❌ Village boundary coordinates are empty:', village);
+        onViewComplete?.();
+        return;
+      }
+    } else {
+      console.warn('Village has no centerPoint or boundary:', village);
+      onViewComplete?.();
+      return;
+    }
+
+    // Fly to village (Fallback)
+    console.log('🚀 Flying to (Fallback):', { lat, lng, zoomLevel });
+
+    // ✅ Force invalidateSize before flying
+    map.invalidateSize();
+
+    map.flyTo([lat, lng], zoomLevel, {
+      duration: 1.5,
+    });
+
+    // Call onViewComplete after animation
+    const timeout = setTimeout(() => {
+      onViewComplete?.();
+    }, 1500);
+
+    return () => clearTimeout(timeout);
+  }, [selectedVillageToView, isReady, onViewComplete]);
+
+  // Handle map layer type changes
+  useEffect(() => {
+    if (!isReady || !mapRef.current) return;
+
+    const map = mapRef.current;
+    const layers = (map as any)._layers;
+
+    if (!layers) return;
+
+    // Remove all base layers
+    if (map.hasLayer(layers.osmLayer)) map.removeLayer(layers.osmLayer);
+    if (map.hasLayer(layers.satelliteLayer)) map.removeLayer(layers.satelliteLayer);
+    if (map.hasLayer(layers.hybridLayer)) map.removeLayer(layers.hybridLayer);
+    if (map.hasLayer(layers.labelsLayer)) map.removeLayer(layers.labelsLayer);
+
+    // Add selected layer
+    if (mapLayerType === 'street') {
+      layers.osmLayer.addTo(map);
+    } else if (mapLayerType === 'satellite') {
+      layers.satelliteLayer.addTo(map);
+    } else if (mapLayerType === 'hybrid') {
+      layers.hybridLayer.addTo(map);
+      layers.labelsLayer.addTo(map);
+    }
+  }, [mapLayerType, isReady]);
+
+  // Add color legend to map (only if showLegendOnMap is true)
+  useEffect(() => {
+    if (!showLegendOnMap || !isReady || !mapRef.current || existingBoundaries.length === 0) return;
+
+    const legend = new (L.Control as any)({ position: 'bottomright' });
+
+    legend.onAdd = function () {
+      const div = L.DomUtil.create('div', 'village-legend');
+      div.style.cssText = `
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        max-height: 400px;
+        overflow-y: auto;
+        font-family: sans-serif;
+      `;
+
+      let html = '<div style="font-weight: bold; margin-bottom: 8px; font-size: 14px;">🎨 สีขอบเขตหมู่บ้าน</div>';
+
+      // Get unique villages with boundaries
+      const villagesWithBoundaries = existingBoundaries
+        .filter(b => b.boundary && b.villageNo)
+        .sort((a, b) => a.villageNo - b.villageNo);
+
+      villagesWithBoundaries.forEach((boundary) => {
+        const color = getVillageColor(boundary.villageNo);
+        html += `
+          <div style="display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 13px;">
+            <div style="width: 20px; height: 12px; background: ${color}; border-radius: 2px; border: 1px solid #ccc;"></div>
+            <span style="color: #333;">หมู่ ${boundary.villageNo}</span>
+          </div>
+        `;
+      });
+
+      div.innerHTML = html;
+      return div;
+    };
+
+    legend.addTo(mapRef.current);
+
+    return () => {
+      if (mapRef.current && legend) {
+        mapRef.current.removeControl(legend);
+      }
+    };
+  }, [isReady, existingBoundaries, showLegendOnMap]);
+
+  return (
+    <div
+      id="village-boundary-map"
+      style={{
+        width: '100%',
+        height: '600px',
+        borderRadius: '8px',
+        overflow: 'hidden',
+      }}
+    />
+  );
+}
