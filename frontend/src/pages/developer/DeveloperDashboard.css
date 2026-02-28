@@ -1,0 +1,399 @@
+/**
+ * Developer Dashboard Styles
+ * Modern, Clean, Professional Design
+ */
+
+.developer-dashboard {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 2rem;
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==================== HEADER ==================== */
+.dev-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 24px;
+    padding: 3rem;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.dev-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.dev-header-content {
+    position: relative;
+    z-index: 1;
+}
+
+.dev-header h1 {
+    font-size: 3rem;
+    font-weight: 900;
+    color: white;
+    margin-bottom: 0.75rem;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dev-header p {
+    font-size: 1.25rem;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 500;
+}
+
+/* ==================== STATS GRID ==================== */
+.dev-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.dev-stat-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid transparent;
+}
+
+.dev-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+.dev-stat-card.purple {
+    border-color: rgba(102, 126, 234, 0.2);
+}
+
+.dev-stat-card.purple:hover {
+    border-color: rgba(102, 126, 234, 0.4);
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+}
+
+.dev-stat-card.blue {
+    border-color: rgba(79, 172, 254, 0.2);
+}
+
+.dev-stat-card.blue:hover {
+    border-color: rgba(79, 172, 254, 0.4);
+    background: linear-gradient(135deg, rgba(79, 172, 254, 0.05) 0%, rgba(0, 242, 254, 0.05) 100%);
+}
+
+.dev-stat-card.green {
+    border-color: rgba(67, 233, 123, 0.2);
+}
+
+.dev-stat-card.green:hover {
+    border-color: rgba(67, 233, 123, 0.4);
+    background: linear-gradient(135deg, rgba(67, 233, 123, 0.05) 0%, rgba(56, 249, 215, 0.05) 100%);
+}
+
+.dev-stat-card.orange {
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.dev-stat-card.orange:hover {
+    border-color: rgba(245, 158, 11, 0.4);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(217, 119, 6, 0.05) 100%);
+}
+
+.dev-stat-card .stat-icon {
+    font-size: 3rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.dev-stat-card .stat-content h3 {
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: #1a202c;
+    margin-bottom: 0.25rem;
+}
+
+.dev-stat-card .stat-content p {
+    font-size: 0.9375rem;
+    color: #718096;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ==================== MENU SECTIONS ==================== */
+.dev-menu-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+}
+
+.dev-menu-section {
+    background: white;
+    border-radius: 24px;
+    padding: 2.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-left: 6px solid transparent;
+}
+
+.dev-menu-section:hover {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+}
+
+.dev-menu-section.testing {
+    border-left-color: #8b5cf6;
+}
+
+.dev-menu-section.field-officer {
+    border-left-color: #10b981;
+}
+
+.dev-menu-section.supervisor {
+    border-left-color: #3b82f6;
+}
+
+.dev-menu-section.executive {
+    border-left-color: #f59e0b;
+}
+
+.dev-menu-section.admin {
+    border-left-color: #ef4444;
+}
+
+.dev-menu-section.documentation {
+    border-left-color: #6366f1;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.section-header h2 {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin: 0;
+}
+
+.section-header .badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.badge.dev-only {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+}
+
+.badge.operational {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.badge.command {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+}
+
+.badge.strategic {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+}
+
+.badge.backoffice {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+}
+
+.badge.docs {
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: white;
+}
+
+.section-description {
+    color: #718096;
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+/* ==================== MENU GRID ==================== */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+}
+
+.menu-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-radius: 16px;
+    border: 2px solid #e2e8f0;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.menu-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    border-color: #cbd5e0;
+    background: white;
+}
+
+.menu-card .menu-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.menu-card .menu-content {
+    flex: 1;
+}
+
+.menu-card .menu-content h3 {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 0.375rem;
+}
+
+.menu-card .menu-content p {
+    font-size: 0.875rem;
+    color: #718096;
+    line-height: 1.5;
+}
+
+.menu-card .menu-arrow {
+    font-size: 1.5rem;
+    color: #cbd5e0;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.menu-card:hover .menu-arrow {
+    color: #667eea;
+    transform: translateX(4px);
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 1024px) {
+    .menu-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .developer-dashboard {
+        padding: 1rem;
+    }
+
+    .dev-header {
+        padding: 2rem 1.5rem;
+    }
+
+    .dev-header h1 {
+        font-size: 2rem;
+    }
+
+    .dev-header p {
+        font-size: 1rem;
+    }
+
+    .dev-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dev-menu-section {
+        padding: 1.5rem;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .menu-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .menu-card {
+        padding: 1.25rem;
+    }
+}
+
+/* ==================== ANIMATIONS ==================== */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.menu-card {
+    animation: slideIn 0.3s ease-out;
+    animation-fill-mode: both;
+}
+
+.menu-card:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.menu-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.menu-card:nth-child(3) {
+    animation-delay: 0.15s;
+}
+
+.menu-card:nth-child(4) {
+    animation-delay: 0.2s;
+}
+
+.menu-card:nth-child(5) {
+    animation-delay: 0.25s;
+}
+
+.menu-card:nth-child(6) {
+    animation-delay: 0.3s;
+}

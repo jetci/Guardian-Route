@@ -1,0 +1,38 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "name": "Test Village Upload"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            99.230,
+                            19.938
+                        ],
+                        [
+                            99.231,
+                            19.938
+                        ],
+                        [
+                            99.231,
+                            19.939
+                        ],
+                        [
+                            99.230,
+                            19.939
+                        ],
+                        [
+                            99.230,
+                            19.938
+                        ]
+                    ]
+                ]
+            }
+        }
+    ]
+}

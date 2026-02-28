@@ -1,0 +1,7 @@
+/* Fullscreen Modal Support - Fix z-index issue when map is in fullscreen */
+#map-section-container:fullscreen .modal-overlay,
+#map-section-container:-webkit-full-screen .modal-overlay,
+#map-section-container:-moz-full-screen .modal-overlay {
+    position: fixed !important;
+    z-index: 999999 !important;
+}

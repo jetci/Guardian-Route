@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Villages API</title>
+</head>
+<body>
+    <h1>Test Villages API</h1>
+    <button onclick="testAPI()">Test /api/villages</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function testAPI() {
+            const token = localStorage.getItem('token');
+            const resultEl = document.getElementById('result');
+            
+            try {
+                resultEl.textContent = 'Loading...';
+                
+                const response = await fetch('http://localhost:3001/api/villages', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                resultEl.textContent = JSON.stringify({
+                    total: data.length,
+                    withBoundary: data.filter(v => v.boundary).length,
+                    withoutBoundary: data.filter(v => !v.boundary).length,
+                    first3: data.slice(0, 3).map(v => ({
+                        id: v.id,
+                        villageNo: v.villageNo,
+                        name: v.name,
+                        hasBoundary: !!v.boundary,
+                        hasCenterPoint: !!v.centerPoint
+                    }))
+                }, null, 2);
+                
+            } catch (error) {
+                resultEl.textContent = `Error: ${error.message}`;
+                console.error('API Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

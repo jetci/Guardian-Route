@@ -1,0 +1,321 @@
+/* Survey Confirmation Page */
+
+.survey-confirmation-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Success Header */
+.success-header {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border-radius: 16px;
+  color: white;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+}
+
+.success-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  animation: successPulse 0.6s ease-out;
+}
+
+@keyframes successPulse {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.success-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.success-subtitle {
+  font-size: 16px;
+  opacity: 0.95;
+  margin: 0;
+}
+
+/* Confirmation Card */
+.confirmation-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.card-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-submitted {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.card-body {
+  padding: 24px;
+}
+
+/* Detail Rows */
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 0;
+  gap: 16px;
+}
+
+.detail-row.vertical {
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  min-width: 160px;
+}
+
+.detail-value {
+  font-size: 15px;
+  color: #1e293b;
+  font-weight: 500;
+  flex: 1;
+  text-align: right;
+}
+
+.detail-value.code {
+  font-family: 'Courier New', monospace;
+  background: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.detail-value.highlight {
+  color: #0ea5e9;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.detail-value.warning {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.detail-value.danger {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.detail-value.notes {
+  text-align: left;
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 3px solid #0ea5e9;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+/* Severity Badge */
+.severity-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: white;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 16px 0;
+}
+
+/* Photo Grid */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.photo-item {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid #e2e8f0;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.photo-item:hover {
+  border-color: #0ea5e9;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Next Steps Card */
+.next-steps-card {
+  background: #eff6ff;
+  border: 2px solid #bfdbfe;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+}
+
+.next-steps-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e40af;
+  margin: 0 0 12px 0;
+}
+
+.next-steps-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.next-steps-card li {
+  padding: 8px 0;
+  color: #1e40af;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+}
+
+.btn-secondary {
+  background: white;
+  color: #64748b;
+  border: 2px solid #e2e8f0;
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e0;
+  color: #475569;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .survey-confirmation-page {
+    padding: 16px;
+  }
+
+  .success-header {
+    padding: 32px 16px;
+  }
+
+  .success-icon {
+    font-size: 48px;
+  }
+
+  .success-header h1 {
+    font-size: 24px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .detail-label {
+    min-width: auto;
+  }
+
+  .detail-value {
+    text-align: left;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}

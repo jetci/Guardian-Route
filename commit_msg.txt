@@ -1,0 +1,8 @@
+feat: Update user management, fix modals, improve dashboard
+
+- Fix profile image cropping and upload
+- Fix user edit modal saving issue
+- Add Executive role permissions
+- Fix menu overflow in modals
+- Add missing department options
+- Ensure data consistency across dashboards
